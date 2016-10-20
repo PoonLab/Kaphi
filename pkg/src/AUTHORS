@@ -1,1 +1,16 @@
-Rosemary McCloskey <rmcclosk.math@gmail.com>
+smc.h
+smc.c
+treestats.h
+treestats.c
+util.h
+util.c
+tree.h
+tree.c
+  were originally implemented by
+  Rosemary McCloskey <rmcclosk.math@gmail.com>
+  and distributed under the GPLv3 license in the package netabc
+
+rinterface.h
+  was originally implemented by
+  Gabor Csardi <csardi.gabor@gmail.com>
+  and distributed under the GPLv2 license in the package rigraph

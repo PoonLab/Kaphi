@@ -1,3 +1,5 @@
+/* modeled on rigraph/tools/stimulus/rinterface_extra.c */
+
 #include "igraph.h"
 
 #define USE_RINTERNALS
@@ -5,7 +7,7 @@
 #include <Rdefines.h>
 #include "rinterface.h"
 
-#include <stdio.h>
+#include <stdlib.h>
 
 SEXP R_igraph_test(SEXP graph) {
     igraph_t g;

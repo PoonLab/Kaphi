@@ -1,3 +1,0 @@
-[submodule "pkg/src/igraph"]
-	path = pkg/src/igraph
-	url = https://github.com/rmcclosk/igraph.git

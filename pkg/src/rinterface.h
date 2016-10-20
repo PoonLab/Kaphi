@@ -27,3 +27,4 @@
 #define R_IGRAPH_VERSION_VAR ".__igraph_version__."
 
 SEXP R_igraph_add_env(SEXP graph);
+int R_SEXP_to_igraph(SEXP graph, igraph_t *res);

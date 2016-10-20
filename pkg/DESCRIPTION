@@ -1,0 +1,26 @@
+Package: Kaphi
+Type: Package
+Title: Kernel-embedded ABC for phylodynamic inference
+Version: 0.0.1
+Date: 2016-10-20
+Author: {Art FY Poon}
+Maintainer: Art FY Poon <artpoon@gmail.com>
+Depends:
+    R,
+    ape,
+    deSolve,
+    rcolgem,
+    igraph
+Description: Kaphi is a package for phylodynamic using approximate Bayesian computation 
+ (ABC).  It uses a kernel method to compare the shapes of phylogenies, which is the 
+ basis for parameter rejection in the context of ABC.  Kaphi implements an adaptive
+ sequential Monte Carlo algorithm that was formulated by del Moral and colleagues:
+    @article{Del-Moral:2012,
+        Author = {Del Moral, Pierre and Doucet, Arnaud and Jasra, Ajay},
+        Journal = {Statistics and Computing},
+        Number = {5},
+        Pages = {1009--1020},
+        Title = {An adaptive sequential Monte Carlo method for approximate Bayesian computation},
+        Volume = {22},
+        Year = {2012}}
+License: GPL-3 
