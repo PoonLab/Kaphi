@@ -1,0 +1,3 @@
+[submodule "rcolgem"]
+	path = rcolgem
+	url = https://github.com/PoonLab/colgem.git
