@@ -8,6 +8,7 @@
 #include <Rdefines.h>
 
 #include "rinternals.h"
+#include "treekernel/tree.h"
 
 SEXP R_Kaphi_test(void) {
    SEXP myint;
@@ -26,6 +27,9 @@ SEXP R_Kaphi_treekernel(SEXP graph) {
     igraph_t g;
     SEXP result, dim;
     R_SEXP_to_igraph(graph, &g);
+
+    tree_attrs * a = _get_tree_attrs()
+
     PROTECT(dim=NEW_INTEGER(1));
     INTEGER(dim)[0] = 42;
     SET_DIM(result, dim);
