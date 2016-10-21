@@ -1,1 +1,1 @@
-useDynLib(Kaphi, test)
+useDynLib("Kaphi", "R_igraph_test")

@@ -3,7 +3,7 @@ require(igraph)
 
 test <- function(graph) {
     if (!is_igraph(graph)) {
-        stop("Note an igraph object")
+        stop("Not an igraph object")
     }
     on.exit( .Call("R_igraph_finalizer", PACKAGE="igraph") )
     res <- .Call("R_igraph_test", graph, PACKAGE="Kaphi")

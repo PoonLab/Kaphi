@@ -1,0 +1,2 @@
+PKG_CFLAGS = -I/opt/local/include/igraph
+PKG_LIBS = -L/opt/local/lib -ligraph
