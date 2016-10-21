@@ -1,4 +1,1 @@
-export(test)
-import(ape)
-import(deSolve)
-useDynLib("test")
+useDynLib(Kaphi, test)
