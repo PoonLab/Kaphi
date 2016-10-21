@@ -1,1 +1,3 @@
-useDynLib("Kaphi", "R_igraph_test")
+export(test)
+useDynLib(Kaphi)
+
