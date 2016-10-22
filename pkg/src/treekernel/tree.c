@@ -6,7 +6,7 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_statistics.h>
 
-#include "../igraph/include/igraph.h"
+#include <igraph.h>
 
 #include "newick_parser.h"
 #include "tree.h"
@@ -16,31 +16,6 @@
 
 void yyrestart(FILE *f);
 
-typedef struct {
-    igraph_strvector_t *strvattrs;
-    igraph_vector_t *numvattrs;
-    igraph_vector_bool_t *boolvattrs;
-
-    igraph_strvector_t *streattrs;
-    igraph_vector_t *numeattrs;
-    igraph_vector_bool_t *booleattrs;
-
-    int nstrvattr;
-    int nnumvattr;
-    int nboolvattr;
-
-    int nstreattr;
-    int nnumeattr;
-    int nbooleattr;
-
-    igraph_strvector_t strvattr_names;
-    igraph_strvector_t numvattr_names;
-    igraph_strvector_t boolvattr_names;
-
-    igraph_strvector_t streattr_names;
-    igraph_strvector_t numeattr_names;
-    igraph_strvector_t booleattr_names;
-} tree_attrs;
 
 /* recursive functions */
 int _ladderize(igraph_t *tree, igraph_vector_t *work, int root, int *perm);
@@ -55,7 +30,6 @@ void _depths(const igraph_t *tree, double *depths, igraph_vector_t *work,
         int root, double parent_depth, int use_branch_lengths);
 
 /* other helpers */
-tree_attrs *_get_tree_attrs(const igraph_t *tree);
 void _permute_tree_attrs(igraph_t *tree, tree_attrs *a, const int *perm);
 void _tree_attrs_destroy(tree_attrs *a);
 void _get_node_ids(const igraph_t *g, igraph_strvector_t *ids);
@@ -136,7 +110,7 @@ void ladderize(igraph_t *tree)
     igraph_vector_destroy(&permvec);
 }
 
-tree_attrs *_get_tree_attrs(const igraph_t *tree)
+tree_attrs * _get_tree_attrs(const igraph_t *tree)
 {
     int i, j, nv = igraph_vcount(tree), ne = igraph_ecount(tree), from, to;
     int *heads = malloc(ne * sizeof(int));

@@ -1,3 +1,4 @@
 export(test)
+export(node.count)
 useDynLib(Kaphi)
 

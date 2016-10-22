@@ -7,7 +7,7 @@
 #include <Rinternals.h>
 #include <Rdefines.h>
 
-#include "rinternals.h"
+#include "rinterface.h"
 #include "treekernel/tree.h"
 
 SEXP R_Kaphi_test(void) {
@@ -25,14 +25,14 @@ SEXP R_Kaphi_test(void) {
 
 SEXP R_Kaphi_treekernel(SEXP graph) {
     igraph_t g;
-    SEXP result, dim;
+    SEXP myint;
+    int * p_myint;
+    int len = 1;
+
     R_SEXP_to_igraph(graph, &g);
-
-    tree_attrs * a = _get_tree_attrs()
-
-    PROTECT(dim=NEW_INTEGER(1));
-    INTEGER(dim)[0] = 42;
-    SET_DIM(result, dim);
+    PROTECT(myint = NEW_INTEGER(len));
+    p_myint = INTEGER_POINTER(myint);
+    p_myint[0] = (int)igraph_vcount(&g);
     UNPROTECT(1);
-    return result;
+    return myint;
 }

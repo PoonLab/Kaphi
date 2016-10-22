@@ -7,3 +7,7 @@ test <- function() {
     res
 }
 
+node.count <- function(tree) {
+    res <- .Call("R_Kaphi_treekernel", tree, PACKAGE="Kaphi")
+    res
+}

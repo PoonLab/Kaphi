@@ -5,7 +5,7 @@
 #include <math.h>
 #include <gsl/gsl_rng.h>
 
-#include "../igraph/include/igraph.h"
+#include <igraph.h>
 
 #include "util.h"
 
