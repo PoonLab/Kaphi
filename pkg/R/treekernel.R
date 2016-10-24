@@ -11,3 +11,8 @@ node.count <- function(tree) {
     res <- .Call("R_Kaphi_nodecount", tree, PACKAGE="Kaphi")
     res
 }
+
+edge.lengths <- function(tree) {
+    res <- .Call("R_Kaphi_get_edge_lengths", tree, PACKAGE="Kaphi")
+    return(res)
+}
