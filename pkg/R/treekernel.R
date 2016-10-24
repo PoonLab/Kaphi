@@ -8,6 +8,6 @@ test <- function() {
 }
 
 node.count <- function(tree) {
-    res <- .Call("R_Kaphi_treekernel", tree, PACKAGE="Kaphi")
+    res <- .Call("R_Kaphi_nodecount", tree, PACKAGE="Kaphi")
     res
 }

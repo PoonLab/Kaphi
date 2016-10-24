@@ -23,9 +23,23 @@ SEXP R_Kaphi_test(void) {
    return myint;
 }
 
-SEXP R_Kaphi_treekernel(SEXP graph) {
+SEXP R_Kaphi_nodecount(SEXP graph) {
     igraph_t g;
     SEXP myint;
+    int * p_myint;
+    int len = 1;
+
+    R_SEXP_to_igraph(graph, &g);
+    PROTECT(myint = NEW_INTEGER(len));
+    p_myint = INTEGER_POINTER(myint);
+    p_myint[0] = (int)igraph_vcount(&g);
+    UNPROTECT(1);
+    return myint;
+}
+
+SEXP R_Kaphi_get_branch_lengths(SEXP graph) {
+    igraph_t g;
+    SEXP my;
     int * p_myint;
     int len = 1;
 
