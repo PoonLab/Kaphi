@@ -8,6 +8,14 @@ Kaphi is an R package.  As a result, the directory is structured according to th
 * DESCRIPTION - a file that contains basic information about the package.  This is a required file for R to recognize this as a valid package at installation.
 * NAMESPACE
 
+## Prerequisites
+To contribute to the development of Kaphi, you will need to install the following libraries:
+
+* [R libraries](https://cran.r-project.org/)
+* [igraph C library](http://igraph.org/c/)
+* [GNU Standard Library](https://www.gnu.org/software/gsl/)
+
+
 ## Writing a C extension function
 To add a function in C that is calleable from R, you need to write the function in a source file in the `src` directory that includes the following include statements:
 ```
