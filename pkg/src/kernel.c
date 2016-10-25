@@ -9,7 +9,9 @@
 #include <Rdefines.h>  // provides NEW_INTEGER and NEW_NUMERIC
 
 #include "rinterface.h"
-#include "treekernel/tree.h"
+#include "kernel.h"
+//#include "treekernel/tree.h"
+
 
 SEXP R_Kaphi_test(void) {
    SEXP myint;
@@ -23,6 +25,7 @@ SEXP R_Kaphi_test(void) {
    UNPROTECT(1);
    return myint;
 }
+
 
 SEXP R_Kaphi_nodecount(SEXP graph) {
     igraph_t g;
@@ -68,4 +71,48 @@ SEXP R_Kaphi_get_edge_lengths(SEXP graph) {
 
     UNPROTECT(1);
     return result;
+}
+
+SEXP R_Kaphi_rescale_tree(SEXP graph, SEXP mode) {
+    Rprintf("Entered R_Kaphi_rescale_tree\n");
+    igraph_t g;
+    const char * modeset;
+    igraph_vector_t edge_lengths;
+    igraph_es_t edge_selector;
+    SEXP result;
+
+    // convert igraph from R to C
+    R_SEXP_to_igraph(graph, &g);
+
+    // parse mode argument
+    if (!isString(mode) || length(mode) != 1) {
+        error("mode is not a single string");
+    }
+    Rprintf("rescale tree read mode: %s\n", CHAR(STRING_ELT(mode, 0)));
+
+
+    igraph_vector_init(&edge_lengths, (int) igraph_ecount(&g));
+
+
+    if (R_igraph_attribute_has_attr(&g, IGRAPH_ATTRIBUTE_EDGE, "length")) {
+        igraph_es_all(&edge_selector, IGRAPH_EDGEORDER_ID);
+        R_igraph_attribute_get_numeric_edge_attr(&g, "length", edge_selector, &edge_lengths);
+    }
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = igraph_vector_e(&edge_lengths, 0);
+    UNPROTECT(1);
+    return result;
+}
+
+double scale_branches(igraph_t *tree, scaling mode) {
+    int i;
+    double scale;
+    igraph_vector_t vec;
+    if (!igraph_ecount(tree)) {
+        return 1;  // empty graph, no tree
+    }
+
+    igraph_vector_init(&vec, igraph_vcount(tree));
+
 }

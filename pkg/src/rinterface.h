@@ -31,3 +31,7 @@ int R_SEXP_to_igraph(SEXP graph, igraph_t *res);
 igraph_bool_t R_igraph_attribute_has_attr(const igraph_t *graph,
 					  igraph_attribute_elemtype_t type,
 					  const char *name);
+int R_igraph_attribute_get_numeric_edge_attr(const igraph_t *graph,
+					     const char *name,
+					     igraph_es_t es,
+					     igraph_vector_t *value);

@@ -16,3 +16,8 @@ edge.lengths <- function(tree) {
     res <- .Call("R_Kaphi_get_edge_lengths", tree, PACKAGE="Kaphi")
     return(res)
 }
+
+rescale.tree <- function(tree) {
+    res <- .Call("R_Kaphi_rescale_tree", tree, PACKAGE="Kaphi")
+    return (res)
+}
