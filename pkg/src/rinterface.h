@@ -28,3 +28,6 @@
 
 SEXP R_igraph_add_env(SEXP graph);
 int R_SEXP_to_igraph(SEXP graph, igraph_t *res);
+igraph_bool_t R_igraph_attribute_has_attr(const igraph_t *graph,
+					  igraph_attribute_elemtype_t type,
+					  const char *name);

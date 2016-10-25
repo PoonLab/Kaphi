@@ -42,7 +42,7 @@ SEXP R_Kaphi_get_edge_lengths(SEXP graph) {
     igraph_vector_t edge_lengths;
     long int len;
     SEXP result;
-    igraph_es_t it;
+    igraph_es_t edge_selector;
 
     // convert R igraph to C igraph
     R_SEXP_to_igraph(graph, &g);
@@ -53,12 +53,12 @@ SEXP R_Kaphi_get_edge_lengths(SEXP graph) {
     // maybe we need to copy attributes over?
     if(R_igraph_attribute_has_attr(&g,
         IGRAPH_ATTRIBUTE_EDGE, "length")) {
-        fprintf(stdout, "foo\n");
+
+        // retrieve attribute for all edges in order of edge ID's
+        igraph_es_all(&edge_selector, IGRAPH_EDGEORDER_ID);
         //EANV(&g, "length", &edge_lengths);
-        R_igraph_attribute_get_numeric_edge_attr(&g, "length", it, &edge_lengths);
-    } else {
-        fprintf(stdout, "nope\n");
-    }
+        R_igraph_attribute_get_numeric_edge_attr(&g, "length", edge_selector, &edge_lengths);
+    } // else function will return a vector of zeroes
 
     PROTECT(result = NEW_NUMERIC(len));
     for (int i = 0; i < len; i++) {
