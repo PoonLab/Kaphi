@@ -1,6 +1,7 @@
 /* modeled on rigraph/tools/stimulus/rinterface_extra.c */
 
 #include <igraph.h>
+#include <igraph_error.h>
 
 #define USE_RINTERNALS
 #include <R.h>
@@ -25,41 +26,46 @@ SEXP R_Kaphi_test(void) {
 
 SEXP R_Kaphi_nodecount(SEXP graph) {
     igraph_t g;
-    SEXP myint;
-    int * p_myint;
-    int len = 1;
+    SEXP result;
 
     R_SEXP_to_igraph(graph, &g);
-    PROTECT(myint = NEW_INTEGER(len));
-    p_myint = INTEGER_POINTER(myint);
-    p_myint[0] = (int)igraph_vcount(&g);
-    igraph_destroy(&g);  // release allocated memory
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = igraph_vcount(&g);
 
     UNPROTECT(1);
-    return myint;
+    return result;
 }
 
 SEXP R_Kaphi_get_edge_lengths(SEXP graph) {
     /* check that graph has edge length attributes */
     igraph_t g;
     igraph_vector_t edge_lengths;
-    SEXP res;
-    long int len = (int) igraph_ecount(&g);
+    long int len;
+    SEXP result;
+    igraph_es_t it;
 
+    // convert R igraph to C igraph
     R_SEXP_to_igraph(graph, &g);
+
+    len = (int) igraph_ecount(&g);
     igraph_vector_init(&edge_lengths, len);
 
-    PROTECT(res=NEW_NUMERIC(igraph_vector_size(&edge_lengths)));
-
-    igraph_bool_t has_edge_lengths = igraph_cattribute_has_attr(&g, IGRAPH_ATTRIBUTE_EDGE, "length");
-    if (has_edge_lengths) {
-        EANV(&g, "length", &edge_lengths);
-        for (int i = 0; i < len; i++) {
-            REAL(res)[i] = igraph_vector_e(&edge_lengths, i);
-        }
+    // maybe we need to copy attributes over?
+    if(R_igraph_attribute_has_attr(&g,
+        IGRAPH_ATTRIBUTE_EDGE, "length")) {
+        fprintf(stdout, "foo\n");
+        //EANV(&g, "length", &edge_lengths);
+        R_igraph_attribute_get_numeric_edge_attr(&g, "length", it, &edge_lengths);
+    } else {
+        fprintf(stdout, "nope\n");
     }
-    igraph_vector_destroy(&edge_lengths);
-    igraph_destroy(&g);
+
+    PROTECT(result = NEW_NUMERIC(len));
+    for (int i = 0; i < len; i++) {
+        REAL(result)[i] = igraph_vector_e(&edge_lengths, i);
+    }
+    //igraph_vector_destroy(&edge_lengths);
+
     UNPROTECT(1);
-    return res;
+    return result;
 }
