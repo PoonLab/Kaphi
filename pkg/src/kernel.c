@@ -86,7 +86,7 @@ SEXP R_Kaphi_test2(SEXP x) {
     return result;
 }
 
-SEXP R_Kaphi_kernel(SEXP g1, SEXP g2, SEXP arg_lambda, SEXP arg_sigma, SEXP arg_rho) {
+SEXP R_Kaphi_kernel(SEXP graph1, SEXP graph2, SEXP arg_lambda, SEXP arg_sigma, SEXP arg_rho) {
     // unpack real-valued arguments
     double lam = REAL(arg_lambda)[0];
     double sig = REAL(arg_sigma)[0];
@@ -99,9 +99,15 @@ SEXP R_Kaphi_kernel(SEXP g1, SEXP g2, SEXP arg_lambda, SEXP arg_sigma, SEXP arg_
     Pvoid_t delta = (Pvoid_t) NULL;  // Judy1 array
     Word_t bytes = 0;
 
+    igraph_t g1, g2;
+
     assert(decay_factor > 0.0 && decay_factor <= 1.0);
     assert(rbf_variance > 0.0);
     assert(igraph_vcount(t1) < 65535);
+
+    R_SEXP_to_igraph(graph1, &g1);
+    R_SEXP_to_igraph(graph2, &g2);
+
 
     PROTECT(result = NEW_NUMERIC(1));
     UNPROTECT(1);
