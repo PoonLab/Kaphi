@@ -15,6 +15,10 @@
 #include <assert.h>
 #include <Judy.h>
 
+// function prototypes
+int *production(const igraph_t *tree);
+int *children(const igraph_t *tree);
+
 
 SEXP R_Kaphi_test(void) {
    SEXP myint;
@@ -92,49 +96,89 @@ SEXP R_Kaphi_kernel(SEXP graph1, SEXP graph2, SEXP arg_lambda, SEXP arg_sigma, S
     double sig = REAL(arg_sigma)[0];
     double rho = REAL(arg_rho)[0];
     int i, c1, c2, n1, n2, coord, npairs;
-    int *production1, *production2, *children1, *children2;
+    int * production1, * production2, * children1, * children2;
     double val, tmp, K = 0;
     SEXP result;
 
     Pvoid_t delta = (Pvoid_t) NULL;  // Judy1 array
     Word_t bytes = 0;
 
-    igraph_t g1, g2;
+    igraph_t t1, t2;
 
     assert(decay_factor > 0.0 && decay_factor <= 1.0);
     assert(rbf_variance > 0.0);
     assert(igraph_vcount(t1) < 65535);
 
-    R_SEXP_to_igraph(graph1, &g1);
-    R_SEXP_to_igraph(graph2, &g2);
+    R_SEXP_to_igraph(graph1, &t1);
+    R_SEXP_to_igraph(graph2, &t2);
+
+    // extract production states of internal nodes in the tree
+    production1 = production(&t1);
+    production2 = production(&t2);
 
 
     PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = 9.0;
     UNPROTECT(1);
 
     return result;
 }
 
 
-/* get production rules for each node */
-int *production(const igraph_t *tree)
+SEXP R_Kaphi_get_productions(SEXP graph) {
+    // for unit test of production()
+    igraph_t g;
+    int * p;
+    SEXP result;
+    int nnode;
+    int * p_result;
+
+    R_SEXP_to_igraph(graph, &g);
+    nnode = igraph_vcount(&g);
+
+    PROTECT(result = NEW_INTEGER(nnode));
+    p_result = INTEGER_POINTER(result);
+
+    p = production(&g);
+    for (int i = 0; i < nnode; i++) {
+        p_result[i] = p[i];
+    }
+    UNPROTECT(1);
+    return result;
+}
+
+
+int * production(const igraph_t * tree)
 {
+    /*
+        Get productions for each node.  Productions take the following values:
+        0 = node is terminal
+        1 = node emits two internal nodes
+        2 = node emits one terminal node
+        3 = node emits two terminal nodes
+    */
     int i, nnode = igraph_vcount(tree);
     int *p = malloc(nnode * sizeof(int));
     igraph_vector_t vec, nbr;
     igraph_vector_init(&nbr, 2);
     igraph_vector_init(&vec, 2);
 
+    // retrieves out-degree size of each vertex
+    // igraph_vss_all is a selector for all vertices in increasing order of vertex ID
+    // vertex IDs are assigned when phylo object is converted to igraph in R
     igraph_degree(tree, &vec, igraph_vss_all(), IGRAPH_OUT, 0);
-    for (i = 0; i < nnode; ++i)
-    {
-        if ((int) VECTOR(vec)[i] == 0)
-        {
+
+    for (i = 0; i < nnode; ++i) {
+        if ((int) VECTOR(vec)[i] == 0) {
+            // terminal node has no productions
+            // TODO: this is where we have to deal with labels
             p[i] = 0;
-        }
-        else
-        {
+        } else {
+            // retrieves IDs of all out-adjacent nodes of i-th node
             igraph_neighbors(tree, &nbr, i, IGRAPH_OUT);
+
+            // use neighbor IDs to index into out-degree vector
+            // if result is 0, then neighbor is terminal
             p[i] = ((int) VECTOR(vec)[(int) VECTOR(nbr)[0]] == 0) +
                    ((int) VECTOR(vec)[(int) VECTOR(nbr)[1]] == 0) + 1;
         }
@@ -142,4 +186,53 @@ int *production(const igraph_t *tree)
     igraph_vector_destroy(&nbr);
     igraph_vector_destroy(&vec);
     return p;
+}
+
+
+SEXP R_Kaphi_get_children(SEXP graph) {
+    // for unit test of production()
+    igraph_t g;
+    int * c;
+    SEXP result;
+    int nnode;
+    int * p_result;
+
+    R_SEXP_to_igraph(graph, &g);
+    nnode = igraph_vcount(&g) * 2;
+
+    PROTECT(result = NEW_INTEGER(nnode));
+    p_result = INTEGER_POINTER(result);
+
+    c = children(&g);
+    for (int i = 0; i < nnode; i++) {
+        p_result[i] = c[i];
+    }
+    UNPROTECT(1);
+    return result;
+}
+
+int *children(const igraph_t *tree)
+{
+    /* get indices of children from each node */
+    igraph_adjlist_t al;
+    igraph_vector_int_t *nbr;
+    int i;
+    int *children = malloc(igraph_vcount(tree) * 2 * sizeof(int));
+
+    // constructs out-edge adjacency list from graph
+    igraph_adjlist_init(tree, &al, IGRAPH_OUT);
+    for (i = 0; i < igraph_vcount(tree); ++i)
+    {
+        // retrieve out-edge adjacency (child node) list for i-th node
+        nbr = igraph_adjlist_get(&al, i);
+        if (igraph_vector_int_size(nbr) > 0)
+        {
+            // we assume the tree is binary, only ever two children
+            children[2*i] = VECTOR(*nbr)[0];
+            children[2*i+1] = VECTOR(*nbr)[1];
+        }
+    }
+
+    igraph_adjlist_destroy(&al);
+    return children;
 }

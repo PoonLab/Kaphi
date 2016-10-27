@@ -39,3 +39,20 @@ rescale.tree <- function(tree, mode) {
     tree$edge.length <- tree$edge.length / scale
     return(tree)
 }
+
+
+get.productions <- function(tree) {
+    res <- .Call("R_Kaphi_get_productions", tree, PACKAGE="Kaphi")
+    return(res)
+}
+
+get.children <- function(tree) {
+    res <- .Call("R_Kaphi_get_children", tree, PACKAGE="Kaphi")
+    return(res)
+}
+
+
+tree.kernel <- function(tree1, tree2, lambda, sigma, rho) {
+    res <- .Call("R_Kaphi_kernel", tree1, tree2, lambda, sigma, rho, PACKAGE="Kaphi")
+    return (res)
+}
