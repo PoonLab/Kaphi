@@ -116,6 +116,9 @@ SEXP R_Kaphi_kernel(SEXP graph1, SEXP graph2, SEXP arg_lambda, SEXP arg_sigma, S
     production1 = production(&t1);
     production2 = production(&t2);
 
+    children1 = children(&t1);
+    children2 = children(&t2);
+
 
     PROTECT(result = NEW_NUMERIC(1));
     REAL(result)[0] = 9.0;
@@ -198,6 +201,8 @@ SEXP R_Kaphi_get_children(SEXP graph) {
     int * p_result;
 
     R_SEXP_to_igraph(graph, &g);
+
+    // allocate double length to store two child indices per node
     nnode = igraph_vcount(&g) * 2;
 
     PROTECT(result = NEW_INTEGER(nnode));
@@ -225,14 +230,40 @@ int *children(const igraph_t *tree)
     {
         // retrieve out-edge adjacency (child node) list for i-th node
         nbr = igraph_adjlist_get(&al, i);
-        if (igraph_vector_int_size(nbr) > 0)
-        {
+        if (igraph_vector_int_size(nbr) > 0) {
             // we assume the tree is binary, only ever two children
             children[2*i] = VECTOR(*nbr)[0];
             children[2*i+1] = VECTOR(*nbr)[1];
+        } else {
+            // store negative index to indicate no children
+            children[2*i] = children[2*i+1] = -1;
         }
     }
 
     igraph_adjlist_destroy(&al);
     return children;
+}
+
+
+/* get branch lengths leading out of each node */
+double *branch_lengths(const igraph_t *tree)
+{
+    igraph_inclist_t il;
+    int i;
+    igraph_vector_int_t *edge;
+    double *branch_lengths = malloc(2 * igraph_vcount(tree) * sizeof(double));
+
+    igraph_inclist_init(tree, &il, IGRAPH_OUT);
+    for (i = 0; i < igraph_vcount(tree); ++i)
+    {
+        edge = igraph_inclist_get(&il, i);
+        if (igraph_vector_int_size(edge) > 0)
+        {
+            branch_lengths[2*i] = EAN(tree, "length", VECTOR(*edge)[0]);
+            branch_lengths[2*i+1] = EAN(tree, "length", VECTOR(*edge)[1]);
+        }
+    }
+
+    igraph_inclist_destroy(&il);
+    return branch_lengths;
 }
