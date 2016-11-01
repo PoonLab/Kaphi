@@ -56,6 +56,18 @@ get.branch.lengths <- function(tree) {
     return (res)
 }
 
+parse.newick <- function(tree) {
+    if (class(tree)=='phylo') {
+        res <- .Call("R_Kaphi_parse_newick", write.tree(tree), PACKAGE="Kaphi")
+    } else if (class(tree) == 'character') {
+        res <- .Call("R_Kaphi_parse_newick", tree, PACKAGE="Kaphi")
+    } else {
+        return (1)
+    }
+    return (res)
+}
+
+
 tree.kernel <- function(tree1, tree2, lambda, sigma, rho) {
     res <- .Call("R_Kaphi_kernel", tree1, tree2, lambda, sigma, rho, PACKAGE="Kaphi")
     return (res)

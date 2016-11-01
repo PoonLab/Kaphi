@@ -19,7 +19,20 @@ int *children(const igraph_t *tree);
 double *branch_lengths(const igraph_t *tree);
 
 
+igraph_t * R_Kaphi_parse_newick(SEXP newick) {
+    // derived from Rosemary's parse_newick() function
+    igraph_t *tree;
+    const char * newick = CHAR(STRING_ELT(newick, 0));
 
+    extern int yynode;
+
+    // send output
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = 0;
+    fprintf(stdout, newick);
+    UNPROTECT(1);
+    return result;
+}
 
 
 SEXP R_Kaphi_test(void) {
@@ -110,6 +123,10 @@ void import_R_igraph(SEXP graph, igraph_t *g, igraph_vector_t * edge_lengths) {
         R_igraph_attribute_get_numeric_edge_attr(g, "length",
             edge_selector, edge_lengths
         );
+
+        for (int i=0; i<len; i++) {
+            fprintf(stdout, "%f\n", igraph_vector_e(edge_lengths, i));
+        }
 
         // FIXME: can't get EAN to work here - causes crash
         for (int i=0; i<len; i++) {
@@ -285,7 +302,7 @@ SEXP R_Kaphi_get_branch_lengths(SEXP graph) {
     int nnode;
     igraph_vector_t edge_lengths;
 
-    // turn on attribute handling for C igraphs
+    // turn on attribute handling for C igraphs -- extern variable in
     igraph_i_set_attribute_table(&igraph_cattribute_table);
     import_R_igraph(graph, &g, &edge_lengths);
 

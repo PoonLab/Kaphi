@@ -39,7 +39,7 @@ igraph_t *parse_newick(FILE *f)
 {
     igraph_t *tree;
     int i;
-    extern int yynode;
+    extern int yynode;  // from newick_parser.y
     igraph_vector_t edge, branch_length, size;
     igraph_strvector_t label;
 
