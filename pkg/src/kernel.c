@@ -9,15 +9,17 @@
 #include <Rdefines.h>  // provides NEW_INTEGER and NEW_NUMERIC
 
 #include "rinterface.h"
-#include "kernel.h"
-
-//#include "treekernel/tree.h"
+#include "treekernel/tree.h"
 #include <assert.h>
 #include <Judy.h>
 
 // function prototypes
 int *production(const igraph_t *tree);
 int *children(const igraph_t *tree);
+double *branch_lengths(const igraph_t *tree);
+
+
+
 
 
 SEXP R_Kaphi_test(void) {
@@ -46,8 +48,9 @@ SEXP R_Kaphi_nodecount(SEXP graph) {
     return result;
 }
 
+
 SEXP R_Kaphi_get_edge_lengths(SEXP graph) {
-    /* check that graph has edge length attributes */
+    /* check that graph from R has edge length attributes */
     igraph_t g;
     igraph_vector_t edge_lengths;
     long int len;
@@ -90,6 +93,28 @@ SEXP R_Kaphi_test2(SEXP x) {
     return result;
 }
 
+
+void import_R_igraph(SEXP graph, igraph_t *g, igraph_vector_t * edge_lengths) {
+    igraph_es_t edge_selector;
+    igraph_eit_t edge_iterator;
+    int len;
+    double * temp;
+
+    R_SEXP_to_igraph(graph, g);
+    len = igraph_ecount(g);
+    igraph_vector_init(edge_lengths, len);
+
+    if (R_igraph_attribute_has_attr(g, IGRAPH_ATTRIBUTE_EDGE, "length")) {
+        // retrieve attribute for all edges in order of edge ID's
+        igraph_es_all(&edge_selector, IGRAPH_EDGEORDER_ID);
+        R_igraph_attribute_get_numeric_edge_attr(g, "length",
+            edge_selector, edge_lengths
+        );
+        // FIXME: can't get SETEAN to work here
+    }
+}
+
+
 SEXP R_Kaphi_kernel(SEXP graph1, SEXP graph2, SEXP arg_lambda, SEXP arg_sigma, SEXP arg_rho) {
     // unpack real-valued arguments
     double lam = REAL(arg_lambda)[0];
@@ -99,6 +124,8 @@ SEXP R_Kaphi_kernel(SEXP graph1, SEXP graph2, SEXP arg_lambda, SEXP arg_sigma, S
     int * production1, * production2, * children1, * children2;
     double val, tmp, K = 0;
     SEXP result;
+    igraph_es_t edge_selector;
+    igraph_vector_t e1, e2;
 
     Pvoid_t delta = (Pvoid_t) NULL;  // Judy1 array
     Word_t bytes = 0;
@@ -109,8 +136,8 @@ SEXP R_Kaphi_kernel(SEXP graph1, SEXP graph2, SEXP arg_lambda, SEXP arg_sigma, S
     assert(rbf_variance > 0.0);
     assert(igraph_vcount(t1) < 65535);
 
-    R_SEXP_to_igraph(graph1, &t1);
-    R_SEXP_to_igraph(graph2, &t2);
+    import_R_igraph(graph1, &t1, &e1);
+    import_R_igraph(graph2, &t1, &e2);
 
     // extract production states of internal nodes in the tree
     production1 = production(&t1);
@@ -245,25 +272,32 @@ int *children(const igraph_t *tree)
 }
 
 
-/* get branch lengths leading out of each node */
-double *branch_lengths(const igraph_t *tree)
-{
-    igraph_inclist_t il;
-    int i;
-    igraph_vector_int_t *edge;
-    double *branch_lengths = malloc(2 * igraph_vcount(tree) * sizeof(double));
+SEXP R_Kaphi_get_branch_lengths(SEXP graph) {
+    // for unit test of production()
+    igraph_t g;
+    double * bl;
+    SEXP result;
+    int nnode;
+    igraph_vector_t edge_lengths;
 
-    igraph_inclist_init(tree, &il, IGRAPH_OUT);
-    for (i = 0; i < igraph_vcount(tree); ++i)
-    {
-        edge = igraph_inclist_get(&il, i);
-        if (igraph_vector_int_size(edge) > 0)
-        {
-            branch_lengths[2*i] = EAN(tree, "length", VECTOR(*edge)[0]);
-            branch_lengths[2*i+1] = EAN(tree, "length", VECTOR(*edge)[1]);
-        }
+    // turn on attribute handling for C igraphs
+    // igraph_i_set_attribute_table(&igraph_cattribute_table);
+
+    import_R_igraph(graph, &g, &edge_lengths);
+    for (int i=0; i<igraph_ecount(&g); i++) {
+        fprintf(stdout, "%f\n", igraph_vector_e(&edge_lengths, i));
     }
 
-    igraph_inclist_destroy(&il);
-    return branch_lengths;
+    // allocate double length to store two child indices per node
+    nnode = igraph_vcount(&g) * 2;
+
+    PROTECT(result = NEW_NUMERIC(nnode));
+
+    //bl = branch_lengths(&g);
+    for (int i = 0; i < nnode; i++) {
+        //REAL(result)[i] = bl[i];
+    }
+    UNPROTECT(1);
+    return result;
 }
+

@@ -51,6 +51,10 @@ get.children <- function(tree) {
     return(res)
 }
 
+get.branch.lengths <- function(tree) {
+    res <- .Call("R_Kaphi_get_branch_lengths", tree, PACKAGE="Kaphi")
+    return (res)
+}
 
 tree.kernel <- function(tree1, tree2, lambda, sigma, rho) {
     res <- .Call("R_Kaphi_kernel", tree1, tree2, lambda, sigma, rho, PACKAGE="Kaphi")
