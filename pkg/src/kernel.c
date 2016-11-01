@@ -110,7 +110,12 @@ void import_R_igraph(SEXP graph, igraph_t *g, igraph_vector_t * edge_lengths) {
         R_igraph_attribute_get_numeric_edge_attr(g, "length",
             edge_selector, edge_lengths
         );
-        // FIXME: can't get SETEAN to work here
+
+        // FIXME: can't get EAN to work here - causes crash
+        for (int i=0; i<len; i++) {
+            SETEAN(g, "length", i, igraph_vector_e(edge_lengths, i));
+            fprintf(stdout, "%f\n", EAN(g, "length", i));
+        }
     }
 }
 
@@ -281,9 +286,9 @@ SEXP R_Kaphi_get_branch_lengths(SEXP graph) {
     igraph_vector_t edge_lengths;
 
     // turn on attribute handling for C igraphs
-    // igraph_i_set_attribute_table(&igraph_cattribute_table);
-
+    igraph_i_set_attribute_table(&igraph_cattribute_table);
     import_R_igraph(graph, &g, &edge_lengths);
+
     for (int i=0; i<igraph_ecount(&g); i++) {
         fprintf(stdout, "%f\n", igraph_vector_e(&edge_lengths, i));
     }
