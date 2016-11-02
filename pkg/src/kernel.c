@@ -10,13 +10,13 @@
 
 //#include "rinterface.h"
 #include "newick_parser.h"
-#include "treekernel/tree.h"
+#include "tree.h"
 
 
 igraph_t * R_Kaphi_parse_newick(SEXP newick) {
     // derived from Rosemary's parse_newick() function
     igraph_t *tree;
-    const char * newick = CHAR(STRING_ELT(newick, 0));
+    const char * newick_str = CHAR(STRING_ELT(newick, 0));
 
     extern int yynode;  // in newick_parser.y
     igraph_vector_t edge, branch_length, size;
@@ -29,14 +29,14 @@ igraph_t * R_Kaphi_parse_newick(SEXP newick) {
     igraph_strvector_init(&label, 0);
 
     yynode = 0;
-    yy_scan_string(newick);
+    yy_scan_string(newick_str);
     yyparse(&edge, &size, &branch_length, &label);  // attempt to parse input stream
 
     tree = malloc(sizeof(igraph_t));
     igraph_empty(tree, igraph_vector_size(&size), 1);
     igraph_add_edges(tree, &edge, 0);
 
-    for (i = 0; i < igraph_vector_size(&size); ++i)
+    for (int i = 0; i < igraph_vector_size(&size); ++i)
     {
         igraph_incident(tree, &edge, i, IGRAPH_IN);
         if (igraph_vector_size(&edge) > 0) {
