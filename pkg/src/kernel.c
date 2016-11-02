@@ -53,3 +53,37 @@ igraph_t * R_Kaphi_parse_newick(SEXP newick) {
 }
 
 
+SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEXP normalize) {
+    SEXP result;
+
+    // unpack real-valued arguments
+    double decay_factor = REAL(lambda)[0];
+    double gauss_factor = REAL(sigma)[0];
+    double sst_control = REAL(rho)[0];
+    int do_normalize = (int)(INTEGER(normalize)[0] > 0);
+
+    double knum, kdenom = 1.;  // numerator and denominator
+
+    // enable C igraph attribute handler
+    igraph_i_set_attribute_table(&igraph_cattribute_table);
+
+    // parse SEXP arguments passed from R
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk1);
+    igraph_t * t2 = R_Kaphi_parse_newick(nwk2);
+
+    // ladderize and branch scaling can be handled on R side
+    if (do_normalize) {
+        kdenom = sqrt(kernel(t1, t1, decay_factor, gauss_factor, sst_control)) *
+                 sqrt(kernel(t2, t2, decay_factor, gauss_factor, sst_control));
+    }
+    knum = kernel(t1, t2, decay_factor, gauss_factor, sst_control);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = knum / kdenom;
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    igraph_destroy(t2);
+
+    return (result);
+}
