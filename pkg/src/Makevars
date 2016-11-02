@@ -1,2 +1,2 @@
-PKG_CFLAGS = -I/opt/local/include/igraph
-PKG_LIBS = -L/opt/local/lib -ligraph
+PKG_CFLAGS = -Iigraph/include
+PKG_LIBS = -Ligraph/src -ligraph

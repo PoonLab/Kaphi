@@ -9,7 +9,7 @@ http://plindenbaum.blogspot.ca/2012/07/parsing-newick-format-in-c-using-flex.htm
 #include <stdlib.h>
 #include <math.h>
 
-#include "../igraph/include/igraph.h"
+#include "igraph/include/igraph.h"
 
 #include "util.h"
 
