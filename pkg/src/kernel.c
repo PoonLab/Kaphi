@@ -15,6 +15,9 @@
 
 void yy_scan_string(const char *);
 
+
+
+
 igraph_t * R_Kaphi_parse_newick(SEXP newick) {
     // derived from Rosemary's parse_newick() function
     igraph_t *tree;
@@ -30,12 +33,13 @@ igraph_t * R_Kaphi_parse_newick(SEXP newick) {
     igraph_vector_init(&branch_length, 0);
     igraph_strvector_init(&label, 0);
 
-    yynode = 0;
-    yy_scan_string(newick_str);
-    yyparse(&edge, &size, &branch_length, &label);  // attempt to parse input stream
+    yynode = 0;  // set iterator for newick_parser
+    yy_scan_string(newick_str);  // prepare to take scanner's input from string
+    yyparse(&edge, &size, &branch_length, &label);  // parse input stream
 
+    // allocate memory for igraph object
     tree = malloc(sizeof(igraph_t));
-    igraph_empty(tree, igraph_vector_size(&size), 1);
+    igraph_empty(tree, igraph_vector_size(&size), 1);  // initialize with empty graph
     igraph_add_edges(tree, &edge, 0);
 
     for (int i = 0; i < igraph_vector_size(&size); ++i)
@@ -44,9 +48,10 @@ igraph_t * R_Kaphi_parse_newick(SEXP newick) {
         if (igraph_vector_size(&edge) > 0) {
             SETEAN(tree, "length", (int) VECTOR(edge)[0], VECTOR(branch_length)[i]);
         }
-        SETVAS(tree, "id", i, STR(label,i));
+        SETVAS(tree, "id", i, STR(label,i));  // assign node label to vertex
     }
 
+    // free up memory allocated to vectors
     igraph_vector_destroy(&edge);
     igraph_vector_destroy(&size);
     igraph_vector_destroy(&branch_length);
@@ -64,9 +69,6 @@ SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEX
     double sst_control = REAL(rho)[0];
     double do_normalize = REAL(normalize)[0];
 
-    fprintf (stdout, "decay_factor=%f\n", decay_factor);
-    fprintf (stdout, "do_normalize=%f\n", do_normalize);
-
     double knum, kdenom = 1.;  // numerator and denominator
 
     // enable C igraph attribute handler
@@ -76,19 +78,21 @@ SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEX
     igraph_t * t1 = R_Kaphi_parse_newick(nwk1);
     igraph_t * t2 = R_Kaphi_parse_newick(nwk2);
 
-    // ladderize and branch scaling can be handled on R side
+    // ladderize and branch scaling is handled on R side
+
     if (do_normalize) {
+        // see Collins and Duffey, NIPS 2001
         kdenom = sqrt(kernel(t1, t1, decay_factor, gauss_factor, sst_control)) *
                  sqrt(kernel(t2, t2, decay_factor, gauss_factor, sst_control));
     }
     knum = kernel(t1, t2, decay_factor, gauss_factor, sst_control);
 
-    fprintf (stdout, "knum=%f\nkdenom=%f\n", knum, kdenom);
-
+    // transfer the result to a container to pass back to R
     PROTECT(result = NEW_NUMERIC(1));
     REAL(result)[0] = knum / kdenom;
     UNPROTECT(1);
 
+    // free memory allocated for trees
     igraph_destroy(t1);
     igraph_destroy(t2);
 
