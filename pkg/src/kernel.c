@@ -11,7 +11,9 @@
 //#include "rinterface.h"
 #include "newick_parser.h"
 #include "tree.h"
+#include "treestats.h"
 
+void yy_scan_string(const char *);
 
 igraph_t * R_Kaphi_parse_newick(SEXP newick) {
     // derived from Rosemary's parse_newick() function
@@ -60,7 +62,10 @@ SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEX
     double decay_factor = REAL(lambda)[0];
     double gauss_factor = REAL(sigma)[0];
     double sst_control = REAL(rho)[0];
-    int do_normalize = (int)(INTEGER(normalize)[0] > 0);
+    double do_normalize = REAL(normalize)[0];
+
+    fprintf (stdout, "decay_factor=%f\n", decay_factor);
+    fprintf (stdout, "do_normalize=%f\n", do_normalize);
 
     double knum, kdenom = 1.;  // numerator and denominator
 
@@ -77,6 +82,8 @@ SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEX
                  sqrt(kernel(t2, t2, decay_factor, gauss_factor, sst_control));
     }
     knum = kernel(t1, t2, decay_factor, gauss_factor, sst_control);
+
+    fprintf (stdout, "knum=%f\nkdenom=%f\n", knum, kdenom);
 
     PROTECT(result = NEW_NUMERIC(1));
     REAL(result)[0] = knum / kdenom;
