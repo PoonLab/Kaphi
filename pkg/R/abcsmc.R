@@ -4,14 +4,17 @@
 # approximate Bayesian computation." Statistics and Computing 22.5 (2012):
 # 1009-1020.
 
+require(yaml)
+require(stats)
+
 # global parameters
 resize.amount <- 100
 bisection.max.iter <- 10000
 
 # based on C struct smc_config in smc.h
-smc.config <- setClass("smc.config", 
+abc.smc <- setClass("abc.smc", 
 	slots=c(
-	    nparam="numeric",    # number of parameters in the model
+	    params="character",    # vector of parameter names in the model
 	    nparticle="numeric", # number of particles to approximate posterior
 	    nsample="numeric",   # number of simulations per particle
 	    ess.tolerance="numeric", # ESS below this value triggers resampling
@@ -27,8 +30,7 @@ smc.config <- setClass("smc.config",
 	    sst.normalize="numeric",
 	    norm.mode="character"
 	),
-	prototype=list(  # defaults
-		nparam=1,
+	prototype=list(  # defaults		
 		nparticle=10, # 1000
 		nsample=1, # 5
 		ess.tolerance=1.5,
@@ -46,7 +48,43 @@ smc.config <- setClass("smc.config",
 	)
 )
 
-abc.smc <- function(config, seed, nthreads, obs.tree, trace.file) {
+# need to define the following class methods:
+#  sample.prior() : generate parameter vector from prior distribution
+
+setMethod(f='show', signature='abc.smc', definition=function(object) {
+	cat('Kaphi abc.smc object\n')
+	cat('Number of particles: '); print(as.integer(object@nparticle))
+})
+
+setMethod(f='sample', signature='abc.smc', definition=function(x, size, replace, prob) {cat('No prior distributions have been set for this abc.smc object yet.')} )
+
+setMethod(f='simulate', signature='abc.smc', definition=function(object, nsim, seed) {cat('Simulation method has not yet been set.')})
+
+set.priors(yaml, abc.smc.obj) {
+	
+}
+
+
+
+load.priors <- function(file) {
+	# YAML should be of the following format
+	"
+	'N':              # name of model parameter
+	  'dist': 'rnorm' # name of a random generator in R{stats}
+	  'mean': 1.0
+	  'sd':   1.0
+	"
+	
+	# where PARAMETER is a string identifier for a model parameter
+	#  DISTNAME is a string that corresponds to one of random generators in R{stats}
+	#   e.g., "norm" corresponds to stats:rnorm()
+	#  HYPERPARAM[#] is a string that 
+	priors <- yaml.load_file(file)
+	
+}
+
+
+run.smc <- function(config, seed, nthreads, obs.tree, trace.file) {
 	# @param config: an instance of S4 object smc.config
 	# @param seed: 
 	
