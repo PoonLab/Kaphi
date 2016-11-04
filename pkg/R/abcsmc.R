@@ -54,19 +54,15 @@ abc.smc <- setClass("abc.smc",
 setMethod(f='show', signature='abc.smc', definition=function(object) {
 	cat('Kaphi abc.smc object\n')
 	cat('Number of particles: '); print(as.integer(object@nparticle))
+	# more...
 })
 
+# This method should call a function that samples parameters from the 
+# prior distributions.  It should be configured based on YAML input from
+# the user.
 setMethod(f='sample', signature='abc.smc', definition=function(x, size, replace, prob) {cat('No prior distributions have been set for this abc.smc object yet.')} )
 
-setMethod(f='simulate', signature='abc.smc', definition=function(object, nsim, seed) {cat('Simulation method has not yet been set.')})
-
-set.priors(yaml, abc.smc.obj) {
-	
-}
-
-
-
-load.priors <- function(file) {
+load.priors(file, abc.smc.obj) {
 	# YAML should be of the following format
 	"
 	'N':              # name of model parameter
@@ -79,9 +75,20 @@ load.priors <- function(file) {
 	#  DISTNAME is a string that corresponds to one of random generators in R{stats}
 	#   e.g., "norm" corresponds to stats:rnorm()
 	#  HYPERPARAM[#] is a string that 
-	priors <- yaml.load_file(file)
-	
+	prior.list <- yaml.load_file(file)
+	for (p in names(prior.list)) {
+		
+	}
 }
+
+
+# This method should call a function that simulates trees given parameter vector
+# abc.smc class does not need to know about any details of the actual model
+# other than parameter names and priors
+setMethod(f='simulate', signature='abc.smc', definition=function(object, nsim, seed) {cat('Simulation method has not yet been set.')})
+
+
+
 
 
 run.smc <- function(config, seed, nthreads, obs.tree, trace.file) {
