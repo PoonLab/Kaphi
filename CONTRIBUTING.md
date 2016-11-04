@@ -1,6 +1,7 @@
 # CONTRIBUTING.md
 
 ## Package structure
+
 Kaphi is an R package.  As a result, the directory is structured according to the requirements of an R package distribution with the following subdirectories and files:
 * R - contains R code (with extension `.R`) that implements package-specific functions to be called from R.
 * src - contains source and header files for compiled code, such as C.
@@ -8,16 +9,20 @@ Kaphi is an R package.  As a result, the directory is structured according to th
 * DESCRIPTION - a file that contains basic information about the package.  This is a required file for R to recognize this as a valid package at installation.
 * NAMESPACE
 
+
 ## Prerequisites
+
 To contribute to the development of Kaphi, you will need to install the following libraries:
 
 * [R libraries](https://cran.r-project.org/)
 * [igraph C library](http://igraph.org/c/)
 * [GNU Standard Library](https://www.gnu.org/software/gsl/)
+* [bison](https://www.gnu.org/software/bison/), version >3.0.4
 
 
 ## Writing a C extension function
-To add a function in C that is calleable from R, you need to write the function in a source file in the `src` directory that includes the following include statements:
+
+To add a function in C that is callable from R, you need to write the function in a source file in the `src` directory that includes the following include statements:
 ```
 #define USE_RINTERNALS
 #include <R.h>

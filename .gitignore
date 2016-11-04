@@ -3,4 +3,5 @@
 *.so
 .idea
 *(Autosaved)*
+pkg/src/newick_parser.tab.*
 
