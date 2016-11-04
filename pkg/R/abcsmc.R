@@ -14,7 +14,8 @@ bisection.max.iter <- 10000
 # based on C struct smc_config in smc.h
 abc.smc <- setClass("abc.smc", 
 	slots=c(
-	    params="character",    # vector of parameter names in the model
+	    params="character",  # vector of parameter names in the model
+	    priors="character",	 # vector of R expressions to generate random variates
 	    nparticle="numeric", # number of particles to approximate posterior
 	    nsample="numeric",   # number of simulations per particle
 	    ess.tolerance="numeric", # ESS below this value triggers resampling
@@ -52,34 +53,60 @@ abc.smc <- setClass("abc.smc",
 #  sample.prior() : generate parameter vector from prior distribution
 
 setMethod(f='show', signature='abc.smc', definition=function(object) {
-	cat('Kaphi abc.smc object\n')
-	cat('Number of particles: '); print(as.integer(object@nparticle))
+	cat('Kaphi abc.smc S4 object\n\n')
+	cat('Number of particles:', object@nparticle, '\n')
+	cat('Number of samples per particle: ', object@nsample, '\n')
+	cat('\nAnnealing parameters\n')
+	cat('  ESS tolerance: '); print(as.integer(object@ess.tolerance))
 	# more...
 })
 
 # This method should call a function that samples parameters from the 
 # prior distributions.  It should be configured based on YAML input from
 # the user.
-setMethod(f='sample', signature='abc.smc', definition=function(x, size, replace, prob) {cat('No prior distributions have been set for this abc.smc object yet.')} )
+setMethod(f='sample', signature='abc.smc', 
+	definition=function(obj, x, size, replace, prob) {
+		if (length(obj@priors)==0) {
+			cat('No prior distributions have been set for this abc.smc object yet.')
+		} else {
+			theta <- sapply(obj@priors, function(e) eval(parse(text=e)))
+			if (length(obj@params) == length(theta)) {
+				names(theta) <- obj@params
+			}
+			return(theta)
+		}
+	}
+)
 
-load.priors(file, abc.smc.obj) {
+setGeneric(name="load.priors", def=function(object, file) {standardGeneric("load.priors")})
+setMethod(f='load.priors', signature='abc.smc', definition=function(object, file) {
 	# YAML should be of the following format
 	"
 	'N':              # name of model parameter
 	  'dist': 'rnorm' # name of a random generator in R{stats}
-	  'mean': 1.0
-	  'sd':   1.0
+	  'hyperparameters':
+	  - 'mean': 1.0
+	  - 'sd':   1.0
 	"
-	
 	# where PARAMETER is a string identifier for a model parameter
 	#  DISTNAME is a string that corresponds to one of random generators in R{stats}
 	#   e.g., "norm" corresponds to stats:rnorm()
 	#  HYPERPARAM[#] is a string that 
 	prior.list <- yaml.load_file(file)
-	for (p in names(prior.list)) {
-		
+	object@params <- names(prior.list)
+	expressions <- {}  # call sapply(eval) on this to generate parameter vector
+	for (par.name in names(prior.list)) {
+		sublist <- prior.list[[par.name]]
+		rng.call <- paste(sublist$dist, '(n=1,', sep='')
+		arguments <- sapply(sublist[['hyperparameters']], function(x) paste(names(x), x, sep='='))
+		rng.call <- paste(rng.call, paste(arguments, collapse=','), ')', sep='')
+		expressions <- c(expressions, rng.call)
 	}
-}
+	print(expressions)
+	object@priors <- expressions
+	return(object)
+})
+# Usage: foo <- load.priors('examples/example-priors.yaml', foo)
 
 
 # This method should call a function that simulates trees given parameter vector

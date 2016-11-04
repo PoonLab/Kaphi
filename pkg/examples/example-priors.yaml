@@ -1,4 +1,5 @@
 'N':                # population size
   'dist': 'rlnorm'  # lognormal distribution
-  'mean': 9.21      # exp(9.21) = 1e4
-  'sd':   0.2       # 95% interval about 6700 to 14700
+  'hyperparameters':
+  - 'mean': 9.21      # exp(9.21) = 1e4
+  - 'sd':   0.2       # 95% interval about 6700 to 14700

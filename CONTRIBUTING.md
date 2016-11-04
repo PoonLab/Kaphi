@@ -15,9 +15,12 @@ Kaphi is an R package.  As a result, the directory is structured according to th
 To contribute to the development of Kaphi, you will need to install the following libraries:
 
 * [R libraries](https://cran.r-project.org/)
-* [igraph C library](http://igraph.org/c/)
+* [igraph C library](http://igraph.org/c/) modified by @rmcclosk, included in package subfolder `\src`
 * [GNU Standard Library](https://www.gnu.org/software/gsl/)
-* [bison](https://www.gnu.org/software/bison/), version >3.0.4
+* [Judy](https://sourceforge.net/projects/judy/)
+* [check](https://libcheck.github.io/check/)
+* [GNU bison](https://www.gnu.org/software/bison/), version >=3.0.4
+* [GNU flex](https://github.com/westes/flex)
 
 
 ## Writing a C extension function
