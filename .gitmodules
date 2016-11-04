@@ -1,4 +1,5 @@
 [submodule "igraph"]
     path = pkg/src/igraph
     url = git://github.com/rmcclosk/igraph.git
+    ignore = dirty
 
