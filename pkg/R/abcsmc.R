@@ -115,10 +115,12 @@ setMethod(f='load.priors', signature='smc.config', definition=function(object, f
 This method should call a function that simulates trees given parameter vector
 abc.smc class does not need to know about any details of the actual model
 other than parameter names and priors.
+
 "
-setGeneric(name="simulate.tree", def=function(object, nsim, labels, seed) {standardGeneric("simulate.tree")})
-setMethod(f='simulate.tree', signature='smc.config', definition=function(object, nsim, labels, seed) { 
+setGeneric(name="simulate.tree", def=function(object, theta, nsim, n.tips, tip.heights=NA, labels=NA, seed=NA, ...) {standardGeneric("simulate.tree")})
+setMethod(f='simulate.tree', signature='smc.config', definition=function(object, nsim, n.tips, tip.heights=NA, labels=NA, seed=NA, ...) { 
 	# @param object: smc.config S4 object
+	# @param theta: parameter vector
 	# @param nsim: number of trees to simulate
 	# @param labels: character vector of arbitrary order, corresponding to tips
 	#                If tree is unlabeled, then use NA's.  Length = number of tips.
@@ -126,15 +128,14 @@ setMethod(f='simulate.tree', signature='smc.config', definition=function(object,
 	if (is.null(body(object@generator))) {
 		cat('Simulation method has not yet been set.')
 	}
-	# check that @params match generator arguments
-	
-	# apply @params to simulate trees from generator
+	result <- object@generator(theta, nsim, n.tips, labels=labels, seed=seed, ...)
+	return(result)
 })
 
 
 "
-Assign a wrapper function to S4 object variable @generator that will use
-@params to 
+Assign a wrapper function to S4 object variable @generator
+First argument should be a named vector of parameter values.
 "
 setGeneric(name='set.model', def=function(object, generator) {standardGeneric('set.model')})
 setMethod(f='set.model', signature='smc.config', definition=function(object, generator) {
@@ -142,7 +143,7 @@ setMethod(f='set.model', signature='smc.config', definition=function(object, gen
 		generator <- get(generator, mode='function', envir=parent.frame())
 	}
 	g.args <- names(formals(generator))
-	if (length(g.args)!=4 || g.args!=c('object', 'nsim', 'labels', 'seed')) {
+	if (length(g.args)<3 || any(!is.element(c('theta', 'nsim', 'n.tips'), g.args))) {
 		stop("'generator' not recognized")
 	}
 	object@generator <- generator
@@ -158,25 +159,25 @@ run.smc <- function(config, seed, nthreads, obs.tree, trace.file) {
 	# @param seed: 
 	
 	# matrix of parameter vectors across particles
-	theta <- matrix(NA, nrow=config@nparticle, ncol=config@nparam)
+	theta <- matrix(NA, nrow=config@nparticle, ncol=length(config@params))
 	
 	# for proposals
-	new.theta <- matrix(NA, nrow=config@nparticle, ncol=config@nparam)
+	new.theta <- matrix(NA, nrow=config@nparticle, ncol=length(config@params))
 	
-	# store mean kernel scores?
+	# store kernel scores (distances) for current and proposed particles
 	x <- matrix(NA, nrow=config@nsample, ncol=config@nparticle)
 	new.x <- matrix(NA, nrow=config@nsample, ncol=config@nparticle)
 	
-	# weights?
+	# current and proposed weights
 	w <- rep(NA, times=config@nparticle)
 	new.w <- rep(NA, times=config@nparticle)
 	
 	# space for returned values
-	accept.rate <- rep(NA, times=resize.amount)
-	epsilons <- rep(NA, times=resize.amount)
+	accept.rate <- {}
+	epsilons <- {}
 	
 	## Step 0: sample particles from prior distribution
-	
+	sample(config)
 }
 
 
