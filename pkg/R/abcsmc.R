@@ -12,10 +12,12 @@ resize.amount <- 100
 bisection.max.iter <- 10000
 
 # based on C struct smc_config in smc.h
-abc.smc <- setClass("abc.smc", 
+smc.config <- setClass("smc.config", 
 	slots=c(
 	    params="character",  # vector of parameter names in the model
 	    priors="character",	 # vector of R expressions to generate random variates
+	    generator="function",  # stores method to simulate tree
+	    
 	    nparticle="numeric", # number of particles to approximate posterior
 	    nsample="numeric",   # number of simulations per particle
 	    ess.tolerance="numeric", # ESS below this value triggers resampling
@@ -52,8 +54,8 @@ abc.smc <- setClass("abc.smc",
 # need to define the following class methods:
 #  sample.prior() : generate parameter vector from prior distribution
 
-setMethod(f='show', signature='abc.smc', definition=function(object) {
-	cat('Kaphi abc.smc S4 object\n\n')
+setMethod(f='show', signature='smc.config', definition=function(object) {
+	cat('Kaphi smc.config S4 object\n\n')
 	cat('Number of particles:', object@nparticle, '\n')
 	cat('Number of samples per particle: ', object@nsample, '\n')
 	cat('\nAnnealing parameters\n')
@@ -64,7 +66,7 @@ setMethod(f='show', signature='abc.smc', definition=function(object) {
 # This method should call a function that samples parameters from the 
 # prior distributions.  It should be configured based on YAML input from
 # the user.
-setMethod(f='sample', signature='abc.smc', 
+setMethod(f='sample', signature='smc.config', 
 	definition=function(obj, x, size, replace, prob) {
 		if (length(obj@priors)==0) {
 			cat('No prior distributions have been set for this abc.smc object yet.')
@@ -78,8 +80,9 @@ setMethod(f='sample', signature='abc.smc',
 	}
 )
 
+
 setGeneric(name="load.priors", def=function(object, file) {standardGeneric("load.priors")})
-setMethod(f='load.priors', signature='abc.smc', definition=function(object, file) {
+setMethod(f='load.priors', signature='smc.config', definition=function(object, file) {
 	# YAML should be of the following format
 	"
 	'N':              # name of model parameter
@@ -102,17 +105,49 @@ setMethod(f='load.priors', signature='abc.smc', definition=function(object, file
 		rng.call <- paste(rng.call, paste(arguments, collapse=','), ')', sep='')
 		expressions <- c(expressions, rng.call)
 	}
-	print(expressions)
 	object@priors <- expressions
 	return(object)
 })
-# Usage: foo <- load.priors('examples/example-priors.yaml', foo)
+# Usage: foo <- load.priors(foo, 'examples/example-priors.yaml')
 
 
-# This method should call a function that simulates trees given parameter vector
-# abc.smc class does not need to know about any details of the actual model
-# other than parameter names and priors
-setMethod(f='simulate', signature='abc.smc', definition=function(object, nsim, seed) {cat('Simulation method has not yet been set.')})
+"
+This method should call a function that simulates trees given parameter vector
+abc.smc class does not need to know about any details of the actual model
+other than parameter names and priors.
+"
+setGeneric(name="simulate.tree", def=function(object, nsim, labels, seed) {standardGeneric("simulate.tree")})
+setMethod(f='simulate.tree', signature='smc.config', definition=function(object, nsim, labels, seed) { 
+	# @param object: smc.config S4 object
+	# @param nsim: number of trees to simulate
+	# @param labels: character vector of arbitrary order, corresponding to tips
+	#                If tree is unlabeled, then use NA's.  Length = number of tips.
+	# @param seed: argument to set.seed()
+	if (is.null(body(object@generator))) {
+		cat('Simulation method has not yet been set.')
+	}
+	# check that @params match generator arguments
+	
+	# apply @params to simulate trees from generator
+})
+
+
+"
+Assign a wrapper function to S4 object variable @generator that will use
+@params to 
+"
+setGeneric(name='set.model', def=function(object, generator) {standardGeneric('set.model')})
+setMethod(f='set.model', signature='smc.config', definition=function(object, generator) {
+	if (is.character(generator)) {
+		generator <- get(generator, mode='function', envir=parent.frame())
+	}
+	g.args <- names(formals(generator))
+	if (length(g.args)!=4 || g.args!=c('object', 'nsim', 'labels', 'seed')) {
+		stop("'generator' not recognized")
+	}
+	object@generator <- generator
+	return(object)
+})
 
 
 
