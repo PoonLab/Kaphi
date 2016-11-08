@@ -115,22 +115,25 @@ setMethod(f='load.priors', signature='smc.config', definition=function(object, f
 This method should call a function that simulates trees given parameter vector
 abc.smc class does not need to know about any details of the actual model
 other than parameter names and priors.
-
 "
-setGeneric(name="simulate.tree", def=function(object, theta, nsim, n.tips, tip.heights=NA, labels=NA, seed=NA, ...) {standardGeneric("simulate.tree")})
-setMethod(f='simulate.tree', signature='smc.config', definition=function(object, nsim, n.tips, tip.heights=NA, labels=NA, seed=NA, ...) { 
+setGeneric(name="simulate.tree", def=function(object, theta, n.tips, tip.heights=NA, labels=NA, seed=NA, ...) {standardGeneric("simulate.tree")})
+setMethod(f='simulate.tree', signature='smc.config', definition=function(object, theta, nsim, n.tips, tip.heights=NA, labels=NA, seed=NA, ...) { 
 	# @param object: smc.config S4 object
 	# @param theta: parameter vector
-	# @param nsim: number of trees to simulate
+	# @param n.tips: number of tips in each tree
+	# @param tip.heights: a numeric vector of sampling times.  If not specified, then 
+	#                     simulation should assume all tips sampled at same time (0).
+	#                     Values greater than 0 are back in time.
 	# @param labels: character vector of arbitrary order, corresponding to tips
 	#                If tree is unlabeled, then use NA's.  Length = number of tips.
 	# @param seed: argument to set.seed()
 	if (is.null(body(object@generator))) {
 		cat('Simulation method has not yet been set.')
 	}
-	result <- object@generator(theta, nsim, n.tips, labels=labels, seed=seed, ...)
+	result <- object@generator(theta, object@nsample, n.tips, labels=labels, seed=seed, ...)
 	return(result)
 })
+
 
 
 "
@@ -142,6 +145,7 @@ setMethod(f='set.model', signature='smc.config', definition=function(object, gen
 	if (is.character(generator)) {
 		generator <- get(generator, mode='function', envir=parent.frame())
 	}
+	# check that function takes the three required arguments
 	g.args <- names(formals(generator))
 	if (length(g.args)<3 || any(!is.element(c('theta', 'nsim', 'n.tips'), g.args))) {
 		stop("'generator' not recognized")
@@ -154,11 +158,22 @@ setMethod(f='set.model', signature='smc.config', definition=function(object, gen
 
 
 
-run.smc <- function(config, seed, nthreads, obs.tree, trace.file) {
-	# @param config: an instance of S4 object smc.config
+run.smc <- function(config, obs.tree, trace.file, seed=NA, nthreads=1) {
+	# @param config: an instance of S4 object smc.config (read-only access)
 	# @param seed: 
 	
-	# matrix of parameter vectors across particles
+	# parse input tree
+	if (class(obs.tree)!='phylo') {
+		if (class(obs.tree)=='character') {
+			# attempt to parse Newick string
+			obs.tree <- read.tree(text=obs.tree)
+			if (is.null(obs.tree)) {
+				stop("String passed for obs.tree failed to parse as Newick tree string")
+			}
+		}
+	}
+	
+	# the particles - a matrix of parameter vectors
 	theta <- matrix(NA, nrow=config@nparticle, ncol=length(config@params))
 	
 	# for proposals
@@ -176,8 +191,13 @@ run.smc <- function(config, seed, nthreads, obs.tree, trace.file) {
 	accept.rate <- {}
 	epsilons <- {}
 	
-	## Step 0: sample particles from prior distribution
-	sample(config)
+	## Step 0: sample particles from prior distribution (see smc.c:initialize())
+	for (i in 1:config@nparticle) {
+		theta[i,] <- sample(config)
+		w[i] <- 1./config@nparticle
+		trees <- simulate.tree(config, config@nsample, )
+	}
+	
 }
 
 
