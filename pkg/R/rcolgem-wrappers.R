@@ -1,7 +1,8 @@
-rcolgem.SI <- function(params, nsim, n.tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+rcolgem.SI <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
 	"
 	Use rcolgem to simulate coalescent trees under susceptible-infected (SI)
 	model.
+	@x
 	@param fgyResolution : time resolution of ODE solution
 	@param integrationMethod : method for numerical solution of ODE
 	@param t.end : boundary condition for ODE solution, time scale of simulation

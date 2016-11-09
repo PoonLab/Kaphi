@@ -31,7 +31,7 @@ smc.config <- setClass("smc.config",
 	    rbf.variance="numeric",
 	    sst.contorl="numeric",
 	    sst.normalize="numeric",
-	    norm.mode="character"
+	    norm.mode="character"   # normalize branch lengths?
 	),
 	prototype=list(  # defaults		
 		nparticle=10, # 1000
@@ -155,14 +155,41 @@ setMethod(f='set.model', signature='smc.config', definition=function(object, gen
 })
 
 
+# ape:node.height() does not have the expected function
+# ape:branching.times() requires an ultrametric tree
+get.tip.heights <- function(phy) {
+	n.tips <- Ntip(phy)
+	tip.dists <- node.depth.edgelength(phy)[1:n.tips]
+	return(max(tip.dists)-tip.dists)
+}
 
 
+parse.labels <- function(labels, regex) {
+	m <- regexpr(regex, labels)
+	positions <- as.vector(m)
+	lengths <- attr(m, 'match.length')
+	result <- {}
+	for (i in 1:length(labels)) {
+		if (positions[i] < 0) {
+			result <- c(result, NA)
+		} else {
+			result <- c(result, substr(labels[i], positions[i], positions[i]+lengths[i]-1))
+		}
+	}
+	return(result)
+}
 
-run.smc <- function(config, obs.tree, trace.file, seed=NA, nthreads=1) {
-	# @param config: an instance of S4 object smc.config (read-only access)
-	# @param seed: 
-	
-	# parse input tree
+
+run.smc <- function(config, obs.tree, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
+	"
+	@param config: an instance of S4 object smc.config (read-only access)
+	@param obs.tree: object of class 'phylo'
+	@param trace.file: (optional) path to a file to write outputs
+	@param seed: (optional) integer to set random seed
+	@param nthreads: (optional) for running on multiple cores
+	@param ...: additional arguments to pass to config@generator via simulate.tree()
+	"
+	# check input tree
 	if (class(obs.tree)!='phylo') {
 		if (class(obs.tree)=='character') {
 			# attempt to parse Newick string
@@ -172,6 +199,18 @@ run.smc <- function(config, obs.tree, trace.file, seed=NA, nthreads=1) {
 			}
 		}
 	}
+	
+	# process the observed tree
+	ladderize(obs.tree)
+	obs.tree <- rescale.tree(obs.tree, config@norm.mode)
+	n.tips <- Ntip(obs.tree)
+	tip.heights <- get.tip.heights(obs.tree)
+	if (is.na(regex)) {
+		tip.labels <- NA
+	} else {
+		tip.labels <- parse.labels(obs.tree$tip.label, regex)
+	}
+	
 	
 	# the particles - a matrix of parameter vectors
 	theta <- matrix(NA, nrow=config@nparticle, ncol=length(config@params))
@@ -195,9 +234,10 @@ run.smc <- function(config, obs.tree, trace.file, seed=NA, nthreads=1) {
 	for (i in 1:config@nparticle) {
 		theta[i,] <- sample(config)
 		w[i] <- 1./config@nparticle
-		trees <- simulate.tree(config, config@nsample, )
+		trees <- simulate.tree(config, theta[i,], n.tips, tip.heights, tip.labels, seed, ...)
 	}
 	
 }
+
 
 
