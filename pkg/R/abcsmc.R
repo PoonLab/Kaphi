@@ -1,18 +1,22 @@
-
 # Based on adaptive SMC algorithm proposed by Del Moral, Pierre, Arnaud
 # Doucet, and Ajay Jasra. "An adaptive sequential Monte Carlo method for
 # approximate Bayesian computation." Statistics and Computing 22.5 (2012):
 # 1009-1020.
 
 require(yaml)
-require(stats)
+require(TreeSim)
 
 # global parameters
 resize.amount <- 100
 bisection.max.iter <- 10000
 
+
+# This S4 object stores run settings and methods for:
+# (1) sampling particles from the prior distribution
+# (2) simulating a tree from a user-specified model for given parameters
+# All S4 object variables will be read-only.
 # based on C struct smc_config in smc.h
-abc.smc <- setClass("abc.smc", 
+smc.config <- setClass("smc.config", 
 	slots=c(
 	    params="character",  # vector of parameter names in the model
 	    priors="character",	 # vector of R expressions to generate random variates
@@ -49,10 +53,8 @@ abc.smc <- setClass("abc.smc",
 	)
 )
 
-# need to define the following class methods:
-#  sample.prior() : generate parameter vector from prior distribution
-
-setMethod(f='show', signature='abc.smc', definition=function(object) {
+# how to display contents of S4 object to user
+setMethod(f='show', signature='smc.config', definition=function(object) {
 	cat('Kaphi abc.smc S4 object\n\n')
 	cat('Number of particles:', object@nparticle, '\n')
 	cat('Number of samples per particle: ', object@nsample, '\n')
@@ -61,13 +63,14 @@ setMethod(f='show', signature='abc.smc', definition=function(object) {
 	# more...
 })
 
+
 # This method should call a function that samples parameters from the 
 # prior distributions.  It should be configured based on YAML input from
 # the user.
-setMethod(f='sample', signature='abc.smc', 
+setMethod(f='sample', signature='smc.config', 
 	definition=function(obj, x, size, replace, prob) {
 		if (length(obj@priors)==0) {
-			cat('No prior distributions have been set for this abc.smc object yet.')
+			cat('No prior distributions have been set; run load.priors().')
 		} else {
 			theta <- sapply(obj@priors, function(e) eval(parse(text=e)))
 			if (length(obj@params) == length(theta)) {
@@ -79,7 +82,7 @@ setMethod(f='sample', signature='abc.smc',
 )
 
 setGeneric(name="load.priors", def=function(object, file) {standardGeneric("load.priors")})
-setMethod(f='load.priors', signature='abc.smc', definition=function(object, file) {
+setMethod(f='load.priors', signature='smc.config', definition=function(object, file) {
 	# YAML should be of the following format
 	"
 	'N':              # name of model parameter
@@ -109,16 +112,60 @@ setMethod(f='load.priors', signature='abc.smc', definition=function(object, file
 # Usage: foo <- load.priors('examples/example-priors.yaml', foo)
 
 
-# This method should call a function that simulates trees given parameter vector
+# This method should call a function that simulate a tree given a 
+# named parameter vector.
 # abc.smc class does not need to know about any details of the actual model
 # other than parameter names and priors
-setMethod(f='simulate', signature='abc.smc', definition=function(object, nsim, seed) {cat('Simulation method has not yet been set.')})
+setGeneric(name="simulate.trees", def=function(object, nsim, seed, params) {standardGeneric("simulate.trees")})
+setMethod(f='simulate.trees', signature='smc.config', definition=function(object, nsim, seed, params) {cat('Simulation method has not yet been set.')})
+
+
+setGeneric(name="set.model", def=function(object, model.name) {standardGeneric("set.model")})
+setMethod(f='set.model', signature='smc.config', 
+		 definition=function(object, generator) {
+	# emulate how glm() handles 'family' argument
+	if (is.character(generator)) {
+		generator <- get(generator, mode="function", envir=parent.frame())
+	}
+	if (is.function(generator)) {
+		generator <- generator()
+	}
+	if (is.null(generator$generator)) {
+		print(generator)
+		stop("'generator' not recognized")
+	}
+	# make sure parameter names line up
+})
+
+
+# Generators are wrappers for R functions that simulate trees
 
 
 
+## the following functions operate on a smc.config instance
+foobaz <- function (object) {
+	print(object@priors)
+}
+
+# initialize.particles
+initialize.smc <- function (object, ) {
+	
+}
+
+# .next.epsilon <- function()
+
+# .epsilon.objfun <- function()
+
+# .ess <- function()
 
 
-run.smc <- function(config, seed, nthreads, obs.tree, trace.file) {
+# .resample <- function()
+
+# .perturb <- function()
+
+
+
+run.smc <- function(object, config, seed, nthreads, obs.tree, trace.file) {
 	# @param config: an instance of S4 object smc.config
 	# @param seed: 
 	
@@ -137,8 +184,8 @@ run.smc <- function(config, seed, nthreads, obs.tree, trace.file) {
 	new.w <- rep(NA, times=config@nparticle)
 	
 	# space for returned values
-	accept.rate <- rep(NA, times=resize.amount)
-	epsilons <- rep(NA, times=resize.amount)
+	accept.rate <- {}
+	epsilons <- {}
 	
 	## Step 0: sample particles from prior distribution
 	
