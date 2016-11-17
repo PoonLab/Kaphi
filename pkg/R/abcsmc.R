@@ -6,6 +6,7 @@
 require(yaml)
 require(TreeSim)
 
+
 # global parameters
 resize.amount <- 100
 bisection.max.iter <- 10000
@@ -79,7 +80,7 @@ setMethod(f='sample', signature='smc.config',
 			if (length(obj@params) == length(theta)) {
 				names(theta) <- obj@params
 			}
-			return(theta)
+			return(theta)  # a named vector
 		}
 	}
 )
@@ -237,9 +238,21 @@ run.smc <- function(config, obs.tree, trace.file=NA, regex=NA, seed=NA, nthreads
 	
 	## Step 0: sample particles from prior distribution (see smc.c:initialize())
 	for (i in 1:config@nparticle) {
-		theta[i,] <- sample(config)
-		w[i] <- 1./config@nparticle
-		trees <- simulate.tree(config, theta[i,], n.tips, tip.heights, tip.labels, seed, ...)
+		theta[i,] <- sample(config)  # sample particle from prior distribution
+		w[i] <- 1./config@nparticle  # assign uniform weights
+		
+		# simulate trees from particle
+		sim.trees <- simulate.tree(config, theta[i,], n.tips, tip.heights, tip.labels, seed, ...)
+		
+		# calculate kernel distances for trees
+		k.dists <- sapply(sim.trees, function(sim.tree) {
+			tree.kernel(
+				sim.tree, 
+				obs.tree, 
+				lambda=config@decay.factor,
+				sigma=config@rbf.variance
+			)
+		})
 	}
 	
 }
