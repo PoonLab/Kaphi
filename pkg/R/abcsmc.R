@@ -34,7 +34,7 @@ smc.config <- setClass("smc.config",
 	    
 	    decay.factor="numeric",  # subset tree kernel parameters
 	    rbf.variance="numeric",
-	    sst.contorl="numeric",
+	    sst.control="numeric",
 	    sst.normalize="numeric",
 	    norm.mode="character"   # normalize branch lengths?
 	),
@@ -187,15 +187,14 @@ parse.labels <- function(labels, regex) {
 }
 
 
-run.smc <- function(config, obs.tree, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
-	"
-	@param config: an instance of S4 object smc.config (read-only access)
-	@param obs.tree: object of class 'phylo'
-	@param trace.file: (optional) path to a file to write outputs
-	@param seed: (optional) integer to set random seed
-	@param nthreads: (optional) for running on multiple cores
-	@param ...: additional arguments to pass to config@generator via simulate.tree()
-	"
+next.epsilon <- function(config, prev.epsilon) {
+	" Use bisection method to solve "
+
+}
+
+
+
+parse.input.tree <- function(obs.tree) {
 	# check input tree
 	if (class(obs.tree)!='phylo') {
 		if (class(obs.tree)=='character') {
@@ -206,55 +205,85 @@ run.smc <- function(config, obs.tree, trace.file=NA, regex=NA, seed=NA, nthreads
 			}
 		}
 	}
-	
 	# process the observed tree
 	ladderize(obs.tree)
 	obs.tree <- rescale.tree(obs.tree, config@norm.mode)
-	n.tips <- Ntip(obs.tree)
-	tip.heights <- get.tip.heights(obs.tree)
-	if (is.na(regex)) {
-		tip.labels <- NA
-	} else {
-		tip.labels <- parse.labels(obs.tree$tip.label, regex)
+    return (obs.tree)
+}
+
+
+initialize.smc <- function(config) {
+    k <- matrix(NA, nrow=config@nsample, ncol=config@nparticle)
+
+	## Step 0: sample particles from prior distribution (see smc.c:initialize())
+	for (i in 1:config@nparticle) {
+		theta[i,] <- sample(config)  # sample particle from prior distribution
+		w[i] <- 1./config@nparticle  # assign uniform weights
+
+		# simulate trees from particle
+		sim.trees <- simulate.tree(config, theta[i,], n.tips, tip.heights, tip.labels, seed, ...)
+
+		# calculate kernel distances for trees
+		k[,i] <- sapply(sim.trees, function(sim.tree) {
+			tree.kernel(
+				sim.tree,
+				obs.tree,
+				lambda=config@decay.factor,
+				sigma=config@rbf.variance,
+				rho=config@sst.control,
+				normalize=config@sst.normalize,
+				rescale.mode=config@norm.mode
+			)
+		})
 	}
-	
+    return (k)
+}
+
+
+run.smc <- function(config, obs.tree, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
+	"
+	@param config: an instance of S4 object smc.config (read-only access)
+	@param obs.tree: object of class 'phylo'
+	@param trace.file: (optional) path to a file to write outputs
+	@param seed: (optional) integer to set random seed
+	@param nthreads: (optional) for running on multiple cores
+	@param ...: additional arguments to pass to config@generator via simulate.tree()
+	"
+    # process input tree
+    obs.tree <- parse.input.tree(obs.tree)
+    n.tips <- Ntip(obs.tree)
+    tip.heights <- get.tip.heights(obs.tree)
+    tip.labels <- ifelse(is.na(regex), NA, parse.labels(obs.tree$tip.label, regex))
+
 	# the particles - a matrix of parameter vectors
 	theta <- matrix(NA, nrow=config@nparticle, ncol=length(config@params))
 	
 	# for proposals
 	new.theta <- matrix(NA, nrow=config@nparticle, ncol=length(config@params))
 	
-	# store kernel scores (distances) for current and proposed particles
-	x <- matrix(NA, nrow=config@nsample, ncol=config@nparticle)
-	new.x <- matrix(NA, nrow=config@nsample, ncol=config@nparticle)
-	
 	# current and proposed weights
 	w <- rep(NA, times=config@nparticle)
 	new.w <- rep(NA, times=config@nparticle)
+
+    # current and proposed kernel scores
+    ks <- matrix(NA, nrow=config@nsample, ncol=config@nparticle)
+    new.ks <- matrix(NA, nrow=config@nsample, ncol=config@nparticle)
 	
 	# space for returned values
 	accept.rate <- {}
 	epsilons <- {}
 	
-	## Step 0: sample particles from prior distribution (see smc.c:initialize())
-	for (i in 1:config@nparticle) {
-		theta[i,] <- sample(config)  # sample particle from prior distribution
-		w[i] <- 1./config@nparticle  # assign uniform weights
-		
-		# simulate trees from particle
-		sim.trees <- simulate.tree(config, theta[i,], n.tips, tip.heights, tip.labels, seed, ...)
-		
-		# calculate kernel distances for trees
-		k.dists <- sapply(sim.trees, function(sim.tree) {
-			tree.kernel(
-				sim.tree, 
-				obs.tree, 
-				lambda=config@decay.factor,
-				sigma=config@rbf.variance
-			)
-		})
-	}
-	
+    x <- initialize.smc(config)
+
+    n.iter <- 0
+    epsilon <- .Machine$double.xmax
+    while (epsilon != config@final.epsilon) {
+        accept <- 0
+        alive <- 0
+
+        # update epsilon
+    		
+    }
 }
 
 
