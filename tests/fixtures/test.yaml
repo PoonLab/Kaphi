@@ -1,0 +1,19 @@
+priors:
+  x:
+    dist: 'rnorm'
+    hyperparameters:
+    - mean: 0
+    - sd: 1
+smc:
+  nparticle: 10
+  nsample: 6
+  ess.tolerance: 1.1
+  final.epsilon: 0.02
+  quality: 0.9
+  step.tolerance: 1e-4
+  decay.factor: 0.1
+  rbf.variance: 2.5
+  sst.control: 0
+  sst.normalize: 0
+  norm.mode: 'NONE'
+kernel:
