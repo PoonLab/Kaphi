@@ -1,0 +1,85 @@
+parse.input.tree <- function(obs.tree) {
+	# check input tree
+	if (class(obs.tree)!='phylo') {
+		if (class(obs.tree)=='character') {
+			# attempt to parse Newick string
+			obs.tree <- read.tree(text=obs.tree)
+			if (is.null(obs.tree)) {
+				stop("String passed for obs.tree failed to parse as Newick tree string")
+			}
+		}
+	}
+	# process the observed tree
+	ladderize(obs.tree)
+	obs.tree <- rescale.tree(obs.tree, config@norm.mode)
+    return (obs.tree)
+}
+
+
+# ape:node.height() does not have the expected function
+# ape:branching.times() requires an ultrametric tree
+get.tip.heights <- function(phy) {
+	n.tips <- Ntip(phy)
+	tip.dists <- node.depth.edgelength(phy)[1:n.tips]
+	return(max(tip.dists)-tip.dists)
+}
+
+
+parse.labels <- function(labels, regex) {
+	m <- regexpr(regex, labels)
+	positions <- as.vector(m)
+	lengths <- attr(m, 'match.length')
+	result <- {}
+	for (i in 1:length(labels)) {
+		if (positions[i] < 0) {
+			result <- c(result, NA)
+		} else {
+			result <- c(result, substr(labels[i], positions[i], positions[i]+lengths[i]-1))
+		}
+	}
+	return(result)
+}
+
+
+init.workspace <- function(obs.tree, config, regex=NA) {
+    nparams <- len(config$params)
+    workspace <- list(
+        # the data!
+        obs.tree=parse.input.tree(obs.tree),  # a phylo object
+        n.tips=Ntip(obs.tree),
+        tip.heights=get.tip.heights(obs.tree),
+        tip.labels=ifelse(is.na(regex), NA, parse.labels(obs.tree$tip.label, regex)),
+
+        # this will hold multiPhylo objects from particles
+        sim.trees=lapply(1:config$nparticle, list),
+
+        # smc.config S3 object
+        config=config,
+
+        # each particle is a vector of model parameters
+        # FIXME: should we bother to allocate these here?  see initialize.smc()
+        particles=matrix(NA, nrow=config$nparticle, ncol=nparams),
+        new.particles=matrix(NA, nrow=config$nparticle, ncol=nparams),
+
+        # weights of particles
+        weights=rep(NA, times=config$nparticle),
+        new.weights=rep(NA, times=config$nparticle),
+
+        # kernel scores (similarity)
+        kscores=matrix(NA, nrow=config$nsample, ncol=config$nparticle),
+        new.kscores=matrix(NA, nrow=config$nsample, ncol=config$nparticle),
+
+        epsilon=.Machine$double.xmax,  # current tolerance
+
+        accept=0,  # number of accepted proposals
+        alive=0    # number of live particles
+    )
+    workspace <- class('smc.workspace')
+    return(workspace)
+}
+
+print.smc.workspace <- function(workspace) {
+    cat('Kaphi SMC workspace\n\n')
+    cat('Target tree:\n', obs.tree)
+}
+

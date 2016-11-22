@@ -1,0 +1,25 @@
+priors:
+  'N':                # population size
+    dist: 'rlnorm'  # lognormal distribution
+    hyperparameters:
+    - mean: 9.21      # exp(9.21) = 1e4
+    - sd:   0.2       # 95% interval about 6700 to 14700
+  'beta':
+    dist: 'rgamma'
+    hyperparameters:
+    - shape: 0.5
+    - rate: 1
+smc:
+  nparticle: 10
+  nsample: 3
+  ess.tolerance: 1.5
+  final.epsilon: 0.01
+  final.accept.rate: 0.015
+  quality: 0.95
+  step.tolerance: 1e-5
+kernel:
+  decay.factor: 0.2
+  rbf.variance: 2.0
+  stt.control: 1.0
+  stt.normalize: 1.0
+  norm.mode: 'MEAN'
