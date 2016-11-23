@@ -1,4 +1,4 @@
-require(ape)
+require(ape, quietly=TRUE)
 
 # create test fixtures
 t1 <- read.tree(text="(A:0.1,B:0.2):0;")

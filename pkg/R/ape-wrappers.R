@@ -4,8 +4,8 @@ ape.coalescent <- function(theta, nsim, n.tips, labels=NA, seed=NA) {
 	"
 	This function exists only as a prototype - it generates a tree under 
 	Kingman's coalescent where branch lengths are in units of N_e (effective 
-	population size) generations.  To compare against a time tree, they must be rescaled 
-	by generation time (\tau).
+	population size) generations.  To compare against a time tree, they must be
+	rescaled by generation time (\tau).
 	"
 	print(farp)
 	if (!is.na(seed)) {

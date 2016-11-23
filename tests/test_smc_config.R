@@ -1,6 +1,6 @@
-require(Kaphi)
-require(RUnit)
-require(yaml)
+require(Kaphi, quietly=TRUE)
+require(RUnit, quietly=TRUE)
+require(yaml, quietly=TRUE)
 
 source('tests/fixtures/simple-trees.R')
 
@@ -25,4 +25,12 @@ test.load.config <- function() {
     names(expected$priors) <- c('x')
     class(expected) <- 'smc.config'
     checkEquals(expected, result, checkNames=FALSE)
+}
+
+test.sample.priors <- function() {
+    config <- load.config('tests/fixtures/test.yaml')
+    samples <- sapply(1:1000, function(x) sample.priors(config))
+    # standard error is sd/sqrt(n)
+    checkEquals(mean(samples), 0, tolerance=0.1)
+    checkEquals(sd(samples), 1, tolerance=0.1)
 }

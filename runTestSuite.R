@@ -1,4 +1,4 @@
-require(RUnit)
+require(RUnit, quietly=TRUE)
 
 testsuite.Kaphi <- defineTestSuite('Kaphi',
     dirs=file.path(getwd(), 'tests'),

@@ -1,4 +1,4 @@
-parse.input.tree <- function(obs.tree) {
+parse.input.tree <- function(obs.tree, config) {
 	# check input tree
 	if (class(obs.tree)!='phylo') {
 		if (class(obs.tree)=='character') {
@@ -11,7 +11,7 @@ parse.input.tree <- function(obs.tree) {
 	}
 	# process the observed tree
 	ladderize(obs.tree)
-	obs.tree <- rescale.tree(obs.tree, config@norm.mode)
+	obs.tree <- rescale.tree(obs.tree, config$norm.mode)
     return (obs.tree)
 }
 
@@ -26,9 +26,9 @@ get.tip.heights <- function(phy) {
 
 
 parse.labels <- function(labels, regex) {
-	m <- regexpr(regex, labels)
-	positions <- as.vector(m)
-	lengths <- attr(m, 'match.length')
+	m <- regexpr(regex, labels, perl=TRUE)
+	positions <- attr(m, 'capture.start')
+	lengths <- attr(m, 'capture.length')
 	result <- {}
 	for (i in 1:length(labels)) {
 		if (positions[i] < 0) {
