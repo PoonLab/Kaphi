@@ -1,13 +1,14 @@
 require(ape)
 
 rescale.tree <- function(tree, mode) {
-    print ('rescale.tree')
-
+    #print ('rescale.tree')
     mode <- toupper(mode)
-    if (!is.element(mode, c('MEAN', 'MEDIAN', 'MAX'))) {
-        stop("Invalid mode, must be MEAN, MEDIAN or MAX")
+    if (!is.element(mode, c('MEAN', 'MEDIAN', 'MAX', 'NONE'))) {
+        stop("Invalid mode, must be MEAN, MEDIAN, MAX or NONE")
     }
-
+    if (mode == 'NONE') {
+        return(tree)
+    }
     if (mode == 'MEAN') {
         scale <- mean(tree$edge.length)
     } else if (mode == 'MEDIAN') {
@@ -32,7 +33,7 @@ parse.newick <- function(tree) {
 }
 
 preprocess.tree <- function(tree, rescale.mode) {
-    print ('preprocess')
+    #print ('preprocess')
     if (class(tree) == 'character') {
         tree <- read.tree(text=tree)
     }
@@ -44,7 +45,7 @@ preprocess.tree <- function(tree, rescale.mode) {
 }
 
 to.newick <- function(tree) {
-    print ('to.newick')
+    #print ('to.newick')
     if (class(tree)=='phylo') {
         return (write.tree(tree))
     } else if (class(tree) == 'character') {
@@ -56,8 +57,8 @@ to.newick <- function(tree) {
     }
 }
 
-tree.kernel <- function(tree1, tree2, lambda, sigma, rho, normalize, rescale.mode='MEAN') {
-    print ('tree.kernel')
+tree.kernel <- function(tree1, tree2, lambda, sigma, rho=1, normalize=1, rescale.mode='MEAN') {
+    #print ('tree.kernel')
     nwk1 <- to.newick(preprocess.tree(tree1, rescale.mode))
     nwk2 <- to.newick(preprocess.tree(tree2, rescale.mode))
 

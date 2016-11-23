@@ -35,10 +35,12 @@ initialize.smc <- function(ws, ...) {
     ws$kscores <- matrix(NA, nrow=config$nsample, ncol=config$nparticle)
     ws$new.kscores <- matrix(NA, nrow=config$nsample, ncol=config$nparticle)
 
-	## Step 0: sample particles from prior distribution (see smc.c:initialize())
 	for (i in 1:config@nparticle) {
-		ws$particles[i,] <- sample(config)  # sample particle from prior distribution
-		ws$weights[i] <- 1./config@nparticle  # assign uniform weights
+        # sample particle from prior distribution
+		ws$particles[i,] <- sample(config)
+
+        # assign uniform weights
+		ws$weights[i] <- 1./config@nparticle
 
 		# simulate trees from particle
 		ws$sim.trees[[i]] <- simulate.tree(ws, config, ...)

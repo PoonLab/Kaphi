@@ -10,10 +10,10 @@ smc:
   ess.tolerance: 1.1
   final.epsilon: 0.02
   quality: 0.9
-  step.tolerance: 1e-4
+  step.tolerance: 1.e-4
+kernel:
   decay.factor: 0.1
   rbf.variance: 2.5
   sst.control: 0
   sst.normalize: 0
   norm.mode: 'NONE'
-kernel:

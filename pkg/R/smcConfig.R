@@ -25,6 +25,7 @@ load.config <- function(file) {
     class(config) <- 'smc.config'
     settings <- yaml.load_file(file)
 
+    # parse prior settings
     config$params <- names(settings$priors)
     expressions <- {}
 	for (par.name in config$params) {
@@ -36,6 +37,24 @@ load.config <- function(file) {
 	}
 	config$priors <- expressions
     names(config$priors) <- config$params
+
+    # FIXME: need to write a handler to interpret "1e-5" as float
+
+    # parse SMC settings
+    for (smc.set in names(settings$smc)) {
+        if (!is.element(smc.set, names(config))) {
+            stop("Unrecognized SMC setting in YAML: ", smc.set)
+        }
+        config[smc.set] <- settings$smc[smc.set]
+    }
+
+    # parse kernel settings
+    for (k.set in names(settings$kernel)) {
+        if (!is.element(k.set, names(config))) {
+            stop("Unrecognized kernel setting in YAML: ", k.set)
+        }
+        config[k.set] <- settings$kernel[k.set]
+    }
     return (config)
 }
 
