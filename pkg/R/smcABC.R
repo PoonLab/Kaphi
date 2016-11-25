@@ -15,9 +15,13 @@ simulate.tree <- function(workspace, theta, seed=NA, ...) {
 	# @param seed: argument to set.seed()
     config <- workspace$config
     if (is.null(body(config$model))) {
-        cat('Simulation method has not been set for configuration.')
+        stop('Simulation method has not been set for configuration.')
     }
-    result <- config$model(theta, config$nsample, workspace$n.tips, workspace$tip.heights, workspace$tip.labels, seed, ...)
+	if (!is.na(seed)) {
+		set.seed(seed)
+	}
+    result <- config$model(theta, config$nsample, workspace$n.tips,
+        workspace$tip.heights, workspace$tip.labels, ...)
     return(result)
 }
 
@@ -25,15 +29,6 @@ simulate.tree <- function(workspace, theta, seed=NA, ...) {
 initialize.smc <- function(ws, ...) {
     config <- ws$config
     nparams <- len(config$params)
-
-    # reset workspace containers
-    ws$sim.trees <- lapply(1:config$nparticle, list)
-    ws$particles <- matrix(NA, nrow=config$nparticle, ncol=config@nparams)
-    ws$new.particles <- matrix(NA, nrow=config$nparticle, ncol=config@nparams)
-    ws$weights <- rep(NA, times=config$nparticle)
-    ws$new.weights <- rep(NA, times=config$nparticle)
-    ws$kscores <- matrix(NA, nrow=config$nsample, ncol=config$nparticle)
-    ws$new.kscores <- matrix(NA, nrow=config$nsample, ncol=config$nparticle)
 
 	for (i in 1:config@nparticle) {
         # sample particle from prior distribution

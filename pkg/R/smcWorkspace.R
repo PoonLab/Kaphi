@@ -42,10 +42,10 @@ parse.labels <- function(labels, regex) {
 
 
 init.workspace <- function(obs.tree, config, regex=NA) {
-    nparams <- len(config$params)
+    nparams <- length(config$params)
     workspace <- list(
         # the data!
-        obs.tree=parse.input.tree(obs.tree),  # a phylo object
+        obs.tree=parse.input.tree(obs.tree, config),  # a phylo object
         n.tips=Ntip(obs.tree),
         tip.heights=get.tip.heights(obs.tree),
         tip.labels=ifelse(is.na(regex), NA, parse.labels(obs.tree$tip.label, regex)),
@@ -72,14 +72,15 @@ init.workspace <- function(obs.tree, config, regex=NA) {
         epsilon=.Machine$double.xmax,  # current tolerance
 
         accept=0,  # number of accepted proposals
-        alive=0    # number of live particles
+        alive=0,    # number of live particles
+        seed=NA
     )
-    workspace <- class('smc.workspace')
+    class(workspace) <- 'smc.workspace'
     return(workspace)
 }
 
 print.smc.workspace <- function(workspace) {
     cat('Kaphi SMC workspace\n\n')
-    cat('Target tree:\n', obs.tree)
+    cat('Target tree:\n', workspace$obs.tree)
 }
 

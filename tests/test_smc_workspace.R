@@ -33,3 +33,20 @@ test.parse.labels <- function() {
     expected <- c('A', 'B', 'A', '')
     checkEquals(expected, result)
 }
+
+test.init.workspace <- function() {
+    config <- list(
+        params=c('N'),
+        nparticle=10,
+        nsample=3,
+        norm.mode='NONE'
+    )
+    class(config) <- 'smc.config'
+    result <- init.workspace(t1, config)
+    checkEquals(result$n.tips, 2)
+    checkEquals(result$tip.heights,  c(0.1, 0.0))
+    checkEquals(result$tip.labels, NA)
+    checkEquals(nrow(result$particles), 10)
+    checkEquals(ncol(result$particles), 1)
+}
+

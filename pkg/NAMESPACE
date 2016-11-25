@@ -17,4 +17,6 @@ export(simulate.tree)
 export(initialize.smc)
 export(run.smc)
 
+export(const.coalescent)
+
 useDynLib(Kaphi)
