@@ -29,9 +29,15 @@
  * \param[in] rbf_variance variance of Gaussian radial basis function of branch lengths
  * \param[in] sst_control between 0 and 1, where 0 is a pure subtree kernel and
  * 1 is a pure subset tree kernel (see \cite moschitti2006making)
+ * \param[in] label1 array containing the labels of each tip of t1, set NULL to use
+ *  unlabeled
+ * \param[in] label2 array containing the labels of each tip of t1, set NULL to use
+ * unlabeled
+ * \param[in] label_factor between 0 and 1, where 0 means label mismatches contribute
+ *  nothing to kernel value and 1 ignores label mismatch
  */
 double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
-        double rbf_variance, double sst_control);
+        double rbf_variance, double sst_control, const long int *label1, const long int *label2, double label_factor);
 
 /** Compute the normalized lineages-through-time statistic.
  *
@@ -160,5 +166,16 @@ double pybus_gamma(const igraph_t *tree);
  * \return ratio of internal to terminal branch lengths
  */
 double internal_terminal_ratio(const igraph_t *tree);
+
+/** Convert the labels to index reference for faster comparision.
+ *
+ * To be used in labeled kernel.
+ *
+ * \param[in] tree1 the first tree
+ * \param[in] tree2 the second tree
+ * \param[out] label1 the index reference for the first tree
+ * \param[out] label2 the index reference for the second tree
+ */
+void get_labels(const igraph_t *tree1, const igraph_t *tree2, long int *label1, long int *label2);
 
 #endif

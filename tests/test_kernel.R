@@ -41,3 +41,77 @@ test.kernel.unnormalized <- function() {
     expected <- 1 * exp(-((0.3-0.1)^2 + (0.4-0.2)^2) / (1.0)) * ((1+1) * (1+1))
     checkEquals(expected, result)
 }
+
+test.kernel.label <- function() {
+	# essentially unlabelled
+	cat("essentially unlabelled\n")
+	result <- tree.kernel(t1, t1, lambda=1, sigma=1, rho=1, label1=t1$tip.label, label2=t1$tip.label, gamma=1, normalize=0, rescale.mode='NONE')
+    expected <- 4
+    checkEquals(expected, result)
+        
+    # same tree labelled
+    cat("same tree labelled\n")
+    result <- tree.kernel(t1, t1, lambda=1, sigma=1, rho=1, label1=t1$tip.label, label2=t1$tip.label, gamma=0, normalize=0, rescale.mode='NONE')
+    expected <- 4
+    checkEquals(expected, result)
+    
+    # same tree labels switched
+    cat("same tree labels switched\n")
+    result <- tree.kernel(t1, t1, lambda=1, sigma=1, rho=1, label1=t1$tip.label, label2=t1$tip.label[2:1], gamma=0, normalize=0, rescale.mode='NONE')
+    expected <- exp(-(.1^2+.1^2)/(1.0)) * ((1+1) * (1+1))
+    checkEquals(expected, result)
+    
+    # same tree different labels
+    cat("same tree different labels\n")
+    result <- tree.kernel(t1, t1, lambda=1, sigma=1, rho=1, label1=c(1, 2), label2=c(3, 4), gamma=0, normalize=0, rescale.mode='NONE')
+    expected <- 1
+    checkEquals(expected, result)
+    
+    # half gamma
+    cat("half gamma\n")
+	result <- tree.kernel(t1, t1, lambda=1, sigma=1, rho=1, label1=c(1, 2), label2=c(3, 4), gamma=.5, normalize=0, rescale.mode='NONE')
+    expected <- 1.5 * 1.5
+    checkEquals(expected, result)
+    
+    # same tree different labels, ignore mismatch
+    cat("same tree different labels, ignore mismatch\n")
+    result <- tree.kernel(t1, t1, lambda=1, sigma=1, rho=1, label1=c(1, 2), label2=c(3, 4), gamma=1, normalize=0, rescale.mode='NONE')
+    expected <- 4
+    checkEquals(expected, result)
+    
+    # subset tree
+    cat("subset tree\n")
+    result <- tree.kernel(t1, t2, lambda=1, sigma=1, rho=1, label1=t1$tip.label, label2=t2$tip.label, gamma=0, normalize=0, rescale.mode='NONE')
+    expected <- 4
+    checkEquals(expected, result)
+    
+    # subset tree, half gamma
+    cat("subset tree, half gamma\n")
+    result <- tree.kernel(t1, t2, lambda=1, sigma=1, rho=1, label1=t1$tip.label, label2=t2$tip.label, gamma=.5, normalize=0, rescale.mode='NONE')
+    expected <- 4
+    checkEquals(expected, result)
+    
+    # subset tree, labels different
+    cat("subset tree, labels different\n")
+    result <- tree.kernel(t1, t2, lambda=1, sigma=1, rho=1, label1=c(1, 1), label2=c(2, 2, 2), gamma=0, normalize=0, rescale.mode='NONE')
+    expected <- 1
+    checkEquals(expected, result)
+    
+    # subset tree, ignore mismatch
+    cat("subset tree, ignore mismatch\n")
+    result <- tree.kernel(t1, t2, lambda=1, sigma=1, rho=1, label1=c(1, 1), label2=c(2, 2, 2), gamma=0.5, normalize=0, rescale.mode='NONE')
+    expected <- 1.5 * 1.5
+    checkEquals(expected, result)
+    
+    # subset tree, ignore mismatch
+    cat("subset tree, ignore mismatch\n")
+    result <- tree.kernel(t1, t2, lambda=1, sigma=1, rho=1, label1=c(1, 1), label2=c(2, 2, 2), gamma=1, normalize=0, rescale.mode='NONE')
+    expected <- 4
+    checkEquals(expected, result)
+    
+    # subset tree, outgroup a
+    cat("subset tree, outgroup a\n")
+    result <- tree.kernel(t1, t2, lambda=1, sigma=1, rho=1, label1=c(1, 2), label2=c(1, 2, 1), gamma=0, normalize=0, rescale.mode='NONE')
+    expected <- 4
+    checkEquals(expected, result)
+}

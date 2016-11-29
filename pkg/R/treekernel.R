@@ -57,13 +57,31 @@ to.newick <- function(tree) {
     }
 }
 
-tree.kernel <- function(tree1, tree2, lambda, sigma, rho=1, normalize=1, rescale.mode='MEAN') {
+tree.kernel <- function(tree1, tree2, lambda, sigma, rho=1, normalize=1, label1=NA, label2=NA, gamma=0, rescale.mode='MEAN') {
     #print ('tree.kernel')
+    # make labels
+    use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2))
+        FALSE
+    else {
+    	tree1$tip.label <- label1
+        tree2$tip.label <- label2
+        TRUE
+    }
+    
     nwk1 <- to.newick(preprocess.tree(tree1, rescale.mode))
     nwk2 <- to.newick(preprocess.tree(tree2, rescale.mode))
-
+        
+#    # make labels
+#    if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
+#        new_label1 <- new_label2 <- NA
+#    } else {
+#	     label <- unique(label1, label2)
+#        new_label1 <- sapply(label1, function(x) which(x == label))
+#        new_label2 <- sapply(label2, function(x) which(x == label))
+#    }
+		
     res <- .Call("R_Kaphi_kernel",
-                 nwk1, nwk2, lambda, sigma, rho, normalize,
+                 nwk1, nwk2, lambda, sigma, rho, use.label, gamma, normalize,
                  PACKAGE="Kaphi")
     return (res)
 }

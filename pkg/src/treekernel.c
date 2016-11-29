@@ -141,11 +141,11 @@ int main (int argc, char **argv)
     scale_branches(t2, opts.scale_branches);
 
     if (opts.normalize) {
-        kdenom = sqrt(kernel(t1, t1, opts.decay_factor, opts.gauss_factor, opts.sst_control)) *
-                 sqrt(kernel(t2, t2, opts.decay_factor, opts.gauss_factor, opts.sst_control));
+        kdenom = sqrt(kernel(t1, t1, opts.decay_factor, opts.gauss_factor, opts.sst_control, 0, 0, 1)) *
+                 sqrt(kernel(t2, t2, opts.decay_factor, opts.gauss_factor, opts.sst_control, 0, 0, 1));
     }
 
-    knum = kernel(t1, t2, opts.decay_factor, opts.gauss_factor, opts.sst_control);
+    knum = kernel(t1, t2, opts.decay_factor, opts.gauss_factor, opts.sst_control, 0, 0, 1);
     if (opts.nLTT) {
         knum *= 1.0 - nLTT(t1, t2);
     }

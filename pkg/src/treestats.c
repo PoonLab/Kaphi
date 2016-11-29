@@ -31,11 +31,11 @@ int _unbalanced(const igraph_t *tree, int *n, igraph_vector_t *work, int root);
 double _unbalance(const igraph_t *tree, int *n, igraph_vector_t *work, int root);
 
 double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor, 
-        double rbf_variance, double sst_control)
+        double rbf_variance, double sst_control, const long int *label1, const long int *label2, double label_factor)
 {
-    int i, c1, c2, n1, n2, coord, npairs;
+    int i, c1, c2, n1, n2, coord, npairs, do_label = label1 != NULL && label2 != NULL;
     int *production1, *production2, *children1, *children2;
-    double val, tmp, K = 0;
+    double val, val2, tmp, K = 0;
     double *bl1, *bl2;
     Pvoid_t delta = (Pvoid_t) NULL;
     int *pairs, *map, cur = 0;
@@ -77,7 +77,10 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
                 // children are leaves
                 if (production1[c1] == 0)
                 {
-                    val *= (sst_control + decay_factor);
+                	if (do_label && label1[c1] != label2[c2])
+                	    val *= (sst_control + decay_factor * label_factor);
+                	else
+                	    val *= (sst_control + decay_factor);
                 }
 
                 // children are not leaves
@@ -91,6 +94,49 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
                 }
             }
         }
+
+        // check other children pairing if labeled
+        if (do_label) {
+            val2 = decay_factor;
+            n1 = pairs[cur] >> 16;
+            n2 = pairs[cur] & 65535;
+
+            // branch lengths
+            tmp = pow(bl1[2*n1] - bl2[2*n2+1], 2) + pow(bl1[2*n1+1] - bl2[2*n2], 2);
+            val2 *= exp(-tmp/rbf_variance);
+
+            for (i = 0; i < 2; ++i)  // assume tree is binary
+            {
+                c1 = children1[2*n1+i];
+                c2 = children2[2*n2+1-i];
+
+                if (production1[c1] == production2[c2])
+                {
+                    // children are leaves
+                   if (production1[c1] == 0)
+                    {
+                    	if (do_label && label1[c1] != label2[c2])
+                    	    val2 *= (sst_control + decay_factor * label_factor);
+                    	else
+                    	    val2 *= (sst_control + decay_factor);
+                    }
+
+                    // children are not leaves
+                    else
+                    {
+                        JLG(Pvalue, delta, (c1 << 16) | c2);
+                        /* don't visit parents before children */
+                        assert(Pvalue != NULL);
+                        memcpy(&tmp, Pvalue, sizeof(double));
+                        val2 *= (sst_control + tmp);
+                    }
+                }
+            }
+        }
+
+        if (val2 > val)
+        	val = val2;
+
 
         JLI(Pvalue, delta, pairs[cur]);
         if (Pvalue == PJERR) exit(EXIT_FAILURE); 
@@ -773,4 +819,154 @@ double *branch_lengths(const igraph_t *tree)
     igraph_inclist_destroy(&il);
     return branch_lengths;
 }
+
+
+
+#include <stdio.h>
+/* from en.wikipedia.org/wiki/https://en.wikipedia.org/wiki/Heapsort */
+void my_igraph_strvector_swap(igraph_strvector_t *a, long int i1, long int i2) {
+    char *tmp1;
+    char *tmp2;
+    char *tmp3;
+    char *tmp4;
+
+    igraph_strvector_get(a, i1, &tmp1);
+    igraph_strvector_get(a, i2, &tmp2);
+    tmp3 = (char*)malloc(sizeof(char*) * (strlen(tmp1) + 1));
+    strcpy(tmp3, tmp1);
+    tmp4 = (char*)malloc(sizeof(char*) * (strlen(tmp2) + 1));
+    strcpy(tmp4, tmp2);
+    igraph_strvector_set(a, i1, tmp4);
+    igraph_strvector_set(a, i2, tmp3);
+    free(tmp3);
+    free(tmp4);
+}
+
+void sift_down(igraph_strvector_t *a, long int start, long int end) {
+    long int root = start;
+    long int child, swap;
+    char *tmp1;
+    char *tmp2;
+
+    while (2 * root + 1 <= end) {
+        child = 2 *root + 1;
+        swap = root;
+
+        igraph_strvector_get(a, swap, &tmp1);
+        igraph_strvector_get(a, child, &tmp2);
+        if (strcmp(tmp1, tmp2) < 0) {
+            swap = child;
+        }
+
+        if (child + 1 <= end) {
+            igraph_strvector_get(a, swap, &tmp1);
+            igraph_strvector_get(a, child + 1, &tmp2);
+            if (strcmp(tmp1, tmp2) < 0) {
+                swap = child + 1;
+            }
+        }
+
+        if (swap == root)
+            return;
+        else {
+            my_igraph_strvector_swap(a, swap, root);
+
+            root = swap;
+        }
+    }
+}
+
+void heapify(igraph_strvector_t *a, long int count) {
+    long int start = (count - 2) / 2;
+
+    while (start >= 0L) {
+        sift_down(a, start, count - 1);
+        start = start - 1;
+    }
+}
+
+void my_igraph_strvector_sort(igraph_strvector_t *a) {
+    long int count = igraph_strvector_size(a);
+    long int end;
+
+    heapify(a, count);
+    end = count - 1;
+
+    while (end > 0L) {
+        my_igraph_strvector_swap(a, 0, end);
+
+        end = end - 1;
+        sift_down(a, 0L, end);
+    }
+}
+
+long int my_igraph_strvector_search(const igraph_strvector_t *a, char *val) {
+    long int start = 0;
+    long int end = igraph_strvector_size(a);
+    long int mid = (start + end) / 2;
+    int cmp;
+    char *tmp;
+
+    while (start < end) {
+        igraph_strvector_get(a, mid, &tmp);
+
+        cmp = strcmp(val, tmp);
+        if (cmp < 0) {
+            end = mid;
+        }
+        else {
+            if (cmp > 0) {
+                start = mid + 1;
+            }
+            else {
+                return mid;
+            }
+        }
+
+        mid = (start + end) / 2;
+    }
+
+    return -1;
+}
+
+/* convert tree lavels to index reference */
+void get_labels(const igraph_t *tree1, const igraph_t *tree2, long int *label1, long int *label2) {
+    long int i;
+    char * current_string;
+    igraph_strvector_t string_label1;
+    igraph_strvector_t string_label2;
+    igraph_strvector_t string_label_all;
+
+    igraph_strvector_init(&string_label1, 0);
+    igraph_strvector_init(&string_label2, 0);
+
+    VASV(tree1, "id", &string_label1);
+    VASV(tree2, "id", &string_label2);
+
+    igraph_strvector_init(&string_label_all, 0);
+    igraph_strvector_copy(&string_label_all, &string_label1);
+    igraph_strvector_append(&string_label_all, &string_label2);
+
+    my_igraph_strvector_sort(&string_label_all);
+
+    for (i = 0; i < igraph_strvector_size(&string_label1); ++i) {
+        igraph_strvector_get(&string_label1, i, &current_string);
+        label1[i] = my_igraph_strvector_search(&string_label_all, current_string);
+        printf("%ld: '%s' (%ld)\n", i, current_string, label1[i]);
+    }
+
+    for (i = 0; i < igraph_strvector_size(&string_label2); ++i) {
+        igraph_strvector_get(&string_label2, i, &current_string);
+        label2[i] = my_igraph_strvector_search(&string_label_all, current_string);
+        printf("%ld: '%s' (%ld)\n", i, current_string, label2[i]);
+    }
+
+    printf("\n");
+
+    // free memory
+    igraph_strvector_destroy(&string_label_all);
+    igraph_strvector_destroy(&string_label1);
+    igraph_strvector_destroy(&string_label2);
+}
+
 

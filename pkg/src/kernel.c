@@ -59,15 +59,17 @@ igraph_t * R_Kaphi_parse_newick(SEXP newick) {
     return tree;
 }
 
-
-SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEXP normalize) {
+SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEXP use_label, SEXP gamma, SEXP normalize) {
     SEXP result;
 
     // unpack real-valued arguments
     double decay_factor = REAL(lambda)[0];
     double gauss_factor = REAL(sigma)[0];
     double sst_control = REAL(rho)[0];
+    double label_factor = REAL(gamma)[0];
     double do_normalize = REAL(normalize)[0];
+    long int *new_label1 = 0;
+    long int *new_label2 = 0;
 
     double knum, kdenom = 1.;  // numerator and denominator
 
@@ -78,14 +80,20 @@ SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEX
     igraph_t * t1 = R_Kaphi_parse_newick(nwk1);
     igraph_t * t2 = R_Kaphi_parse_newick(nwk2);
 
+    if (INTEGER(use_label)[0]) {
+        new_label1 = (long int*)malloc(sizeof(long int) * (igraph_vcount(t1)));
+        new_label2 = (long int*)malloc(sizeof(long int) * (igraph_vcount(t2)));
+        get_labels(t1, t2, new_label1, new_label2);
+    }
+
     // ladderize and branch scaling is handled on R side
 
     if (do_normalize) {
         // see Collins and Duffey, NIPS 2001
-        kdenom = sqrt(kernel(t1, t1, decay_factor, gauss_factor, sst_control)) *
-                 sqrt(kernel(t2, t2, decay_factor, gauss_factor, sst_control));
+        kdenom = sqrt(kernel(t1, t1, decay_factor, gauss_factor, sst_control, new_label1, new_label1, label_factor)) *
+                 sqrt(kernel(t2, t2, decay_factor, gauss_factor, sst_control, new_label2, new_label2, label_factor));
     }
-    knum = kernel(t1, t2, decay_factor, gauss_factor, sst_control);
+    knum = kernel(t1, t2, decay_factor, gauss_factor, sst_control, new_label1, new_label2, label_factor);
 
     // transfer the result to a container to pass back to R
     PROTECT(result = NEW_NUMERIC(1));
@@ -95,6 +103,10 @@ SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEX
     // free memory allocated for trees
     igraph_destroy(t1);
     igraph_destroy(t2);
+    if (INTEGER(use_label)[0]) {
+        free(new_label1);
+        free(new_label2);
+    }
 
     return (result);
 }
