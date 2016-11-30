@@ -62,41 +62,79 @@ initialize.smc <- function(ws, ...) {
 # .perturb <- function()
 
 
+ess <- function(w) {
+    # effective sample size
+    return(1/sum(w^2))
+}
 
-next.epsilon <- function(config, prev.epsilon) {
-	" Use bisection method to solve "
+epsilon.obj.func <- function(ws, epsilon) {
+    # unpack some things
+    config <- ws$config
+    prev.epsilon <- ws$epsilon
 
+    # calculate new weights
+    for (i in 1:config$nparticle) {
+        num <- sum(ws$kscores[,i] < epsilon)
+        denom <- sum(ws$kscores[,i] < prev.epsilon)
+        if (num == denom) {
+            # handle case where numerator and denominator are both zero
+            ws$new.weights[i] <- ws$weights[i]
+        } else {
+            ws$new.weights[i] <- ws$weights[i] * num / denom
+        }
+    }
+    # normalize new weights to sum to 1.
+    ws$new.weights <- ws$new.weights / sum(ws$new.weights)
+    if (epsilon==0 || wsum==0) {
+        return (-1)
+    }
+    return (ess(ws$new.weights) - config$alpha * ess(ws$weights))
+}
+
+
+next.epsilon <- function(ws, prev.epsilon) {
+    # Let W_n^i be the weight of the i-th particle at n-th iteration
+    #
+    # The effective sample size is
+    #   ESS({W_n^i}) = 1 / \sum_{i=1}^{N} (W_n^i)^2
+	# Use bisection method to solve
+    config <- ws$config
+    res <- uniroot(function(x) epsilon.obj.func(ws, x), lower=0, upper=prev.epsilon,
+      tol=config$step.tolerance)
+    if (res < config$final.epsilon) {
+        res = config$final.epsilon  # stopping criterion
+        epsilon.obj.func(ws, res)
+    }
+    ws$weights <- ws$new.weights  # update weights
+    return (res)
 }
 
 
 
+run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
+    # @param ws: workspace
+	# @param obs.tree: object of class 'phylo'
+	# @param trace.file: (optional) path to a file to write outputs
+	# @param seed: (optional) integer to set random seed
+	# @param nthreads: (optional) for running on multiple cores
+	# @param ...: additional arguments to pass to config@generator via simulate.tree()
 
+	config <- ws$config
 
-
-
-run.smc <- function(workspace, config, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
-	"
-	@param config: an instance of S4 object smc.config (read-only access)
-	@param obs.tree: object of class 'phylo'
-	@param trace.file: (optional) path to a file to write outputs
-	@param seed: (optional) integer to set random seed
-	@param nthreads: (optional) for running on multiple cores
-	@param ...: additional arguments to pass to config@generator via simulate.tree()
-	"
-	# space for returned values
+    # space for returned values
 	accept.rate <- {}
 	epsilons <- {}
 	
-    initialize.smc(workspace, config)
+    initialize.smc(ws)
 
     n.iter <- 0
     epsilon <- .Machine$double.xmax
     while (epsilon != config$final.epsilon) {
-        accept <- 0
-        alive <- 0
+        ws.accept <- 0
+        ws.alive <- 0
 
-        # update epsilon
-        break
+        ws.epsilon <- next.epsilon()  # update epsilon
+
     }
 }
 
