@@ -69,7 +69,7 @@ init.workspace <- function(obs.tree, config, regex=NA) {
         kscores=matrix(NA, nrow=config$nsample, ncol=config$nparticle),
         new.kscores=matrix(NA, nrow=config$nsample, ncol=config$nparticle),
 
-        epsilon=.Machine$double.xmax,  # current tolerance
+        epsilon=.Machine$double.xmax,  # current tolerance (could use Inf)
 
         accept=0,  # number of accepted proposals
         alive=0,    # number of live particles
