@@ -33,15 +33,21 @@ test.ess <- function() {
 
 test.epsilon.obj.func <- function() {
     ws <- list(
-        epsilon=0.15,
-        dists=matrix(c(0.2,0.18,0.16,0.14,0.12,0.1), nrow=2, ncol=3),
+        epsilon=0.17,  # previous epsilon
+        dists=matrix(c(0.2,0.1,0.18,0.12,0.16,0.14), nrow=2, ncol=3),
         weights=c(0.2,0.3,0.5),
         config=list(
             nparticle=3,
-            nsample=2
+            nsample=2,
+            alpha=0.9
         )
     )
-    result <- epsilon.obj.func(ws, 0.14)
-    expected <- 0
+    result <- epsilon.obj.func(ws, 0.13)
+    # particle 1: num = 1, denom = 1
+    # particle 2: num = 1, denom = 1
+    # particle 3: num = 0, denom = 2
+    new.weights <- c(0.2 * (1/1), 0.3 * (1/1), 0.5 * 0) / 0.5
+    expected <- ess(new.weights) - 0.9 * ess(ws$weights)
+    checkEquals(expected, result)
 }
 
