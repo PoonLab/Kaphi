@@ -21,5 +21,4 @@ kernel:
   decay.factor: 0.2
   rbf.variance: 2.0
   stt.control: 1.0
-  stt.normalize: 1.0
   norm.mode: 'MEAN'

@@ -9,7 +9,7 @@ resize.amount <- 100
 bisection.max.iter <- 10000
 
 
-simulate.tree <- function(workspace, theta, seed=NA, ...) {
+simulate.trees <- function(workspace, theta, seed=NA, ...) {
 	# @param workspace: smc.workspace object
 	# @param theta: parameter vector
 	# @param seed: argument to set.seed()
@@ -22,7 +22,33 @@ simulate.tree <- function(workspace, theta, seed=NA, ...) {
 	}
     result <- config$model(theta, config$nsample, workspace$n.tips,
         workspace$tip.heights, workspace$tip.labels, ...)
+
+    # annotate each trees with its self-kernel score
+    for (i in 1:config$nsample) {
+        result[[i]]$kernel <- tree.kernel(
+            result[[i]],
+            result[[i]],
+            lambda=config$decay.factor,
+            sigma=config$rbf.variance,
+            rho=config$sst.control,
+            rescale.mode=config$norm.mode
+        )
+    }
+
     return(result)
+}
+
+
+distance <- function(t1, t2, config) {
+    k <- tree.kernel(
+        sim.tree,
+        obs.tree,
+        lambda=config$decay.factor,
+        sigma=config$rbf.variance,
+        rho=config$sst.control,
+        rescale.mode=config$norm.mode
+    )
+    return (1. - k / sqrt(sim.tree$kernel * obs.tree$kernel))
 }
 
 
@@ -38,19 +64,11 @@ initialize.smc <- function(ws, ...) {
 		ws$weights[i] <- 1./config@nparticle
 
 		# simulate trees from particle
-		ws$sim.trees[[i]] <- simulate.tree(ws, config, ...)
+		ws$sim.trees[[i]] <- simulate.trees(ws, config, ...)
 
 		# calculate kernel distances for trees
-		ws$kscores[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
-			tree.kernel(
-				sim.tree,
-				obs.tree,
-				lambda=config$decay.factor,
-				sigma=config$rbf.variance,
-				rho=config$sst.control,
-				normalize=config$sst.normalize,
-				rescale.mode=config$norm.mode
-			)
+		ws$dists[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
+            distance(obs.tree, sim.tree, config)
 		})
 	}
     cat('Initialized SMC workspace.\n')
@@ -74,8 +92,8 @@ epsilon.obj.func <- function(ws, epsilon) {
 
     # calculate new weights
     for (i in 1:config$nparticle) {
-        num <- sum(ws$kscores[,i] < epsilon)
-        denom <- sum(ws$kscores[,i] < prev.epsilon)
+        num <- sum(ws$dists[,i] < epsilon)
+        denom <- sum(ws$dists[,i] < prev.epsilon)
         if (num == denom) {
             # handle case where numerator and denominator are both zero
             ws$new.weights[i] <- ws$weights[i]
@@ -84,7 +102,8 @@ epsilon.obj.func <- function(ws, epsilon) {
         }
     }
     # normalize new weights to sum to 1.
-    ws$new.weights <- ws$new.weights / sum(ws$new.weights)
+    wsum <- sum(ws$new.weights)
+    ws$new.weights <- ws$new.weights / wsum
     if (epsilon==0 || wsum==0) {
         return (-1)
     }
@@ -117,7 +136,8 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
 	# @param trace.file: (optional) path to a file to write outputs
 	# @param seed: (optional) integer to set random seed
 	# @param nthreads: (optional) for running on multiple cores
-	# @param ...: additional arguments to pass to config@generator via simulate.tree()
+	# @param ...: additional arguments to pass to config@generator via
+    #   simulate.trees()
 
 	config <- ws$config
 

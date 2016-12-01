@@ -19,7 +19,6 @@ test.load.config <- function() {
         decay.factor=0.1,
         rbf.variance=2.5,
         sst.control=0.0,
-        sst.normalize=0.0,
         norm.mode='NONE'
     )
     names(expected$priors) <- c('x')

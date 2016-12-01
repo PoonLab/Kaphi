@@ -19,7 +19,6 @@ load.config <- function(file) {
         decay.factor=0.2,
         rbf.variance=2.0,
         sst.control=1.0,
-        sst.normalize=1.0,
         norm.mode='MEAN'
     )
     class(config) <- 'smc.config'
@@ -126,7 +125,6 @@ print.smc.config <- function(config) {
     cat('  Decay factor:', config$decay.factor, '\n')
     cat('  RBF variance:', config$rbf.variance, '\n')
     cat('  SST control:', config$sst.control, '\n')
-    cat('  SST normalize?:', (config$sst.normalize>0), '\n')
     cat('  Normalization:', config$norm.mode, '\n')
 }
 

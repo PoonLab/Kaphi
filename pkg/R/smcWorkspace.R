@@ -12,6 +12,15 @@ parse.input.tree <- function(obs.tree, config) {
 	# process the observed tree
 	ladderize(obs.tree)
 	obs.tree <- rescale.tree(obs.tree, config$norm.mode)
+
+    # cache self-kernel score
+    obs.tree$kernel <- tree.kernel(obs.tree, obs.tree,
+        lambda=config$decay.factor,
+        sigma=config$rbf.variance,
+        rho=config$sst.control,
+        normalize=0,
+        rescale.mode=config$norm.mode
+    )
     return (obs.tree)
 }
 
@@ -46,6 +55,8 @@ init.workspace <- function(obs.tree, config, regex=NA) {
     workspace <- list(
         # the data!
         obs.tree=parse.input.tree(obs.tree, config),  # a phylo object
+
+        # store some useful info
         n.tips=Ntip(obs.tree),
         tip.heights=get.tip.heights(obs.tree),
         tip.labels=ifelse(is.na(regex), NA, parse.labels(obs.tree$tip.label, regex)),
@@ -65,9 +76,9 @@ init.workspace <- function(obs.tree, config, regex=NA) {
         weights=rep(NA, times=config$nparticle),
         new.weights=rep(NA, times=config$nparticle),
 
-        # kernel scores (similarity)
-        kscores=matrix(NA, nrow=config$nsample, ncol=config$nparticle),
-        new.kscores=matrix(NA, nrow=config$nsample, ncol=config$nparticle),
+        # distances from kernel
+        dists=matrix(NA, nrow=config$nsample, ncol=config$nparticle),
+        new.dists=matrix(NA, nrow=config$nsample, ncol=config$nparticle),
 
         epsilon=.Machine$double.xmax,  # current tolerance (could use Inf)
 

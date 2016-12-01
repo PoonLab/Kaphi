@@ -13,8 +13,11 @@ export(parse.labels)
 export(init.workspace)
 export(print.smc.workspace)
 
-export(simulate.tree)
+export(simulate.trees)
 export(initialize.smc)
+export(ess)
+export(epsilon.obj.func)
+export(next.epsilon)
 export(run.smc)
 
 export(const.coalescent)

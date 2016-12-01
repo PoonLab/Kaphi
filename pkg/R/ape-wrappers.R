@@ -14,7 +14,7 @@ const.coalescent <- function(theta, nsim, n.tips, labels=NA, seed=NA) {
 	if (!is.na(seed)) {
 		set.seed(seed)
 	}
-    if (is.na(labels)) {
+    if (all(is.na(labels))) {
         result <- lapply(1:nsim, function(x) {
             tree <- rcoal(n=n.tips, br='coalescent')
             tree$edge.len <- tree$edge.len * theta['Ne.tau']  # rescale

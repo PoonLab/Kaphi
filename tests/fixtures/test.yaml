@@ -15,5 +15,4 @@ kernel:
   decay.factor: 0.1
   rbf.variance: 2.5
   sst.control: 0
-  sst.normalize: 0
   norm.mode: 'NONE'
