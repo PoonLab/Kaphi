@@ -76,10 +76,6 @@ initialize.smc <- function(ws, ...) {
 
 
 
-
-# .perturb <- function()
-
-
 ess <- function(w) {
     # effective sample size
     return(1/sum(w^2))
@@ -105,30 +101,38 @@ epsilon.obj.func <- function(ws, epsilon) {
     wsum <- sum(ws$new.weights)
     ws$new.weights <- ws$new.weights / wsum
     if (epsilon==0 || wsum==0) {
-        return (-1)
+        return (-1)  # undefined -- range limited to (0, prev.epsilon)
     }
     return (ess(ws$new.weights) - config$alpha * ess(ws$weights))
 }
 
 
-next.epsilon <- function(ws, prev.epsilon) {
+next.epsilon <- function(ws) {
     # Let W_n^i be the weight of the i-th particle at n-th iteration
     #
     # The effective sample size is
     #   ESS({W_n^i}) = 1 / \sum_{i=1}^{N} (W_n^i)^2
-	# Use bisection method to solve
+	# Use bisection method to solve for epsilon such that:
+    #   ESS(W*, eps) - alpha * ESS(W, eps) = 0
     config <- ws$config
-    res <- uniroot(function(x) epsilon.obj.func(ws, x), lower=0, upper=prev.epsilon,
-      tol=config$step.tolerance)
-    if (res < config$final.epsilon) {
-        res = config$final.epsilon  # stopping criterion
-        epsilon.obj.func(ws, res)
+    res <- uniroot(function(x) epsilon.obj.func(ws, x), lower=0,
+        upper=ws$epsilon, tol=config$step.tolerance)
+    root <- res$root
+    if (root < config$final.epsilon) {
+        root = config$final.epsilon  # stopping criterion
+        epsilon.obj.func(ws, root)
     }
     ws$weights <- ws$new.weights  # update weights
-    return (res)
+    return (root)
 }
 
 
+resample.particles <- function(ws) {
+}
+
+
+perturb.particles <- function(ws) {
+}
 
 run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
     # @param ws: workspace
@@ -150,11 +154,21 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
     n.iter <- 0
     epsilon <- .Machine$double.xmax
     while (epsilon != config$final.epsilon) {
-        ws.accept <- 0
-        ws.alive <- 0
+        ws$accept <- 0
+        ws$alive <- 0
 
-        ws.epsilon <- next.epsilon()  # update epsilon
+        # update epsilon
+        ws$epsilon <- next.epsilon(ws)
 
+        # resample particles according to their weights
+        if (ess(ws$weights) < config$ess.tolerance) {
+            resample.particles(ws)
+        }
+
+        # perturb particles
+        ws$accept <- 0
+        ws$alive <- 0
+        perturb.particles(ws)
     }
 }
 

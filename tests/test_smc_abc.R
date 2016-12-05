@@ -51,3 +51,35 @@ test.epsilon.obj.func <- function() {
     checkEquals(expected, result)
 }
 
+test.next.epsilon <- function() {
+    ws <- list(
+        epsilon=0.11,  # previous epsilon
+        dists=matrix(seq(0.01, 0.1, 0.01), nrow=1, ncol=10),
+        weights=rep(0.1, times=10),
+        config=list(
+            nparticle=10,
+            nsample=1,
+            alpha=0.9,
+            step.tolerance=1e-4,
+            final.epsilon=0.01
+        )
+    )
+    result <- ess(ws$weights)
+    expected <- 10.
+    checkEquals(expected, result)
+
+    result <- epsilon.obj.func(ws, 0.085)  # two particles out
+    expected <- 8 - 0.9 * 10
+    checkEquals(expected, result)
+
+    result <- epsilon.obj.func(ws, 0.055)  # five particles out
+    expected <- 5 - 0.9 * 10
+    checkEquals(expected, result)
+
+    # adjust alpha so that root is around 0.055
+    ws$epsilon <- 0.11
+    ws$config$alpha <- 0.5
+    result <- next.epsilon(ws)
+    expected <- 0.055
+    checkEquals(expected, result, tolerance=0.01)
+}
