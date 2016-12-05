@@ -83,3 +83,28 @@ test.next.epsilon <- function() {
     expected <- 0.055
     checkEquals(expected, result, tolerance=0.01)
 }
+
+
+test.initialize.smc <- function() {
+    # TODO
+}
+
+test.resample.particles <- function() {
+    workspace <- list(
+        # 2 parameters, 5 particles
+        particles=matrix(seq(0.1,1.0,0.1), nrow=2, ncol=5),
+        weights=seq(0.16, 0.24, 0.02),
+        dists=matrix(seq(0, 0.1, length.out=25), nrow=5, ncol=5),
+        config=list(nparticle=5, nsample=5)
+    )
+    class(workspace) <- 'smc.workspace'
+    set.seed(42)
+    workspace <- resample.particles(workspace)
+    cat(show(workspace$particles), "\n")
+
+    checkEquals(class(workspace), "smc.workspace")
+    checkEquals(names(workspace), c('particles', 'weights', 'dists', 'config'))
+    checkEquals(all(workspace$weights==0.2), TRUE)
+    checkEquals(all(workspace$particles[1,]==c(0.1, 0.1, 0.7, 0.3, 0.9)), TRUE)
+    # FIXME: this doesn't work!  result has column indices 4,4,4,3,2
+}

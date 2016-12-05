@@ -1,14 +1,21 @@
 priors:
   x:
-    dist: 'rnorm'
+    dist: 'norm'
     hyperparameters:
     - mean: 0
     - sd: 1
+proposals:
+  x:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 0.1
 smc:
   nparticle: 10
   nsample: 6
   ess.tolerance: 1.1
   final.epsilon: 0.02
+  final.accept.rate: 0.014
   quality: 0.9
   step.tolerance: 1.e-4
 kernel:

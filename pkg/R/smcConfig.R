@@ -5,6 +5,9 @@ load.config <- function(file) {
     config <- list(
         params=NA,
         priors=list(),
+        prior.densities=list(),
+        proposals=list(),
+        proposal.densities=list(),
         model=NA,
 
         # SMC settings
@@ -12,6 +15,7 @@ load.config <- function(file) {
         nsample=5,
         ess.tolerance=1.5,
         final.epsilon=0.01,
+        final.accept.rate=0.015,
         quality=0.95,
         step.tolerance=1e-5,
 
@@ -24,18 +28,38 @@ load.config <- function(file) {
     class(config) <- 'smc.config'
     settings <- yaml.load_file(file)
 
+
     # parse prior settings
     config$params <- names(settings$priors)
-    expressions <- {}
 	for (par.name in config$params) {
 		sublist <- settings$priors[[par.name]]
-		rng.call <- paste(sublist$dist, '(n=1,', sep='')
+
+        rng.call <- paste('r', sublist$dist, '(n=1,', sep='')
 		arguments <- sapply(sublist[['hyperparameters']], function(x) paste(names(x), x, sep='='))
 		rng.call <- paste(rng.call, paste(arguments, collapse=','), ')', sep='')
-		expressions <- c(expressions, rng.call)
+		config$priors[par.name] <- rng.call
+
+        # need to set (arg.prior) to the desired value before calling this expression
+        den.call <- paste0('d', sublist$dist, '(arg.prior,', paste(arguments, collapse=','), ')')
+        config$prior.densities[par.name] <- den.call
 	}
-	config$priors <- expressions
-    names(config$priors) <- config$params
+
+    # parse proposal settings
+    if (any(!is.element(names(settings$proposals), config$params))) {
+        stop("Error in load.config(): variable set in proposals is not a subset of priors")
+    }
+    for (par.name in names(settings$proposals)) {
+        sublist <- settings$proposals[[par.name]]
+
+        rng.call <- paste0('r', sublist$dist, '(n=1,')
+        arguments <- sapply(sublist[['parameters']], function(x) paste(names(x), x, sep='='))
+        rng.call <- paste0(rng.call, paste(arguments, collapse=','), ')')
+        config$proposals[par.name] <- rng.call
+
+        # note this assumes that we pass an argument as 'arg.delta' in global namespace
+        den.call <- paste0('d', sublist$dist, '(arg.delta,', paste(arguments, collapse=','), ')')
+        config$proposal.densities[par.name] <- den.call
+    }
 
     # FIXME: need to write a handler to interpret "1e-5" as float
 
@@ -92,6 +116,7 @@ sample.priors <- function(config) {
     if (length(config$priors)==0) {
         cat('No prior distributions have been set.')
     } else {
+        # add 'r' prefix for random deviate generation
         theta <- sapply(config$priors, function(e) eval(parse(text=e)))
         if (length(config$params) == length(theta)) {
             names(theta) <- config$params
@@ -100,6 +125,47 @@ sample.priors <- function(config) {
     }
 }
 
+prior.density <- function(config, theta) {
+    result <- 1.
+    for (par.name in names(theta)) {
+        if (is.element(par.name, names(config$prior.densities))) {
+            arg.prior <- theta[par.name]
+            result <- result * eval(parse(text=config$prior.densities[[par.name]]))
+        }
+    }
+    return (result)
+}
+
+
+propose <- function(config, theta) {
+    # draw new values from the proposal density
+    delta <- sapply(names(config$proposals), function(par.name) {
+        eval(parse(text=config$proposals[[par.name]]))
+    })
+    # apply proposal values to update parameter vector (theta)
+    for (par.name in names(theta)) {
+        if (is.element(par.name, names(delta))) {
+            theta[par.name] <- theta[par.name] + delta[par.name]
+        }
+    }
+    return(theta)
+}
+
+
+proposal.density <- function(config, theta, new.theta) {
+    # sanity check
+    if (length(intersect(names(theta), names(new.theta))) != length(theta)) {
+        stop("Error in proposal.density(): mismatched named vectors for theta and new.theta")
+    }
+    result <- 1.
+    for (par.name in names(theta)) {
+        if (is.element(par.name, names(config$proposal.densities))) {
+            arg.delta <- new.theta[par.name] - theta[par.name]
+            result <- result * eval(parse(text=config$proposal.densities[[par.name]]))
+        }
+    }
+    return (result)
+}
 
 
 print.smc.config <- function(config) {
@@ -111,6 +177,15 @@ print.smc.config <- function(config) {
     cat('Priors:\n')
     for (i in 1:length(config$params)) {
         cat('  ', names(config$priors)[i], '\t', config$priors[i], '\n')
+    }
+
+    cat('Proposals:\n')
+    for (par.name in config$params) {
+        if (is.element(par.name, names(config$proposals))) {
+            cat('  ', par.name, '\t', config$proposals[[par.name]], '\n')
+        } else {
+            cat('  no proposal set for ', par.name, '\n')
+        }
     }
 
 	cat('SMC settings\n')

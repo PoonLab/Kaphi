@@ -70,7 +70,6 @@ init.workspace <- function(obs.tree, config, regex=NA) {
         # each particle is a vector of model parameters
         # FIXME: should we bother to allocate these here?  see initialize.smc()
         particles=matrix(NA, nrow=config$nparticle, ncol=nparams),
-        new.particles=matrix(NA, nrow=config$nparticle, ncol=nparams),
 
         # weights of particles
         weights=rep(NA, times=config$nparticle),
@@ -78,7 +77,6 @@ init.workspace <- function(obs.tree, config, regex=NA) {
 
         # distances from kernel
         dists=matrix(NA, nrow=config$nsample, ncol=config$nparticle),
-        new.dists=matrix(NA, nrow=config$nsample, ncol=config$nparticle),
 
         epsilon=.Machine$double.xmax,  # current tolerance (could use Inf)
 

@@ -58,13 +58,13 @@ initialize.smc <- function(ws, ...) {
 
 	for (i in 1:config@nparticle) {
         # sample particle from prior distribution
-		ws$particles[i,] <- sample(config)
+		ws$particles[i,] <- sample.priors(config)
 
         # assign uniform weights
 		ws$weights[i] <- 1./config@nparticle
 
 		# simulate trees from particle
-		ws$sim.trees[[i]] <- simulate.trees(ws, config, ...)
+		ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], ...)
 
 		# calculate kernel distances for trees
 		ws$dists[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
@@ -128,11 +128,70 @@ next.epsilon <- function(ws) {
 
 
 resample.particles <- function(ws) {
+    nparticle <- ws$config$nparticle
+    # sample from current population of particles with replacement
+    indices <- sample(1:nparticle, nparticle, replace=TRUE, prob=ws$weights)
+    ws$particles <- ws$particles[,indices]
+    ws$dists <- ws$dists[,indices]  # transfer columns of kernel distances
+
+    # reset all weights
+    ws$weights <- rep(1./nparticle, times=nparticle)
+    return(ws)
 }
 
 
 perturb.particles <- function(ws) {
+    ##  This implements the Metropolis-Hastings acceptance/rejection step
+    config <- ws$config
+    nparticle <- config$nparticle
+
+    # loop over particles
+    # TODO: multi-threaded implementation
+    for (i in 1:nparticle) {
+        if (ws$weights[i] == 0) {
+            next  # ignore dead particles
+        }
+        ws$alive <- ws$alive + 1
+        old.particle <- ws$particle[i,]
+        new.particle <- propose(config, old.particle)
+
+        # calculate prior ratio
+        mh.ratio <- prior.density(config, new.particle) / prior.density(config, old.particle)
+        if (mh.ratio == 0) {
+            next  # reject new particle, violates prior assumptions
+        }
+
+        # calculate proposal ratio
+        mh.ratio <- mh.ratio * proposal.density(config, new.particle, old.particle) /
+                    proposal.density(config, old.particle, new.particle)
+        if (mh.ratio == 0) {
+            next  # reject new particle, not possible under proposal distribution
+        }
+
+        # simulate new trees  # TODO: this is probably a good spot for parallelization
+        for (j in 1:config$nsample) {
+            # retain sim.trees in case we revert to previous particle
+            new.trees <- simulate.trees(ws, new.particle)
+            new.dists <- sapply(new.trees, function(sim.tree) {
+                distance(obs.tree, sim.tree, config)
+		    })
+        }
+
+        # SMC approximation to likelihood ratio
+        old.nbhd <- sum(ws$dists[,i] < ws$epsilon)  # how many samples are in neighbourhood of data?
+        new.nbhd <- sum(ws$new.dists[,i] < ws$epsilon)
+        mh.ratio <- mh.ratio * new.nbhd / old.nbhd
+
+        # accept or reject the proposal
+        if (runif(1) < mh.ratio) {  # always accept if ratio > 1
+            ws.accept <- ws.accept + 1
+            ws$particle <- new.particle
+            ws$dists[,i] <- new.dists
+            ws$sim.trees[[i]] <- new.trees
+        }
+    }
 }
+
 
 run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
     # @param ws: workspace
@@ -146,15 +205,20 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
 	config <- ws$config
 
     # space for returned values
-	accept.rate <- {}
-	epsilons <- {}
-	
+    result <- list(
+        niter <- 0,
+        theta <- list(),
+        weights <- list(),
+        accept.rate <- {},
+        epsilons <- {}
+    )
+
     initialize.smc(ws)
 
-    n.iter <- 0
+    n.iter <- 1
     epsilon <- .Machine$double.xmax
     while (epsilon != config$final.epsilon) {
-        ws$accept <- 0
+        ws$accept <- 0  # FIXME: do these have to be set again below?
         ws$alive <- 0
 
         # update epsilon
@@ -168,8 +232,41 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
         # perturb particles
         ws$accept <- 0
         ws$alive <- 0
-        perturb.particles(ws)
+        perturb.particles(ws)  # Metropolis-Hastings sampling happens here
+
+        # record everything
+        result$theta[[niter]] <- ws$particles
+        result$weights[[ninter]] <- ws$weights
+        result$epsilons <- c(result$epsilons, ws$epsilon)
+        result$accept.rate <- c(result$accept.rate, ws.accept / ws.alive)
+
+        if (!is.na(trace.file)) {
+            for (i in 1:config$nparticle) {
+                write.table(
+                    x=c(niter, i, ws$weights[i], ws$particles[i,], ws$dists[,i]),
+                    file=trace.file,
+                    append=TRUE,
+                    sep="\t"
+                )
+            }
+        }
+
+        niter <- niter + 1
+
+        # if acceptance rate is low enough, we're done
+        if (result$accept.rate[niter-1] <= config$final.accept.rate) {
+            ws$epsilon <- config$final.epsilon
+            break  # FIXME: this should be redundant given loop condition above
+        }
     }
+
+    # finally sample from the estimated posterior distribution
+    resample.particles(ws)
+    result$theta[[niter]] <- ws$particles
+    result$weights[[niter]] <- ws$weights
+    result$niter <- niter
+
+    return (result)
 }
 
 
