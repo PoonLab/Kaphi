@@ -24,6 +24,7 @@ test.simulate.trees <- function() {
     checkEquals(class(st1), 'phylo')
     checkEquals(Ntip(st1), 3)  # t2 has three tips
     checkTrue(!is.null(st1$kernel))
+
 }
 
 test.ess <- function() {
@@ -99,7 +100,7 @@ test.initialize.smc <- function() {
 
     config <- load.config('tests/fixtures/coalescent.yaml')
     config <- set.model(config, const.coalescent)
-    ws <- init.workspace(t1, config)
+    ws <- init.workspace(t2, config)
     ws <- initialize.smc(ws)
 
     # check generation of particles
@@ -122,7 +123,10 @@ test.initialize.smc <- function() {
     checkEquals(all(result=='phylo'), TRUE)
 
     # check kernel distances
-    
+    checkEquals(nrow(ws$dists), 6)  # nsample
+    checkEquals(ncol(ws$dists), 10)  # nparticle
+    checkEquals(all(ws$dists>=0.0), TRUE)
+    checkEquals(all(ws$dists<=1.0), TRUE)
 }
 
 
@@ -143,6 +147,18 @@ test.resample.particles <- function() {
     checkEquals(all(workspace$weights==0.2), TRUE)
 
     # FIXME: setting seed doesn't work!  result has column indices 4,4,4,3,2
-    cat(workspace$particles[1,], "\n")
     checkEquals(workspace$particles[1,], c(0.7,0.7,0.7,0.5,0.3))
 }
+
+
+test.perturb.particles <- function() {
+    config <- load.config('tests/fixtures/coalescent.yaml')
+    config <- set.model(config, const.coalescent)
+
+    theta <- c(Ne.tau=100)
+    set.seed(100)
+    obs.tree <- const.coalescent(theta, nsim=1, n.tips=20)[[1]]
+
+    ws <- init.workspace(obs.tree, config)
+}
+

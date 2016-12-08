@@ -1,4 +1,13 @@
 parse.input.tree <- function(obs.tree, config) {
+    # validate config argument
+    required.args <- c('decay.factor', 'rbf.variance', 'sst.control', 'norm.mode')
+    missing.args <- required.args[!is.element(required.args, names(config))]
+
+    if (length(missing.args)>0) {
+        warning(paste('parse.input.tree() missing argument', missing.args, "\n"))
+        return (NULL)
+    }
+
 	# check input tree
 	if (class(obs.tree)!='phylo') {
 		if (class(obs.tree)=='character') {
@@ -10,7 +19,7 @@ parse.input.tree <- function(obs.tree, config) {
 		}
 	}
 	# process the observed tree
-	ladderize(obs.tree)
+	obs.tree <- ladderize(obs.tree)
 	obs.tree <- rescale.tree(obs.tree, config$norm.mode)
 
     # cache self-kernel score

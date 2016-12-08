@@ -2,18 +2,21 @@ require(Kaphi, quietly=TRUE)
 require(RUnit, quietly=TRUE)
 source('tests/fixtures/simple-trees.R')
 
+
 test.rescale.tree <- function() {
     # NB: root branch length is ignored!
     tree <- read.tree(text='(A:2,B:6):0.1;')
-    config <- list(norm.mode="MEAN")
+    config <- list(decay.factor=0.1, rbf.variance=2.0, sst.control=1, norm.mode="MEAN")
     result <- parse.input.tree(tree, config)
     expected <- read.tree(text='(A:0.5,B:1.5):0.1;')
+
+    # compare serializations to ignore attributes produced by parser
     checkEquals(expected, result)
 }
 
 test.parse.input.tree <- function() {
     # check ladderization
-    config <- list(norm.mode="NONE")
+    config <- list(decay.factor=0.1, rbf.variance=2.0, sst.control=1, norm.mode="NONE")
     result <- parse.input.tree('(s4:2,(s3:2,(s1:2,s2:2):2):2):2;', config)
     expected <- read.tree(text='(((s1:2,s2:2):2,s3:2):2,s4:2):2;')
     checkEquals(expected, result)
@@ -39,14 +42,21 @@ test.init.workspace <- function() {
         params=c('N'),
         nparticle=10,
         nsample=3,
+        decay.factor=1.0,
+        rbf.variance=2.0,
+        sst.control=1,
         norm.mode='NONE'
     )
     class(config) <- 'smc.config'
     result <- init.workspace(t1, config)
+
     checkEquals(result$n.tips, 2)
     checkEquals(result$tip.heights,  c(0.1, 0.0))
     checkEquals(result$tip.labels, NA)
     checkEquals(nrow(result$particles), 10)
     checkEquals(ncol(result$particles), 1)
+
+    checkEquals(Ntip(result$obs.tree), 2)
+    checkEquals(result$obs.tree$kernel, 4)
 }
 

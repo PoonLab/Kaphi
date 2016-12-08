@@ -58,7 +58,6 @@ to.newick <- function(tree) {
 }
 
 tree.kernel <- function(tree1, tree2, lambda, sigma, rho=1, normalize=0, label1=NA, label2=NA, gamma=0, rescale.mode='MEAN') {
-    #print ('tree.kernel')
     # make labels
     use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2))
         FALSE
