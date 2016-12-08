@@ -1,0 +1,25 @@
+priors:
+  Ne.tau:
+    dist: 'lnorm'
+    hyperparameters:
+    - meanlog: 5
+    - sdlog: 1
+proposals:
+  Ne.tau:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 0.1
+smc:
+  nparticle: 10
+  nsample: 6
+  ess.tolerance: 1.1
+  final.epsilon: 0.02
+  final.accept.rate: 0.014
+  quality: 0.9
+  step.tolerance: 1.e-4
+kernel:
+  decay.factor: 0.1
+  rbf.variance: 2.5
+  sst.control: 0
+  norm.mode: 'NONE'

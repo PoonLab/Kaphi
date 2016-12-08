@@ -102,6 +102,7 @@ set.model <- function(config, generator) {
     }
 
     config$model <- generator
+    return(config)
 }
 
 
@@ -168,7 +169,7 @@ proposal.density <- function(config, theta, new.theta) {
 }
 
 
-print.smc.config <- function(config) {
+print.smc.config <- function(config, ...) {
     cat('Kaphi SMC configuration\n\n')
 
     model.name <- attr(config$model, 'name')
@@ -176,7 +177,7 @@ print.smc.config <- function(config) {
 
     cat('Priors:\n')
     for (i in 1:length(config$params)) {
-        cat('  ', names(config$priors)[i], '\t', config$priors[i], '\n')
+        cat('  ', names(config$priors)[i], '\t', config$priors[[i]], '\n')
     }
 
     cat('Proposals:\n')

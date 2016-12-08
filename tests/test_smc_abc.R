@@ -1,5 +1,6 @@
 require(Kaphi, quietly=TRUE)
 require(RUnit, quietly=TRUE)
+require(yaml, quietly=TRUE)
 source('tests/fixtures/simple-trees.R')
 
 test.simulate.trees <- function() {
@@ -86,8 +87,22 @@ test.next.epsilon <- function() {
 
 
 test.initialize.smc <- function() {
-    # TODO
+    config <- load.config('tests/fixtures/test.yaml')
+    ws <- init.workspace(t1, config)
+
+    # this should fail because we haven't set the model
+    checkException(initialize.smc(ws))
+
+    config <- set.model(config, const.coalescent)
+    ws <- init.workspace(t1, config)
+    checkException(initialize.smc(ws))  # the model doesn't match the prior configuration
+
+    config <- load.config('tests/fixtures/coalescent.yaml')
+    config <- set.model(config, const.coalescent)
+    ws <- init.workspace(t1, config)
+    initialize.smc(ws)
 }
+
 
 test.resample.particles <- function() {
     workspace <- list(
@@ -98,13 +113,14 @@ test.resample.particles <- function() {
         config=list(nparticle=5, nsample=5)
     )
     class(workspace) <- 'smc.workspace'
-    set.seed(42)
+    set.seed(42)  # sample(1:5,5,replace=T,prob=ws$weights) -> c(1,1,4,2,3)
     workspace <- resample.particles(workspace)
-    cat(show(workspace$particles), "\n")
 
     checkEquals(class(workspace), "smc.workspace")
     checkEquals(names(workspace), c('particles', 'weights', 'dists', 'config'))
     checkEquals(all(workspace$weights==0.2), TRUE)
-    checkEquals(all(workspace$particles[1,]==c(0.1, 0.1, 0.7, 0.3, 0.9)), TRUE)
-    # FIXME: this doesn't work!  result has column indices 4,4,4,3,2
+
+    # FIXME: setting seed doesn't work!  result has column indices 4,4,4,3,2
+    cat(workspace$particles[1,], "\n")
+    checkEquals(workspace$particles[1,], c(0.7,0.7,0.7,0.5,0.3))
 }

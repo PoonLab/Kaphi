@@ -30,8 +30,24 @@ test.load.config <- function() {
     checkEquals(expected, result, checkNames=FALSE)
 }
 
+
+test.set.model <- function() {
+    config <- load.config('tests/fixtures/test.yaml')
+    checkException(set.model(config, ls))
+
+    config <- set.model(config, const.coalescent)
+    result <- attr(config$model, 'name')
+    expected <- 'constant.coalescent'
+    checkEquals(expected, result)
+}
+
+
 test.sample.priors <- function() {
     config <- load.config('tests/fixtures/test.yaml')
+
+    theta <- sample.priors(config)
+    checkEquals(names(theta), c('x'))
+
     samples <- sapply(1:1000, function(x) sample.priors(config))
     # standard error is sd/sqrt(n)
     checkEquals(mean(samples), 0, tolerance=0.1)
@@ -70,3 +86,4 @@ test.proposal.density <- function() {
     expected <- 3.969525  # dnorm(0.01, mean=0, sd=0.1)
     checkEquals(expected, result, tol=0.001, check.names=FALSE)
 }
+

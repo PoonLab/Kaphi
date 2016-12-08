@@ -68,7 +68,6 @@ init.workspace <- function(obs.tree, config, regex=NA) {
         config=config,
 
         # each particle is a vector of model parameters
-        # FIXME: should we bother to allocate these here?  see initialize.smc()
         particles=matrix(NA, nrow=config$nparticle, ncol=nparams),
 
         # weights of particles
@@ -88,8 +87,9 @@ init.workspace <- function(obs.tree, config, regex=NA) {
     return(workspace)
 }
 
-print.smc.workspace <- function(workspace) {
+print.smc.workspace <- function(workspace, ...) {
     cat('Kaphi SMC workspace\n\n')
-    cat('Target tree:\n', workspace$obs.tree)
+    cat('Target tree:\n', summary(workspace$obs.tree))
+    cat('Configuration:\n', show(workspace$config))
 }
 

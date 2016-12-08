@@ -41,34 +41,35 @@ simulate.trees <- function(workspace, theta, seed=NA, ...) {
 
 distance <- function(t1, t2, config) {
     k <- tree.kernel(
-        sim.tree,
-        obs.tree,
+        t1,
+        t2,
         lambda=config$decay.factor,
         sigma=config$rbf.variance,
         rho=config$sst.control,
         rescale.mode=config$norm.mode
     )
-    return (1. - k / sqrt(sim.tree$kernel * obs.tree$kernel))
+    return (1. - k / sqrt(t1$kernel * t2$kernel))
 }
 
 
 initialize.smc <- function(ws, ...) {
     config <- ws$config
-    nparams <- len(config$params)
+    nparams <- length(config$params)
+    colnames(ws$particles) <- config$params
 
-	for (i in 1:config@nparticle) {
+	for (i in 1:config$nparticle) {
         # sample particle from prior distribution
 		ws$particles[i,] <- sample.priors(config)
 
         # assign uniform weights
-		ws$weights[i] <- 1./config@nparticle
+		ws$weights[i] <- 1./config$nparticle
 
 		# simulate trees from particle
 		ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], ...)
 
 		# calculate kernel distances for trees
 		ws$dists[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
-            distance(obs.tree, sim.tree, config)
+            distance(ws$obs.tree, sim.tree, config)
 		})
 	}
     cat('Initialized SMC workspace.\n')
