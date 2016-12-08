@@ -72,7 +72,8 @@ initialize.smc <- function(ws, ...) {
             distance(ws$obs.tree, sim.tree, config)
 		})
 	}
-    cat('Initialized SMC workspace.\n')
+    #cat('Initialized SMC workspace.\n')
+    return(ws)
 }
 
 

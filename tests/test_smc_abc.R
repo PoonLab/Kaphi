@@ -100,7 +100,29 @@ test.initialize.smc <- function() {
     config <- load.config('tests/fixtures/coalescent.yaml')
     config <- set.model(config, const.coalescent)
     ws <- init.workspace(t1, config)
-    initialize.smc(ws)
+    ws <- initialize.smc(ws)
+
+    # check generation of particles
+    checkEquals(ws$config$nparticle, 10)
+    checkEquals(nrow(ws$particles), 10)
+    checkEquals(ncol(ws$particles), 1)
+    checkEquals(colnames(ws$particles), c('Ne.tau'))
+
+    # check assignment of particle weights
+    checkEquals(length(ws$weights), 10)
+    checkEquals(all(ws$weights==1./ws$config$nparticle), TRUE)
+
+    # check simulation of trees from particles
+    checkEquals(length(ws$sim.trees), 10)
+    result <- sapply(ws$sim.trees, class)
+    checkEquals(all(result=='list'), TRUE)
+    result <- sapply(ws$sim.trees, length)
+    checkEquals(all(result==6), TRUE)
+    result <- sapply(ws$sim.trees, function(x) sapply(x, class))
+    checkEquals(all(result=='phylo'), TRUE)
+
+    # check kernel distances
+    
 }
 
 
