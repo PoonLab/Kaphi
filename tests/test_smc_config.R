@@ -22,7 +22,7 @@ test.load.config <- function() {
         step.tolerance=1e-4,
         decay.factor=0.1,
         rbf.variance=2.5,
-        sst.control=0.0,
+        sst.control=1.0,
         norm.mode='NONE'
     )
     names(expected$priors) <- c('x')

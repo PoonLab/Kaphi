@@ -88,6 +88,11 @@ epsilon.obj.func <- function(ws, epsilon) {
     config <- ws$config
     prev.epsilon <- ws$epsilon
 
+    # check that all required objects are present
+    if (is.null(config$quality)) {
+        stop("epsilon.obj.func: Config missing setting `quality`, exiting")
+    }
+
     # calculate new weights
     for (i in 1:config$nparticle) {
         num <- sum(ws$dists[,i] < epsilon)
@@ -105,7 +110,7 @@ epsilon.obj.func <- function(ws, epsilon) {
     if (epsilon==0 || wsum==0) {
         return (-1)  # undefined -- range limited to (0, prev.epsilon)
     }
-    return (ess(ws$new.weights) - config$alpha * ess(ws$weights))
+    return (ess(ws$new.weights) - config$quality * ess(ws$weights))
 }
 
 
@@ -115,10 +120,16 @@ next.epsilon <- function(ws) {
     # The effective sample size is
     #   ESS({W_n^i}) = 1 / \sum_{i=1}^{N} (W_n^i)^2
 	# Use bisection method to solve for epsilon such that:
-    #   ESS(W*, eps) - alpha * ESS(W, eps) = 0
+    #   ESS(W*, eps) - alpha * ESS(W, eps) = 0, where alpha is quality parameter
+
+    # check that dists have been set
+    if (any(is.na(ws$dists))) {
+        stop("NA values in ws$dists; did you forget to run initialize.smc()?")
+    }
     config <- ws$config
     res <- uniroot(function(x) epsilon.obj.func(ws, x), lower=0,
-        upper=ws$epsilon, tol=config$step.tolerance)
+        upper=ws$epsilon, tol=config$step.tolerance, maxiter=1E6)
+
     root <- res$root
     if (root < config$final.epsilon) {
         root = config$final.epsilon  # stopping criterion
@@ -133,7 +144,9 @@ resample.particles <- function(ws) {
     nparticle <- ws$config$nparticle
     # sample from current population of particles with replacement
     indices <- sample(1:nparticle, nparticle, replace=TRUE, prob=ws$weights)
-    ws$particles <- ws$particles[,indices]
+    cat("\nindices:\n", indices, "\n")
+    cat("\nparticles:\n", ws$particles, "\n")
+    ws$particles <- ws$particles[indices,]
     ws$dists <- ws$dists[,indices]  # transfer columns of kernel distances
 
     # reset all weights
@@ -211,25 +224,21 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
 	config <- ws$config
 
     # space for returned values
-    result <- list(
-        niter <- 0,
-        theta <- list(),
-        weights <- list(),
-        accept.rate <- {},
-        epsilons <- {}
-    )
+    result <- list(niter=0, theta=list(), weights=list(), accept.rate={}, epsilons={})
 
     # draw particles from prior distribution, assign weights and simulate data
     ws <- initialize.smc(ws)
 
-    n.iter <- 1
-    epsilon <- .Machine$double.xmax
-    while (epsilon != config$final.epsilon) {
+    niter <- 1
+    ws$epsilon <- .Machine$double.xmax
+    while (ws$epsilon != config$final.epsilon) {
         ws$accept <- 0  # FIXME: do these have to be set again below?
         ws$alive <- 0
 
         # update epsilon
+        cat('before next.epsilon\n')
         ws$epsilon <- next.epsilon(ws)
+        cat('after next.epsilon\n')
 
         # resample particles according to their weights
         if (ess(ws$weights) < config$ess.tolerance) {
@@ -243,9 +252,9 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
 
         # record everything
         result$theta[[niter]] <- ws$particles
-        result$weights[[ninter]] <- ws$weights
+        result$weights[[niter]] <- ws$weights
         result$epsilons <- c(result$epsilons, ws$epsilon)
-        result$accept.rate <- c(result$accept.rate, ws.accept / ws.alive)
+        result$accept.rate <- c(result$accept.rate, ws$accept / ws$alive)
 
         if (!is.na(trace.file)) {
             for (i in 1:config$nparticle) {

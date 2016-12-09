@@ -57,7 +57,15 @@ to.newick <- function(tree) {
     }
 }
 
-tree.kernel <- function(tree1, tree2, lambda, sigma, rho=1, normalize=0, label1=NA, label2=NA, gamma=0, rescale.mode='MEAN') {
+tree.kernel <- function(tree1, tree2,
+    lambda,        # decay factor
+    sigma,         # RBF variance parameter
+    rho=1,         # SST control parameter; 0 = subtree kernel, 1 = subset tree kernel
+    normalize=0,   # normalize kernel score by sqrt(k(t1,t1) * k(t2,t2))
+    label1=NA,     # argument for labeled tree kernel
+    label2=NA,
+    gamma=0,
+    rescale.mode='MEAN') {
     # make labels
     use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2))
         FALSE

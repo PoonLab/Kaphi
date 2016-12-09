@@ -1,2 +1,3 @@
-R --vanilla < runTestSuite.R
+#!/bin/bash
+R --vanilla < tests/runTestSuite.R
 

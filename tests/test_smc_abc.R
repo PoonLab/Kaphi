@@ -41,10 +41,12 @@ test.epsilon.obj.func <- function() {
         config=list(
             nparticle=3,
             nsample=2,
-            alpha=0.9
+            quality=0.9
         )
     )
     result <- epsilon.obj.func(ws, 0.13)
+
+
     # particle 1: num = 1, denom = 1
     # particle 2: num = 1, denom = 1
     # particle 3: num = 0, denom = 2
@@ -61,7 +63,7 @@ test.next.epsilon <- function() {
         config=list(
             nparticle=10,
             nsample=1,
-            alpha=0.9,
+            quality=0.9,
             step.tolerance=1e-4,
             final.epsilon=0.01
         )
@@ -78,9 +80,9 @@ test.next.epsilon <- function() {
     expected <- 5 - 0.9 * 10
     checkEquals(expected, result)
 
-    # adjust alpha so that root is around 0.055
+    # adjust alpha (quality) so that root is around 0.055
     ws$epsilon <- 0.11
-    ws$config$alpha <- 0.5
+    ws$config$quality <- 0.5
     result <- next.epsilon(ws)
     expected <- 0.055
     checkEquals(expected, result, tolerance=0.01)
@@ -133,7 +135,7 @@ test.initialize.smc <- function() {
 test.resample.particles <- function() {
     workspace <- list(
         # 2 parameters, 5 particles
-        particles=matrix(seq(0.1,1.0,0.1), nrow=2, ncol=5),
+        particles=matrix(seq(0.1,1.0,0.1), nrow=5, ncol=2),
         weights=seq(0.16, 0.24, 0.02),
         dists=matrix(seq(0, 0.1, length.out=25), nrow=5, ncol=5),
         config=list(nparticle=5, nsample=5)
@@ -149,7 +151,8 @@ test.resample.particles <- function() {
     # FIXME: setting seed doesn't return expected result!
     # FIXME:   expected column indices 1,1,4,2,3
     # FIXME:   observed column indices 4,4,4,3,2
-    checkEquals(workspace$particles[1,], c(0.7,0.7,0.7,0.5,0.3))
+        cat(workspace$particles, "\n")
+    checkEquals(workspace$particles[,1], c(0.6,0.6,0.9,0.7,0.8))
 }
 
 
