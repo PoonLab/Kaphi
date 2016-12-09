@@ -146,6 +146,7 @@ perturb.particles <- function(ws) {
     ##  This implements the Metropolis-Hastings acceptance/rejection step
     config <- ws$config
     nparticle <- config$nparticle
+    new.dists <- matrix(NA, nrow=config$nsample, ncol=nparticle)
 
     # loop over particles
     # TODO: multi-threaded implementation
@@ -154,7 +155,7 @@ perturb.particles <- function(ws) {
             next  # ignore dead particles
         }
         ws$alive <- ws$alive + 1
-        old.particle <- ws$particle[i,]
+        old.particle <- ws$particles[i,]
         new.particle <- propose(config, old.particle)
 
         # calculate prior ratio
@@ -174,24 +175,27 @@ perturb.particles <- function(ws) {
         for (j in 1:config$nsample) {
             # retain sim.trees in case we revert to previous particle
             new.trees <- simulate.trees(ws, new.particle)
-            new.dists <- sapply(new.trees, function(sim.tree) {
-                distance(obs.tree, sim.tree, config)
+            new.dists[,i] <- sapply(new.trees, function(sim.tree) {
+                distance(ws$obs.tree, sim.tree, config)
 		    })
         }
 
         # SMC approximation to likelihood ratio
         old.nbhd <- sum(ws$dists[,i] < ws$epsilon)  # how many samples are in neighbourhood of data?
-        new.nbhd <- sum(ws$new.dists[,i] < ws$epsilon)
+        new.nbhd <- sum(new.dists[,i] < ws$epsilon)
         mh.ratio <- mh.ratio * new.nbhd / old.nbhd
+
+        cat(i, old.particle, new.particle, mh.ratio, "\n")
 
         # accept or reject the proposal
         if (runif(1) < mh.ratio) {  # always accept if ratio > 1
-            ws.accept <- ws.accept + 1
-            ws$particle <- new.particle
-            ws$dists[,i] <- new.dists
+            ws$accept <- ws$accept + 1
+            ws$particles[i,] <- new.particle
+            ws$dists[,i] <- new.dists[,i]
             ws$sim.trees[[i]] <- new.trees
         }
     }
+    return(ws)
 }
 
 
@@ -215,7 +219,8 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
         epsilons <- {}
     )
 
-    initialize.smc(ws)
+    # draw particles from prior distribution, assign weights and simulate data
+    ws <- initialize.smc(ws)
 
     n.iter <- 1
     epsilon <- .Machine$double.xmax
@@ -228,13 +233,13 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
 
         # resample particles according to their weights
         if (ess(ws$weights) < config$ess.tolerance) {
-            resample.particles(ws)
+            ws <- resample.particles(ws)
         }
 
         # perturb particles
         ws$accept <- 0
         ws$alive <- 0
-        perturb.particles(ws)  # Metropolis-Hastings sampling happens here
+        ws <- perturb.particles(ws)  # Metropolis-Hastings sampling
 
         # record everything
         result$theta[[niter]] <- ws$particles
@@ -263,7 +268,7 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
     }
 
     # finally sample from the estimated posterior distribution
-    resample.particles(ws)
+    ws <- resample.particles(ws)
     result$theta[[niter]] <- ws$particles
     result$weights[[niter]] <- ws$weights
     result$niter <- niter

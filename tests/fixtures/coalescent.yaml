@@ -9,7 +9,7 @@ proposals:
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.1
+    - sd: 50
 smc:
   nparticle: 10
   nsample: 6

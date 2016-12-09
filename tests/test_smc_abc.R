@@ -146,8 +146,16 @@ test.resample.particles <- function() {
     checkEquals(names(workspace), c('particles', 'weights', 'dists', 'config'))
     checkEquals(all(workspace$weights==0.2), TRUE)
 
-    # FIXME: setting seed doesn't work!  result has column indices 4,4,4,3,2
+    # FIXME: setting seed doesn't return expected result!
+    # FIXME:   expected column indices 1,1,4,2,3
+    # FIXME:   observed column indices 4,4,4,3,2
     checkEquals(workspace$particles[1,], c(0.7,0.7,0.7,0.5,0.3))
+}
+
+
+serialize.trees <- function(trees) {
+    # serialize Phylo objects in a list to facilitate comparisons
+    return (paste(sapply(trees, function(x) write.tree(x))))
 }
 
 
@@ -155,10 +163,53 @@ test.perturb.particles <- function() {
     config <- load.config('tests/fixtures/coalescent.yaml')
     config <- set.model(config, const.coalescent)
 
+    nparticle <- config$nparticle
     theta <- c(Ne.tau=100)
     set.seed(100)
     obs.tree <- const.coalescent(theta, nsim=1, n.tips=20)[[1]]
 
     ws <- init.workspace(obs.tree, config)
+    ws <- initialize.smc(ws)
+    before <- ws
+    set.seed(11)  # with this seed acceptance rate is 7/10
+    after <- perturb.particles(ws)
+
+    # all the particles should be alive
+    checkEquals(after$alive, 10)
+
+    # which particles changed?
+    result <- sapply(1:nparticle, function(i) {
+        all(before$particles[i,]==after$particles[i,])
+    })
+    checkEquals(sum(!result), after$accept)
+
+    # check that the changed distances line up
+    result2 <- sapply(1:nparticle, function(i) {
+        all(before$dists[,i]==after$dists[,i])
+    })
+    checkEquals(all(result==result2), TRUE)
+
+    # check which entries in tree list were updated
+    result3 <- sapply(1:nparticle, function(i) {
+        x <- serialize.trees(before$sim.trees[[i]])
+        y <- serialize.trees(after$sim.trees[[i]])
+        return(all(x==y))
+    })
+    cat("result", result, "\n")
+    cat("result3", result3, "\n")
+    checkEquals(all(result == result3), TRUE)
 }
 
+
+test.run.smc <- function() {
+    config <- load.config('tests/fixtures/coalescent.yaml')
+    config <- set.model(config, const.coalescent)
+
+    nparticle <- config$nparticle
+    theta <- c(Ne.tau=100)
+    set.seed(100)
+    obs.tree <- const.coalescent(theta, nsim=1, n.tips=20)[[1]]
+
+    ws <- init.workspace(obs.tree, config)
+    result <- run.smc(ws)
+}

@@ -22,6 +22,7 @@ export(ess)
 export(epsilon.obj.func)
 export(next.epsilon)
 export(resample.particles)
+export(perturb.particles)
 export(run.smc)
 
 export(const.coalescent)
