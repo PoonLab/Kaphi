@@ -25,6 +25,7 @@ simulate.trees <- function(workspace, theta, seed=NA, ...) {
 
     # annotate each trees with its self-kernel score
     for (i in 1:config$nsample) {
+        result[[i]] <- preprocess.tree(result[[i]], config$norm.mode)
         result[[i]]$kernel <- tree.kernel(
             result[[i]],
             result[[i]],
@@ -40,6 +41,13 @@ simulate.trees <- function(workspace, theta, seed=NA, ...) {
 
 
 distance <- function(t1, t2, config) {
+    if (is.null(t1$kernel)) {
+        stop("t1 missing self kernel in distance()")
+    }
+    if (is.null(t2$kernel)) {
+        stop("t2 missing self kernel in distance()")
+    }
+
     k <- tree.kernel(
         t1,
         t2,
@@ -48,7 +56,22 @@ distance <- function(t1, t2, config) {
         rho=config$sst.control,
         rescale.mode=config$norm.mode
     )
-    return (1. - k / sqrt(t1$kernel * t2$kernel))
+
+    result <- 1. - k / sqrt(t1$kernel * t2$kernel)
+    if (result < 0 || result > 1) {
+        stop(
+            cat("ERROR: distance() value outside range [0,1].\n",
+                "k: ", k, "\n",
+                "t1$kernel: ", t1$kernel, "\n",
+                "t2$kernel: ", t2$kernel, "\n"
+            )
+        )
+    }
+    if (is.nan(result)) {
+        cat("t1$kernel:", t1$kernel, "\n")
+        cat("t2$kernel:", t2$kernel, "\n")
+    }
+    return (result)
 }
 
 
@@ -127,16 +150,27 @@ next.epsilon <- function(ws) {
         stop("NA values in ws$dists; did you forget to run initialize.smc()?")
     }
     config <- ws$config
+
+    # solve for new epsilon
     res <- uniroot(function(x) epsilon.obj.func(ws, x), lower=0,
         upper=ws$epsilon, tol=config$step.tolerance, maxiter=1E6)
-
     root <- res$root
     if (root < config$final.epsilon) {
-        root = config$final.epsilon  # stopping criterion
-        epsilon.obj.func(ws, root)
+        cat("adjusted root from ", root, " to ", config$final.epsilon, "\n")
+        root = config$final.epsilon
     }
-    ws$weights <- ws$new.weights  # update weights
-    return (root)
+
+    # recalculate new weights at new epsilon
+    #   this is annoying but it's difficult in R to pass `ws` by reference
+    #   to epsilon.obj.func where this has been done already...
+    for (i in 1:config$nparticle) {
+        num <- sum(ws$dists[,i] < root)
+        denom <- sum(ws$dists[,i] < ws$epsilon)
+        ws$weights[i] <- ws$weights[i] * ifelse(num==denom, 1, num/denom)
+    }
+
+    ws$epsilon <- root
+    return (ws)
 }
 
 
@@ -144,8 +178,6 @@ resample.particles <- function(ws) {
     nparticle <- ws$config$nparticle
     # sample from current population of particles with replacement
     indices <- sample(1:nparticle, nparticle, replace=TRUE, prob=ws$weights)
-    cat("\nindices:\n", indices, "\n")
-    cat("\nparticles:\n", ws$particles, "\n")
     ws$particles <- ws$particles[indices,]
     ws$dists <- ws$dists[,indices]  # transfer columns of kernel distances
 
@@ -229,16 +261,21 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
     # draw particles from prior distribution, assign weights and simulate data
     ws <- initialize.smc(ws)
 
-    niter <- 1
+    niter <- 0
     ws$epsilon <- .Machine$double.xmax
+
+    # report stopping conditions
+    cat ("ws$epsilon: ", ws$epsilon, "\n");
+    cat ("config$final.epsilon: ", config$final.epsilon, "\n");
+
     while (ws$epsilon != config$final.epsilon) {
-        ws$accept <- 0  # FIXME: do these have to be set again below?
-        ws$alive <- 0
+        niter <- niter + 1
+
+        cat("ws$dists:\n", show(ws$dists), "\n\n")
 
         # update epsilon
-        cat('before next.epsilon\n')
-        ws$epsilon <- next.epsilon(ws)
-        cat('after next.epsilon\n')
+        ws <- next.epsilon(ws)
+        cat ("updated ws$epsilon: ", ws$epsilon, "\n");
 
         # resample particles according to their weights
         if (ess(ws$weights) < config$ess.tolerance) {
@@ -267,10 +304,16 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
             }
         }
 
-        niter <- niter + 1
+        # report stopping conditions
+        cat("run.smc niter: ", niter, "\n")
+        cat ("ws$epsilon: ", ws$epsilon, "\n");
+        cat ("config$final.epsilon: ", config$final.epsilon, "\n");
+        cat ("result$accept.rate: ", result$accept.rate, "\n");
+        cat ("config$final.accept.rate: ", config$final.accept.rate, "\n");
+
 
         # if acceptance rate is low enough, we're done
-        if (result$accept.rate[niter-1] <= config$final.accept.rate) {
+        if (result$accept.rate[niter] <= config$final.accept.rate) {
             ws$epsilon <- config$final.epsilon
             break  # FIXME: this should be redundant given loop condition above
         }

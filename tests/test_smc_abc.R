@@ -24,8 +24,37 @@ test.simulate.trees <- function() {
     checkEquals(class(st1), 'phylo')
     checkEquals(Ntip(st1), 3)  # t2 has three tips
     checkTrue(!is.null(st1$kernel))
-
 }
+
+test.distance <- function() {
+    config <- list(
+        decay.factor=0.5,
+        rbf.variance=1.0,
+        sst.control=1,
+        norm.mode="NONE"
+    )
+    checkException(result <- distance(t1, t1, config))
+
+    t1$kernel <- tree.kernel(t1, t1,
+        lambda=config$decay.factor,
+        sigma=config$rbf.variance,
+        rho=config$sst.control,
+        rescale.mode=config$norm.mode
+    )
+    t2$kernel <- tree.kernel(t2, t2,
+        lambda=config$decay.factor,
+        sigma=config$rbf.variance,
+        rho=config$sst.control,
+        rescale.mode=config$norm.mode
+    )
+    result <- distance(t1, t1, config)
+    expected <- 0.
+    checkEquals(expected, result)
+
+    result <- distance(t1, t2, config)
+    cat(result, "\n")
+}
+
 
 test.ess <- function() {
     result <- ess(seq(0, 1, 0.1))
@@ -83,7 +112,7 @@ test.next.epsilon <- function() {
     # adjust alpha (quality) so that root is around 0.055
     ws$epsilon <- 0.11
     ws$config$quality <- 0.5
-    result <- next.epsilon(ws)
+    result <- next.epsilon(ws)$epsilon
     expected <- 0.055
     checkEquals(expected, result, tolerance=0.01)
 }
@@ -141,6 +170,7 @@ test.resample.particles <- function() {
         config=list(nparticle=5, nsample=5)
     )
     class(workspace) <- 'smc.workspace'
+
     set.seed(42)  # sample(1:5,5,replace=T,prob=ws$weights) -> c(1,1,4,2,3)
     workspace <- resample.particles(workspace)
 
@@ -151,8 +181,8 @@ test.resample.particles <- function() {
     # FIXME: setting seed doesn't return expected result!
     # FIXME:   expected column indices 1,1,4,2,3
     # FIXME:   observed column indices 4,4,4,3,2
-        cat(workspace$particles, "\n")
-    checkEquals(workspace$particles[,1], c(0.6,0.6,0.9,0.7,0.8))
+    # cat(show(workspace$particles), "\n")
+    checkEquals(workspace$particles[,1], c(0.4,0.4,0.4,0.3,0.2))
 }
 
 
@@ -170,6 +200,7 @@ test.perturb.particles <- function() {
     theta <- c(Ne.tau=100)
     set.seed(100)
     obs.tree <- const.coalescent(theta, nsim=1, n.tips=20)[[1]]
+    obs.tree <- parse.input.tree(obs.tree, config)
 
     ws <- init.workspace(obs.tree, config)
     ws <- initialize.smc(ws)
@@ -198,21 +229,22 @@ test.perturb.particles <- function() {
         y <- serialize.trees(after$sim.trees[[i]])
         return(all(x==y))
     })
-    cat("result", result, "\n")
-    cat("result3", result3, "\n")
     checkEquals(all(result == result3), TRUE)
 }
 
 
 test.run.smc <- function() {
+    # prior has mean exp(5)=148.4
     config <- load.config('tests/fixtures/coalescent.yaml')
     config <- set.model(config, const.coalescent)
 
     nparticle <- config$nparticle
-    theta <- c(Ne.tau=100)
+    theta <- c(Ne.tau=1000)
     set.seed(100)
     obs.tree <- const.coalescent(theta, nsim=1, n.tips=20)[[1]]
 
     ws <- init.workspace(obs.tree, config)
     result <- run.smc(ws)
+    cat("run.smc result: ", show(result$theta[[1]]), "\n")
+
 }

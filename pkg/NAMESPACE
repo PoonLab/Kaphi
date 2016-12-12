@@ -1,5 +1,6 @@
 
 export(tree.kernel)
+export(utk)
 
 export(load.config)
 export(set.model)
@@ -17,6 +18,7 @@ export(init.workspace)
 export(print.smc.workspace)
 
 export(simulate.trees)
+export(distance)
 export(initialize.smc)
 export(ess)
 export(epsilon.obj.func)

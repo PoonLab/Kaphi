@@ -42,6 +42,7 @@ preprocess.tree <- function(tree, rescale.mode) {
     }
     tree.1 <- ladderize(tree)
     tree.2 <- rescale.tree(tree.1, rescale.mode)
+    return(tree.2)
 }
 
 to.newick <- function(tree) {
@@ -55,6 +56,18 @@ to.newick <- function(tree) {
     } else {
         stop("tree argument must be a phylo or character object.")
     }
+}
+
+utk <- function(t1, t2, config) {
+    # convenience wrapper for unlabelled tree shape kernel
+    result <- tree.kernel(t1, t2,
+        lambda=config$decay.factor,
+        sigma=config$rbf.variance,
+        rho=config$sst.control,
+        normalize=0,
+        rescale.mode=config$norm.mode
+    )
+    return(result)
 }
 
 tree.kernel <- function(tree1, tree2,

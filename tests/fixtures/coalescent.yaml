@@ -19,7 +19,7 @@ smc:
   quality: 0.9
   step.tolerance: 1.e-4
 kernel:
-  decay.factor: 0.1
+  decay.factor: 0.5
   rbf.variance: 2.5
   sst.control: 1
-  norm.mode: 'NONE'
+  norm.mode: 'MEAN'
