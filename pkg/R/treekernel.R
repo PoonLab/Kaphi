@@ -80,9 +80,9 @@ tree.kernel <- function(tree1, tree2,
     gamma=0,
     rescale.mode='MEAN') {
     # make labels
-    use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2))
+    use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
         FALSE
-    else {
+    } else {
     	tree1$tip.label <- label1
         tree2$tip.label <- label2
         TRUE

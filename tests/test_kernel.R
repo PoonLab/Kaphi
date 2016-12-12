@@ -2,6 +2,18 @@ require(Kaphi, quietly=TRUE)
 require(RUnit, quietly=TRUE)
 source('tests/fixtures/simple-trees.R')
 
+test.rescale.tree <- function() {
+    expected <- 0.15
+    result <- mean(temp$edge.length)
+    checkEquals(expected, result)
+
+    temp <- rescale.tree(t1, "MEAN")
+    expected <- 1.0
+    result <- mean(temp$edge.length)
+    checkEquals(expected, result)
+}
+
+
 test.kernel.trivial <- function() {
     expected <- 1
     result <- tree.kernel(t1, t1, lambda=0.1, sigma=2.0, rho=1, normalize=1, rescale.mode="NONE")
@@ -41,6 +53,14 @@ test.kernel.unnormalized <- function() {
     expected <- 1 * exp(-((0.3-0.1)^2 + (0.4-0.2)^2) / (1.0)) * ((1+1) * (1+1))
     checkEquals(expected, result)
 }
+
+
+test.kernel.normalized <- function() {
+    result <- tree.kernel(t1, t1, lambda=1, sigma=0.5, rho=1, normalize=0, rescale.mode='NONE')
+    expected <- 4
+    checkEquals(expected, result)
+}
+
 
 test.kernel.label <- function() {
 	# essentially unlabelled
