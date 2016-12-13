@@ -63,7 +63,7 @@ utk <- function(t1, t2, config) {
     result <- tree.kernel(t1, t2,
         lambda=config$decay.factor,
         sigma=config$rbf.variance,
-        rho=config$sst.control,
+        rho=as.double(config$sst.control),
         normalize=0,
         rescale.mode=config$norm.mode
     )
@@ -73,7 +73,7 @@ utk <- function(t1, t2, config) {
 tree.kernel <- function(tree1, tree2,
     lambda,        # decay factor
     sigma,         # RBF variance parameter
-    rho=1,         # SST control parameter; 0 = subtree kernel, 1 = subset tree kernel
+    rho=1.0,         # SST control parameter; 0 = subtree kernel, 1 = subset tree kernel
     normalize=0,   # normalize kernel score by sqrt(k(t1,t1) * k(t2,t2))
     label1=NA,     # argument for labeled tree kernel
     label2=NA,
@@ -101,7 +101,7 @@ tree.kernel <- function(tree1, tree2,
 #    }
 		
     res <- .Call("R_Kaphi_kernel",
-                 nwk1, nwk2, lambda, sigma, rho, use.label, gamma, normalize,
+                 nwk1, nwk2, lambda, sigma, as.double(rho), use.label, gamma, normalize,
                  PACKAGE="Kaphi")
     return (res)
 }

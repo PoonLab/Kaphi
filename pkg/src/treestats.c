@@ -664,11 +664,18 @@ int *production(const igraph_t *tree)
     {
         if ((int) VECTOR(vec)[i] == 0)
         {
+            // node is terminal with no out edges (a tip)
             p[i] = 0;
         }
         else
         {
+            // node is internal, production index is at least 1
             igraph_neighbors(tree, &nbr, i, IGRAPH_OUT);
+
+            // adjust index by number of child nodes that are tips
+            // if neither child is a tip, index is 1
+            // if one child is a tip, index is 2
+            // if both children are tips, index is 3
             p[i] = ((int) VECTOR(vec)[(int) VECTOR(nbr)[0]] == 0) +
                    ((int) VECTOR(vec)[(int) VECTOR(nbr)[1]] == 0) + 1;
         }

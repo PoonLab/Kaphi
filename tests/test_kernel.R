@@ -4,6 +4,10 @@ source('tests/fixtures/simple-trees.R')
 
 test.rescale.tree <- function() {
     expected <- 0.15
+    result <- mean(t1$edge.length)
+    checkEquals(expected, result)
+
+    temp <- rescale.tree(t1, "NONE")
     result <- mean(temp$edge.length)
     checkEquals(expected, result)
 
