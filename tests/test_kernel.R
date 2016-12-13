@@ -23,7 +23,7 @@ test.kernel.trivial <- function() {
 
 test.kernel.unnormalized <- function() {
     # t1 has one internal node (n1) with two tips
-    # delta(n1,n1) = lambda * RBF(sigma) * [(1 + delta(cn1, cn1)) * (1 + delta(cn2, cn2))]
+    # delta(n1,n1) = lambda * rho * [(1 + delta(cn1, cn1)) * (1 + delta(cn2, cn2))]
     # delta(cn1, cn1) = lambda (tips)
     result <- tree.kernel(t1, t1, lambda=1, sigma=1, rho=1, normalize=0, rescale.mode='NONE')
     expected <- 1 * 1 * ((1+1) * (1+1))

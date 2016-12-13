@@ -233,6 +233,26 @@ test.perturb.particles <- function() {
 }
 
 
+test.issue.22 <- function() {
+    # load configuration
+    # lambda = 0.5, RBF variance = 2.5, SST.control = 1
+    config <- load.config('tests/fixtures/coalescent.yaml')
+
+    # simulated coalescent trees, ladderized and rescaled by mean
+    nwk.1 <- "(((t4:0.2848235269,t3:0.2848235269):0.6005581596,t1:0.8853816865):1.529515707,t2:2.414897393);"
+    nwk.2 <- "(((t1:0.04204444404,t2:0.04204444404):1.28616494,t3:1.328209384):0.986663702,t4:2.314873086);"
+    tr1 <- parse.input.tree(nwk.1, config)
+    tr2 <- parse.input.tree(nwk.2, config)
+
+    result <- utk(tr1, tr2, config)
+    delta.t4.t3 <-
+    expected <- 0.5 * 1 * ((1+
+
+    cat("k(t1,t2)=", k, "\n")
+    cat("sqrt(k(t1,t1)*k(t2,t2)=", sqrt(t1$k*t2$k), "\n")
+}
+
+
 test.run.smc <- function() {
     # prior has mean exp(5)=148.4
     config <- load.config('tests/fixtures/coalescent.yaml')
