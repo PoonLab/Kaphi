@@ -18,18 +18,8 @@ parse.input.tree <- function(obs.tree, config) {
 			}
 		}
 	}
-	# process the observed tree
-	obs.tree <- ladderize(obs.tree)
-	obs.tree <- rescale.tree(obs.tree, config$norm.mode)
-
-    # cache self-kernel score
-    obs.tree$kernel <- tree.kernel(obs.tree, obs.tree,
-        lambda=config$decay.factor,
-        sigma=config$rbf.variance,
-        rho=config$sst.control,
-        normalize=0,
-        rescale.mode=config$norm.mode
-    )
+	# ladderize, rescale, and compute self-kernel for the observed tree
+    obs.tree <- preprocess.tree(obs.tree, config)
     return (obs.tree)
 }
 

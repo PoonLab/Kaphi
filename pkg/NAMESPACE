@@ -1,3 +1,4 @@
+export(preprocess.tree)
 export(rescale.tree)
 export(tree.kernel)
 export(utk)

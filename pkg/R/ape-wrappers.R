@@ -17,13 +17,13 @@ const.coalescent <- function(theta, nsim, n.tips, labels=NA, seed=NA) {
     if (all(is.na(labels))) {
         result <- lapply(1:nsim, function(x) {
             tree <- rcoal(n=n.tips, br='coalescent')
-            tree$edge.len <- tree$edge.len * theta['Ne.tau']  # rescale
+            tree$edge.length <- tree$edge.length * theta['Ne.tau']  # rescale
             tree
         })
     } else {
         result <- lapply(1:nsim, function(x) {
             tree <- rcoal(n=n.tips, tip.label=labels, br='coalescent')
-            tree$edge.len <- tree$edge.len * theta['Ne.tau']  # rescale
+            tree$edge.length <- tree$edge.length * theta['Ne.tau']  # rescale
             tree
         })
     }

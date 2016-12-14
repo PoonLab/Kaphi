@@ -19,6 +19,6 @@ smc:
   step.tolerance: 1.e-4
 kernel:
   decay.factor: 0.2
-  rbf.variance: 2.0
-  sst.control: 1
+  rbf.variance: 100.0
+  sst.control: 1.0
   norm.mode: 'NONE'

@@ -3,7 +3,7 @@ priors:
     dist: 'lnorm'
     hyperparameters:
     - meanlog: 5
-    - sdlog: 2
+    - sdlog: 3
 proposals:
   Ne.tau:
     dist: 'norm'
@@ -18,7 +18,7 @@ smc:
   quality: 0.9
   step.tolerance: 1.e-4
 kernel:
-  decay.factor: 0.5
-  rbf.variance: 2.5
+  decay.factor: 0.2
+  rbf.variance: 100.0
   sst.control: 1
   norm.mode: 'NONE'

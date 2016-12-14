@@ -25,15 +25,7 @@ simulate.trees <- function(workspace, theta, seed=NA, ...) {
 
     # annotate each trees with its self-kernel score
     for (i in 1:config$nsample) {
-        result[[i]] <- preprocess.tree(result[[i]], config$norm.mode)
-        result[[i]]$kernel <- tree.kernel(
-            result[[i]],
-            result[[i]],
-            lambda=config$decay.factor,
-            sigma=config$rbf.variance,
-            rho=config$sst.control,
-            rescale.mode=config$norm.mode
-        )
+        result[[i]] <- preprocess.tree(result[[i]], config)
     }
 
     return(result)
@@ -53,8 +45,7 @@ distance <- function(t1, t2, config) {
         t2,
         lambda=config$decay.factor,
         sigma=config$rbf.variance,
-        rho=config$sst.control,
-        rescale.mode=config$norm.mode
+        rho=config$sst.control
     )
 
     result <- 1. - k / sqrt(t1$kernel * t2$kernel)

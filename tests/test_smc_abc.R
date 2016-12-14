@@ -38,14 +38,12 @@ test.distance <- function() {
     t1$kernel <- tree.kernel(t1, t1,
         lambda=config$decay.factor,
         sigma=config$rbf.variance,
-        rho=config$sst.control,
-        rescale.mode=config$norm.mode
+        rho=config$sst.control
     )
     t2$kernel <- tree.kernel(t2, t2,
         lambda=config$decay.factor,
         sigma=config$rbf.variance,
-        rho=config$sst.control,
-        rescale.mode=config$norm.mode
+        rho=config$sst.control
     )
     result <- distance(t1, t1, config)
     expected <- 0.
@@ -238,6 +236,8 @@ test.run.smc <- function() {
     # Ne.tau prior has mean exp(5)=148.4
     config <- load.config('tests/fixtures/test-coalescent.yaml')
     config <- set.model(config, const.coalescent)
+    config$nparticle <- 20
+    config$nsample <- 5
 
     nparticle <- config$nparticle
     theta <- c(Ne.tau=1000)

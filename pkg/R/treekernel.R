@@ -32,7 +32,8 @@ parse.newick <- function(tree) {
     return (res)
 }
 
-preprocess.tree <- function(tree, rescale.mode) {
+
+preprocess.tree <- function(tree, config) {
     #print ('preprocess')
     if (class(tree) == 'character') {
         tree <- read.tree(text=tree)
@@ -40,9 +41,17 @@ preprocess.tree <- function(tree, rescale.mode) {
     if (class(tree) != 'phylo') {
         stop("preprocess.tree() requires phylo or character (Newick) object for tree")
     }
-    tree.1 <- ladderize(tree)
-    tree.2 <- rescale.tree(tree.1, rescale.mode)
-    return(tree.2)
+    tree <- ladderize(tree)
+    tree <- rescale.tree(tree, config$norm.mode)
+
+    # cache self-kernel score
+    tree$kernel <- tree.kernel(tree, tree,
+        lambda=config$decay.factor,
+        sigma=config$rbf.variance,
+        rho=config$sst.control,
+        normalize=0
+    )
+    return(tree)
 }
 
 to.newick <- function(tree) {
@@ -51,10 +60,13 @@ to.newick <- function(tree) {
         return (write.tree(tree))
     } else if (class(tree) == 'character') {
         # make sure string is standard Newick format
-        tree2 <- read.tree(text=tree)
+        tree <- read.tree(text=tree)
+        if (is.null(tree)) {
+            stop("to.newick(): String failed to parse as Newick tree string")
+        }
         return (write.tree(tree))
     } else {
-        stop("tree argument must be a phylo or character object.")
+        stop("to.newick(): tree argument must be a phylo or character object.")
     }
 }
 
@@ -64,8 +76,7 @@ utk <- function(t1, t2, config) {
         lambda=config$decay.factor,
         sigma=config$rbf.variance,
         rho=as.double(config$sst.control),
-        normalize=0,
-        rescale.mode=config$norm.mode
+        normalize=0
     )
     return(result)
 }
@@ -75,10 +86,9 @@ tree.kernel <- function(tree1, tree2,
     sigma,         # RBF variance parameter
     rho=1.0,         # SST control parameter; 0 = subtree kernel, 1 = subset tree kernel
     normalize=0,   # normalize kernel score by sqrt(k(t1,t1) * k(t2,t2))
-    label1=NA,     # argument for labeled tree kernel
+    label1=NA,     # arguments for labeled tree kernel
     label2=NA,
-    gamma=0,
-    rescale.mode='MEAN') {
+    gamma=0) {
     # make labels
     use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
         FALSE
@@ -88,8 +98,8 @@ tree.kernel <- function(tree1, tree2,
         TRUE
     }
     
-    nwk1 <- to.newick(preprocess.tree(tree1, rescale.mode))
-    nwk2 <- to.newick(preprocess.tree(tree2, rescale.mode))
+    nwk1 <- to.newick(tree1)
+    nwk2 <- to.newick(tree2)
         
 #    # make labels
 #    if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
