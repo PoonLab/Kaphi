@@ -37,19 +37,19 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
     int *production1, *production2, *children1, *children2;
     double val, val2, tmp, K = 0;
     double *bl1, *bl2;
-    Pvoid_t delta = (Pvoid_t) NULL;
+    Pvoid_t delta = (Pvoid_t) NULL;  // this is a Judy array
     int *pairs, *map, cur = 0;
-    PWord_t Pvalue;
+    PWord_t Pvalue;  // pointer into Judy array
     Word_t bytes = 0;
 
     // preconditions
     assert(decay_factor > 0.0 && decay_factor <= 1.0);
     assert(rbf_variance > 0.0);
-    assert(igraph_vcount(t1) < 65535);
+    assert(igraph_vcount(t1) < 65535);  // TODO: relax this constraint
 
-    production1 = production(t1);
+    production1 = production(t1);  // returns integer vector of production types
     production2 = production(t2);
-    children1 = children(t1);
+    children1 = children(t1);  // array of integer indices mapping to child nodes (twice length of num nodes)
     children2 = children(t2);
     bl1 = branch_lengths(t1);
     bl2 = branch_lengths(t2);
@@ -60,8 +60,8 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
     for (cur = 0; cur < npairs; ++cur)
     {
         val = decay_factor;
-        n1 = pairs[cur] >> 16;
-        n2 = pairs[cur] & 65535;
+        n1 = pairs[cur] >> 16;  // shift right by 16 bits - why?
+        n2 = pairs[cur] & 65535;  // make sure we're in left side of indices
 
         // branch lengths
         tmp = pow(bl1[2*n1] - bl2[2*n2], 2) + pow(bl1[2*n1+1] - bl2[2*n2+1], 2);
@@ -86,6 +86,7 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
                 // children are not leaves
                 else
                 {
+                    // get the pointer Pvalue associated with index in Judy array delta
                     JLG(Pvalue, delta, (c1 << 16) | c2);
                     /* don't visit parents before children */
                     assert(Pvalue != NULL);
@@ -132,14 +133,13 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
                     }
                 }
             }
+            if (val2 > val)
+        	    val = val2;
         }
 
-        if (val2 > val)
-        	val = val2;
-
-
+        // insert into Judy array
         JLI(Pvalue, delta, pairs[cur]);
-        if (Pvalue == PJERR) exit(EXIT_FAILURE); 
+        if (Pvalue == PJERR) exit(EXIT_FAILURE);  // malloc fail occurred
         memcpy(Pvalue, &val, sizeof(double));
 
         K += val;
@@ -152,7 +152,7 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
     free(bl1);
     free(bl2);
     free(pairs);
-    JLFA(bytes, delta);
+    JLFA(bytes, delta);  // free the entire Judy array
     return K;
 }
 
