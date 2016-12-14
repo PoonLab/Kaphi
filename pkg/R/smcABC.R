@@ -253,7 +253,7 @@ perturb.particles <- function(ws) {
 }
 
 
-run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
+run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, verbose=FALSE, ...) {
     # @param ws: workspace
 	# @param obs.tree: object of class 'phylo'
 	# @param trace.file: (optional) path to a file to write outputs
@@ -261,6 +261,13 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
 	# @param nthreads: (optional) for running on multiple cores
 	# @param ...: additional arguments to pass to config@generator via
     #   simulate.trees()
+
+    if (!is.na(trace.file)) {
+        # clear file and write header row
+        write.table(c(
+            'n.iter', 'part.num', 'weight', config$params, paste0('dist.', 1:config$nsample)
+        ), file=trace.file, sep='\t')
+    }
 
 	config <- ws$config
 
@@ -274,20 +281,22 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
     ws$epsilon <- .Machine$double.xmax
 
     # report stopping conditions
-    cat ("ws$epsilon: ", ws$epsilon, "\n");
-    cat ("config$final.epsilon: ", config$final.epsilon, "\n");
+    if (verbose) {
+        cat ("ws$epsilon: ", ws$epsilon, "\n");
+        cat ("config$final.epsilon: ", config$final.epsilon, "\n");
+    }
 
     while (ws$epsilon != config$final.epsilon) {
         niter <- niter + 1
 
-        cat("ws$dists:\n", show(ws$dists), "\n\n")
+        if (verbose) { cat("ws$dists:\n", show(ws$dists), "\n\n") }
 
         # update epsilon
         ws <- next.epsilon(ws)
-        cat ("updated ws$epsilon: ", ws$epsilon, "\n")
+        if (verbose) { cat ("updated ws$epsilon: ", ws$epsilon, "\n") }
 
         # resample particles according to their weights
-        cat ("effective sample size: ", ess(ws$weights), "\n")
+        if (verbose) { cat ("effective sample size: ", ess(ws$weights), "\n") }
         if (ess(ws$weights) < config$ess.tolerance) {
             ws <- resample.particles(ws)
         }
@@ -303,6 +312,7 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
         result$epsilons <- c(result$epsilons, ws$epsilon)
         result$accept.rate <- c(result$accept.rate, ws$accept / ws$alive)
 
+        # write output to file if specified
         if (!is.na(trace.file)) {
             for (i in 1:config$nparticle) {
                 write.table(
@@ -315,12 +325,13 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
         }
 
         # report stopping conditions
-        cat("run.smc niter: ", niter, "\n")
-        cat ("ws$epsilon: ", ws$epsilon, "\n");
-        cat ("config$final.epsilon: ", config$final.epsilon, "\n");
-        cat ("result$accept.rate: ", result$accept.rate, "\n");
-        cat ("config$final.accept.rate: ", config$final.accept.rate, "\n");
-
+        if (verbose) {
+            cat("run.smc niter: ", niter, "\n")
+            cat ("ws$epsilon: ", ws$epsilon, "\n");
+            cat ("config$final.epsilon: ", config$final.epsilon, "\n");
+            cat ("result$accept.rate: ", result$accept.rate, "\n");
+            cat ("config$final.accept.rate: ", config$final.accept.rate, "\n");
+        }
 
         # if acceptance rate is low enough, we're done
         if (result$accept.rate[niter] <= config$final.accept.rate) {

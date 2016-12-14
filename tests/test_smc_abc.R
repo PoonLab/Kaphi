@@ -129,7 +129,7 @@ test.initialize.smc <- function() {
     ws <- init.workspace(t1, config)
     checkException(initialize.smc(ws))  # the model doesn't match the prior configuration
 
-    config <- load.config('tests/fixtures/coalescent.yaml')
+    config <- load.config('tests/fixtures/test-coalescent.yaml')
     config <- set.model(config, const.coalescent)
     ws <- init.workspace(t2, config)
     ws <- initialize.smc(ws)
@@ -193,7 +193,7 @@ serialize.trees <- function(trees) {
 
 
 test.perturb.particles <- function() {
-    config <- load.config('tests/fixtures/coalescent.yaml')
+    config <- load.config('tests/fixtures/test-coalescent.yaml')
     config <- set.model(config, const.coalescent)
 
     nparticle <- config$nparticle
@@ -234,8 +234,9 @@ test.perturb.particles <- function() {
 
 
 test.run.smc <- function() {
+    # just attempting the main loop to see if any exceptions get thrown
     # Ne.tau prior has mean exp(5)=148.4
-    config <- load.config('tests/fixtures/coalescent.yaml')
+    config <- load.config('tests/fixtures/test-coalescent.yaml')
     config <- set.model(config, const.coalescent)
 
     nparticle <- config$nparticle
@@ -244,7 +245,5 @@ test.run.smc <- function() {
     obs.tree <- const.coalescent(theta, nsim=1, n.tips=20)[[1]]
 
     ws <- init.workspace(obs.tree, config)
-    result <- run.smc(ws)
-    cat("run.smc result: ", show(result$theta[[1]]), "\n")
-
+    result <- run.smc(ws, verbose=TRUE)
 }
