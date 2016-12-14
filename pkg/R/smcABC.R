@@ -166,8 +166,9 @@ next.epsilon <- function(ws) {
     for (i in 1:config$nparticle) {
         num <- sum(ws$dists[,i] < root)
         denom <- sum(ws$dists[,i] < ws$epsilon)
-        ws$weights[i] <- ws$weights[i] * ifelse(num==denom, 1, num/denom)
+        ws$weights[i] <- ws$weights[i] * ifelse(num==denom, 1., num/denom)
     }
+    ws$weights <- ws$weights / sum(ws$weights)  # renormalize weights
 
     ws$epsilon <- root
     return (ws)
@@ -175,11 +176,19 @@ next.epsilon <- function(ws) {
 
 
 resample.particles <- function(ws) {
+    cat("resampling particles!\n")
     nparticle <- ws$config$nparticle
     # sample from current population of particles with replacement
     indices <- sample(1:nparticle, nparticle, replace=TRUE, prob=ws$weights)
-    ws$particles <- ws$particles[indices,]
+
+    # if there's only one parameter, this returns a vector unless we recast
+    ws$particles <- as.matrix(ws$particles[indices,])
+    colnames(ws$particles) <- ws$config$params
+
+    cat(show(ws$dists), "\n")
+    cat(indices, "\n")
     ws$dists <- ws$dists[,indices]  # transfer columns of kernel distances
+    cat(show(ws$dists), "\n")
 
     # reset all weights
     ws$weights <- rep(1./nparticle, times=nparticle)
@@ -275,9 +284,10 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, ...) {
 
         # update epsilon
         ws <- next.epsilon(ws)
-        cat ("updated ws$epsilon: ", ws$epsilon, "\n");
+        cat ("updated ws$epsilon: ", ws$epsilon, "\n")
 
         # resample particles according to their weights
+        cat ("effective sample size: ", ess(ws$weights), "\n")
         if (ess(ws$weights) < config$ess.tolerance) {
             ws <- resample.particles(ws)
         }

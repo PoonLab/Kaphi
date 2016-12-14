@@ -233,53 +233,8 @@ test.perturb.particles <- function() {
 }
 
 
-test.issue.22 <- function() {
-    # load configuration
-    # lambda = 0.5, RBF variance = 2.5, SST.control = 1
-    config <- load.config('tests/fixtures/coalescent.yaml')
-    config$norm.mode <- "NONE"  # temporarily deactivate this setting
-
-    # simulated coalescent trees, ladderized and rescaled by mean
-    nwk.1 <- "(t4:0.2848235269,t3:0.2848235269);"
-    nwk.2 <- "(t1:0.04204444404,t2:0.04204444404);"
-    tr1 <- parse.input.tree(nwk.1, config)
-    tr2 <- parse.input.tree(nwk.2, config)
-
-    delta.1 <- 0.5 * exp(-2*(0.2848235269-0.04204444404)^2/2.5) * (1+0.5) * (1+0.5)
-    result <- utk(tr1, tr2, config)
-    checkEquals(delta.1, result)
-    checkTrue(result <= sqrt(tr1$k * tr2$k))
-
-
-    nwk.1 <- "((t4:0.2848235269,t3:0.2848235269):0.6005581596,t1:0.8853816865);"
-    nwk.2 <- "((t1:0.04204444404,t2:0.04204444404):1.28616494,t3:1.328209384);"
-    tr1 <- parse.input.tree(nwk.1, config)
-    tr2 <- parse.input.tree(nwk.2, config)
-
-    result <- utk(tr1, tr2, config)
-    delta.2 <- 0.5 * exp(-((0.6005581596-1.28616494)^2+(0.8853816865-1.328209384)^2)/2.5) * (1+delta.1) * (1+0.5)
-    expected <- delta.1 + delta.2
-    checkEquals(expected, result)
-    checkTrue(result <= sqrt(tr1$k * tr2$k))
-
-    # this case is more complex because there are now
-    nwk.1 <- "(((t4:0.2848235269,t3:0.2848235269):0.6005581596,t1:0.8853816865):1.529515707,t2:2.414897393);"
-    nwk.2 <- "(((t1:0.04204444404,t2:0.04204444404):1.28616494,t3:1.328209384):0.986663702,t4:2.314873086);"
-    tr1 <- parse.input.tree(nwk.1, config)
-    tr2 <- parse.input.tree(nwk.2, config)
-
-    result <- utk(tr1, tr2, config)
-    delta.3 <- 0.5 * exp(-((1.529515707-0.986663702)^2+(2.414897393-2.314873086)^2)/2.5) * (1+delta.2) * (1+0.5)
-    delta.4 <- 0.5 * exp(-((0.6005581596-0.986663702)^2+(0.8853816865-2.314873086)^2)/2.5) * (1+0) * (1+0.5)
-    delta.5 <- 0.5 * exp(-((1.28616494-1.529515707)^2+(1.328209384-2.414897393)^2)/2.5) * (1+0) * (1+0.5)
-    expected <- delta.1 + delta.2 + delta.3 + delta.4 + delta.5  # this matches phyloK2.py!
-    checkEquals(expected, result)
-    checkTrue(result <= sqrt(tr1$k * tr2$k))
-}
-
-
 test.run.smc <- function() {
-    # prior has mean exp(5)=148.4
+    # Ne.tau prior has mean exp(5)=148.4
     config <- load.config('tests/fixtures/coalescent.yaml')
     config <- set.model(config, const.coalescent)
 
