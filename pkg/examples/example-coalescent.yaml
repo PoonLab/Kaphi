@@ -15,6 +15,7 @@ smc:
   nsample: 10
   ess.tolerance: 50.0
   final.accept.rate: 0.1
+  final.epsilon: 0.1
   quality: 0.95
   step.tolerance: 1.e-4
 kernel:

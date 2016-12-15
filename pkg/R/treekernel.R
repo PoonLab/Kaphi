@@ -21,6 +21,7 @@ rescale.tree <- function(tree, mode) {
 }
 
 
+# DEPRECATED
 parse.newick <- function(tree) {
     if (class(tree)=='phylo') {
         res <- .Call("R_Kaphi_parse_newick", write.tree(tree), PACKAGE="Kaphi")

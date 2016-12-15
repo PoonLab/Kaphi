@@ -260,6 +260,8 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     result <- list(niter=0, theta=list(), weights=list(), accept.rate={}, epsilons={})
 
     # draw particles from prior distribution, assign weights and simulate data
+    ptm <- proc.time()  # start timer
+    cat ("Initializing SMC-ABC run with", config$nparticle, "particles\n")
     ws <- initialize.smc(ws)
 
     niter <- 0
@@ -278,10 +280,14 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
 
         # update epsilon
         ws <- next.epsilon(ws)
-        if (verbose) { cat ("updated ws$epsilon: ", ws$epsilon, "\n") }
+
+        # provide some feedback
+        lap <- proc.time() - ptm
+        cat ("Step ", niter, " epsilon:", ws$epsilon, " ESS:", ess(ws$weights),
+             "accept:", result$accept.rate[length(result$accept.rate)],
+             "elapsed:", round(lap[['elapsed']],1), "s\n")
 
         # resample particles according to their weights
-        if (verbose) { cat ("effective sample size: ", ess(ws$weights), "\n") }
         if (ess(ws$weights) < config$ess.tolerance) {
             ws <- resample.particles(ws)
         }
