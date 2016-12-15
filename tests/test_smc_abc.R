@@ -232,6 +232,8 @@ test.perturb.particles <- function() {
 
 
 test.run.smc <- function() {
+    DEACTIVATED("Used for debugging; produces a lot of output!")
+
     # just attempting the main loop to see if any exceptions get thrown
     # Ne.tau prior has mean exp(5)=148.4
     config <- load.config('tests/fixtures/test-coalescent.yaml')

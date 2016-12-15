@@ -167,7 +167,6 @@ next.epsilon <- function(ws) {
 
 
 resample.particles <- function(ws) {
-    cat("resampling particles!\n")
     nparticle <- ws$config$nparticle
     # sample from current population of particles with replacement
     indices <- sample(1:nparticle, nparticle, replace=TRUE, prob=ws$weights)
@@ -176,10 +175,7 @@ resample.particles <- function(ws) {
     ws$particles <- as.matrix(ws$particles[indices,])
     colnames(ws$particles) <- ws$config$params
 
-    cat(show(ws$dists), "\n")
-    cat(indices, "\n")
     ws$dists <- ws$dists[,indices]  # transfer columns of kernel distances
-    cat(show(ws$dists), "\n")
 
     # reset all weights
     ws$weights <- rep(1./nparticle, times=nparticle)
@@ -230,7 +226,7 @@ perturb.particles <- function(ws) {
         new.nbhd <- sum(new.dists[,i] < ws$epsilon)
         mh.ratio <- mh.ratio * new.nbhd / old.nbhd
 
-        cat(i, old.particle, new.particle, mh.ratio, "\n")
+        #cat(i, old.particle, new.particle, mh.ratio, "\n")
 
         # accept or reject the proposal
         if (runif(1) < mh.ratio) {  # always accept if ratio > 1
@@ -244,7 +240,7 @@ perturb.particles <- function(ws) {
 }
 
 
-run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, verbose=FALSE, ...) {
+run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FALSE, ...) {
     # @param ws: workspace
 	# @param obs.tree: object of class 'phylo'
 	# @param trace.file: (optional) path to a file to write outputs
@@ -253,12 +249,10 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, verbose=FA
 	# @param ...: additional arguments to pass to config@generator via
     #   simulate.trees()
 
-    if (!is.na(trace.file)) {
-        # clear file and write header row
-        write.table(c(
-            'n.iter', 'part.num', 'weight', config$params, paste0('dist.', 1:config$nsample)
-        ), file=trace.file, sep='\t')
-    }
+    # clear file and write header row
+    write.table(t(c(
+        'n.iter', 'part.num', 'weight', config$params, paste0('dist.', 1:config$nsample)
+    )), file=trace.file, sep='\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
 
 	config <- ws$config
 
@@ -304,15 +298,15 @@ run.smc <- function(ws, trace.file=NA, regex=NA, seed=NA, nthreads=1, verbose=FA
         result$accept.rate <- c(result$accept.rate, ws$accept / ws$alive)
 
         # write output to file if specified
-        if (!is.na(trace.file)) {
-            for (i in 1:config$nparticle) {
-                write.table(
-                    x=c(niter, i, ws$weights[i], ws$particles[i,], ws$dists[,i]),
-                    file=trace.file,
-                    append=TRUE,
-                    sep="\t"
-                )
-            }
+        for (i in 1:config$nparticle) {
+            write.table(
+                x=t(c(niter, i, round(ws$weights[i],10), round(ws$particles[i,],5), round(ws$dists[,i], 5))),
+                file=trace.file,
+                append=TRUE,
+                sep="\t",
+                row.names=FALSE,
+                col.names=FALSE
+            )
         }
 
         # report stopping conditions
