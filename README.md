@@ -7,6 +7,16 @@
 * The shapes of simulated phylogenies are compared to the data with a [kernel method](https://en.wikipedia.org/wiki/Kernel_method).
 
 
+## Installation
+
+Instructions on installing Kaphi are provided in [INSTALL.md](INSTALL.md).
+
+
+## License
+
+Kaphi is released under the [GNU Affero General Public License](https://www.gnu.org/licenses/agpl-3.0.en.html).
+
+
 ## Phylodynamic inference
 
 A [phylogeny](https://en.wikipedia.org/wiki/Phylogenetic_tree) is a tree-based hypothesis about how different populations are related by common ancestors.  The general idea behind phylodynamics is that this tree has been shaped by a history of biological processes, such as speciation or epidemiology (when the tree relates cases of an infectious virus or bacteria).  The objective of phylodynamics is to reconstruct this biological process by fitting a model of that process to the shape of a tree.  
