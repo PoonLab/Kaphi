@@ -1,5 +1,8 @@
 # Kaphi
 
+*Please note this package is still under development.*  
+
+
 ## Brief description
 * [Phylodynamic inference](https://en.wikipedia.org/wiki/Viral_phylodynamics) is the fitting of models to the shape of a [phylogenetic tree](https://en.wikipedia.org/wiki/Phylogenetic_tree) in order to reconstruct the historical processes that produced the tree.
 * Kaphi is an [R package](https://cran.r-project.org/) for fitting models to the shapes of phylogenetic trees.  
