@@ -30,4 +30,7 @@ export(run.smc)
 
 export(const.coalescent)
 
+export(parse.ode)
+export(solve.ode)
+
 useDynLib(Kaphi)

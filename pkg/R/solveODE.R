@@ -55,7 +55,7 @@ solve.ode <- function(
     t0,  # inital time for ODE solution
     t1,  # end time for ODE solution
     x0,  # initial state vector
-    parms=NA,  # model parameter settings
+    parms,  # model parameter settings
     time.pts=2000,  # number of time points in range [t0,t1]
     integrationMethod='rk4'
 ) {
@@ -114,15 +114,6 @@ solve.ode <- function(
         list(c(dxdeme, dxnondeme))  # return values
     }
 
-    # numerical solution of ODE
-    sol <- ode(y=x0, times=times, func=dx, parms=parms, method=integrationMethod)
-
-    # extract results
-    result <- list(
-        t=rev(times),
-        Y=sol[nrow(sol):1, demeNames],
-        F=lapply(nrow(sol):1, function(i) .birth.matrix(x=sol[i,], t=sol[i,1])),
-        G=lapply(nrow(sol):1, function(i) .migration.matrix(x=sol[i,], t=sol[i,1]))
-    )
-    return(result)
+    # return numerical solution of ODE
+    ode(y=x0, times=times, func=dx, parms=parms, method=integrationMethod)
 }
