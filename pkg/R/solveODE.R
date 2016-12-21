@@ -114,6 +114,17 @@ solve.ode <- function(
         list(c(dxdeme, dxnondeme))  # return values
     }
 
-    # return numerical solution of ODE
-    ode(y=x0, times=times, func=dx, parms=parms, method=integrationMethod)
+    # numerical solution of ODE
+    sol <- ode(y=x0, times=times, func=dx, parms=parms, method=integrationMethod)
+
+    # prepare return values
+    index <- nrow(sol):1
+    result <- list(
+        times=rev(times),
+        Y=lapply(index, function(i) sol[i, demeNames]),
+        F=lapply(index, function(i) .birth.matrix(sol[i,], sol[i,1])),
+        G=lapply(index, function(i) .migration.matrix(sol[i,], sol[i,1])),
+        sol=sol
+    )
+    return(result)
 }
