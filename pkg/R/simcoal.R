@@ -1,4 +1,4 @@
-get.fgy <- function(sol, t.index, max.sample.time) {
+get.fgy <- function(sol, max.sample.time) {
     # Args:
     #   sol:  Return value from solve.ode()
     #   t.index:  Rank of ODE time points in descending order
@@ -7,6 +7,8 @@ get.fgy <- function(sol, t.index, max.sample.time) {
     # ported Erik's code, see if we can refactor
     #  e.g., is it necessary to create an S3 object to compute this matrix?
     times <- sol$times
+    t.index <- order(times, decreasing=TRUE)
+
     fgy.parms <- list(
         resolution=nrow(sol$sol),
         F.d=lapply(t.index, function(k) sol$F[[k]]),
@@ -134,7 +136,10 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
 }
 
 
-get.event.times <- function(A.plus.unsampled, haxis, sample.heights) {
+get.event.times <- function(A.mx, sample.heights) {
+    A.plus.unsampled <- A.mx$mat
+    haxis <- A.mx$haxis
+
     A.mono <- rowSums(A.plus.unsampled)
     A.mono[is.na(A.mono)] <- min(A.mono[!is.na(A.mono)])
     A.mono <- A.mono - min(A.mono)
@@ -150,10 +155,39 @@ get.event.times <- function(A.plus.unsampled, haxis, sample.heights) {
 }
 
 
+.simulate.ode.tree <- function(sample.times, sample.times) {
+    n <- length(sample.times)
+    S <- 1
+    L <- 0
+    max.sample.time <- max(sample.times)
+    sample.heights <- max.sample.time - sample.times
+    sorted.sample.heights <- sort(sample.heights)
+
+    # initialize variables
+    Nnode <- n-1
+    edge.length <- rep(-1, Nnode + n-1)  # does not include root edge
+    edge <- matrix(-1, nrow=Nnode+n-1, ncol=2)
+
+if (is.null(names(sorted.sample.heights))) {
+        tip.label <- as.character(1:n)  # arbitrary labels
+    } else {
+        tip.label <- names(sorted.sample.heights)
+    }
+
+    heights <- rep(0, Nnode+n)
+    heights[1:n] <- sorted.sample.heights
+    parent.heights <- rep(-1, Nnode+n)
+    in.edge.map <- rep(-1, Nnode+n)
+    out.edge.map <- matrix(-1, nrow=Nnode+n, ncol=2)
+    parent <- 1:(Nnode+n)
+    daughters <- matrix(-1, Nnode+n, 2)
+}
+
 simulate.ode.tree <- function(sol, sample.times, sample.states, integration.method='rk4') {
-    # @param sol:  return value from ode()
-    # @param sample.times:  a n-vector of sample collection times, where n is sample size
-    # @param sample.states:  an n*m matrix of sample deme states where (m) is number of demes
+    # Args:
+    #   sol:  return value from ode()
+    #   sample.times:  a n-vector of sample collection times, where n is sample size
+    #   sample.states:  an n*m matrix of sample deme states where (m) is number of demes
 
     ## parse sampleTimes argument
     n.tips <- length(sample.times)
@@ -176,19 +210,11 @@ simulate.ode.tree <- function(sol, sample.times, sample.states, integration.meth
         stop("sample.states should have row names")
     }
 
-
-
-
-    ## parse times column from ODE solution matrix
-    times <- sol$times
-    min.time <- min(times)
-    max.time <- max(times)
-    max.height <- max.sample.time - mintime
-    t.index <- order(times, decreasing=TRUE)
-
-    ## construct forcing time series for ODEs
-    fgy <- get.fgy(sol, t.index, max.sample.time)
-    l.heights <- nrow(fgy$mat)  # in place of length(fgy.parms$heights)
+    ## call helper functions
+    fgy <- get.fgy(sol, max.sample.time)
+    solve.QAL <- init.QAL.solver(fgy, sample.heights)
+    A.mx <- solve.A.mx(fgy, sample.states, sample.heights)
+    Et <- get.event.times(A.mx, sample.heights)
 
 
 }
