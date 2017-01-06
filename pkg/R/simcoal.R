@@ -1,11 +1,14 @@
 get.fgy <- function(sol, max.sample.time) {
     # Args:
     #   sol:  Return value from solve.ode()
-    #   t.index:  Rank of ODE time points in descending order
     #   max.sample.time:  max(sample.times)
-
-    # ported Erik's code, see if we can refactor
-    #  e.g., is it necessary to create an S3 object to compute this matrix?
+    #
+    # Returns:
+    #   A list containing:
+    #     mat: a matrix of F, G, and Y matrix rows that are concatenated into a
+    #          single vector per time point;
+    #     func: a reference to the function used to generate the matrices
+    #     parms: the list of parameters used in calculating the matrices
     times <- sol$times
     t.index <- order(times, decreasing=TRUE)
 
@@ -15,15 +18,22 @@ get.fgy <- function(sol, max.sample.time) {
         G.d=lapply(t.index, function(k) sol$G[[k]]),
         Y.d=lapply(t.index, function(k) sol$Y[[k]])
     )
+
+    # time difference between last sample time and right bound of ODE solution
     fgy.parms$hoffset = hoffset <- max(times) - max.sample.time
     if (hoffset < 0) stop("Time axis does not cover the last sample time")
+
+    # shift and rescale h argument to time axis of ODE solution
     fgy.parms$get.index <- function(h) {
         min(1 + fgy.parms$resolution * (h + hoffset) / (max(times)-min(times)),
             fgy.parms$resolution)
     }
+    # note we can use a float to index into an R list keyed by integers
     fgy.parms$F. <- function(h) { fgy.parms$F.d[[fgy.parms$get.index(h)]] }
     fgy.parms$G. <- function(h) { fgy.parms$G.d[[fgy.parms$get.index(h)]] }
     fgy.parms$Y. <- function(h) { fgy.parms$Y.d[[fgy.parms$get.index(h)]] }
+
+    # reverse time scale --- times past max.sample.time get negative values
     fgy.parms$h.bounds <- sort(max.sample.time - times)
 
     get.fgy <- function(h) {
@@ -44,7 +54,12 @@ get.fgy <- function(sol, max.sample.time) {
 
 
 init.QAL.solver <- function(fgy, sample.heights) {
-    # unpack list argument
+    # Args:
+    #   fgy:  List returned from get.fgy()
+    #   sample.heights:  A vector of sampling times relative to most recent
+    #                    sample.
+    # Returns:
+    #   Reference to an internal function for computing Q, A, and L1 matrices
     fgy.mat <- fgy$mat
     get.fgy <- fgy$func
     fgy.parms <- fgy$parms
@@ -183,11 +198,15 @@ if (is.null(names(sorted.sample.heights))) {
     daughters <- matrix(-1, Nnode+n, 2)
 }
 
+
 simulate.ode.tree <- function(sol, sample.times, sample.states, integration.method='rk4') {
     # Args:
     #   sol:  return value from ode()
     #   sample.times:  a n-vector of sample collection times, where n is sample size
     #   sample.states:  an n*m matrix of sample deme states where (m) is number of demes
+    #
+    # Returns:
+    #   A tree (ape phylo object)
 
     ## parse sampleTimes argument
     n.tips <- length(sample.times)

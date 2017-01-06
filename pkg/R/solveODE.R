@@ -49,16 +49,27 @@ get.times <- function(t0, t1, time.pts) {
 }
 
 
-# derived from rcolgem:make.fgy()
-solve.ode <- function(
-    expr,  # parsed expressions from parse.ode()
-    t0,  # inital time for ODE solution
-    t1,  # end time for ODE solution
-    x0,  # initial state vector
-    parms,  # model parameter settings
-    time.pts=2000,  # number of time points in range [t0,t1]
-    integrationMethod='rk4'
-) {
+
+solve.ode <- function(expr, t0, t1, x0, parms, time.pts=2000, integrationMethod='rk4') {
+    # Numerical solution of ODE system
+    #  derived from rcolgem:make.fgy()
+    #
+    # Args:
+    #   expr:  Parsed expressions from parse.ode()
+    #   t0:  Initial time for ODE solution
+    #   t1:  End time for ODE solution
+    #   x0:  Initial state vector
+    #   parms:  Model parameter settings
+    #   time.pts:  Number of time points in range [t0, t1]
+    #   integrationMethod:  passed to ode()
+    #
+    # Returns a list containing:
+    #   times:  Time points of numerical solutions in reverse order
+    #   Y:  Matrix of deme population sizes
+    #   F:  Matrix of birth rates
+    #   G:  Matrix of migration rates
+    #   sol:  Return value of ode()
+
     # unpack expressions list
     demeNames <- expr$demeNames
     nonDemeNames <- expr$nonDemeNames
