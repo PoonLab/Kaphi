@@ -1,4 +1,15 @@
 get.fgy <- function(sol, max.sample.time) {
+    # Rescale the time axis of F/G/Y matrices in reverse time with maximum
+    # sample time as origin.
+    #
+    #                          max sample time
+    # origin    t0                    V         t1
+    #   * - - - |---+---+---+---+---+---+---+---|
+    #
+    #           |  range of heights   |  -->       Shift by offset
+    #                     |  range of heights'  |  Rescale to time axis
+    #           |   .   .   .   .   .   .   .   |
+    #
     # Args:
     #   sol:  Return value from solve.ode()
     #   max.sample.time:  max(sample.times)
@@ -19,37 +30,35 @@ get.fgy <- function(sol, max.sample.time) {
         Y.d=lapply(t.index, function(k) sol$Y[[k]])
     )
 
-    # time difference between last sample time and right bound of ODE solution
+    # reverse time scale with max.sample.time as origin
+    heights <- sort(max.sample.time - times)
+    fgy.parms$heights <- heights[heights>=0 & heights<=max.sample.time-min(times)]
+
+    # time difference between last sample time and right bound of ODE solution (t1)
     fgy.parms$hoffset = hoffset <- max(times) - max.sample.time
     if (hoffset < 0) stop("Time axis does not cover the last sample time")
 
-    # shift and rescale h argument to time axis of ODE solution
+    # convert height argument to index on time-axis of ODE solution
+    #  at h = max.sample.time-t0, returns fgy.parms$resolution
+    #  at h = 0, returns
     fgy.parms$get.index <- function(h) {
         min(1 + fgy.parms$resolution * (h + hoffset) / (max(times)-min(times)),
             fgy.parms$resolution)
     }
-    # note we can use a float to index into an R list keyed by integers
     fgy.parms$F. <- function(h) { fgy.parms$F.d[[fgy.parms$get.index(h)]] }
     fgy.parms$G. <- function(h) { fgy.parms$G.d[[fgy.parms$get.index(h)]] }
     fgy.parms$Y. <- function(h) { fgy.parms$Y.d[[fgy.parms$get.index(h)]] }
 
-    # reverse time scale --- times past max.sample.time get negative values
-    fgy.parms$h.bounds <- sort(max.sample.time - times)
-
     get.fgy <- function(h) {
         list(.Y=fgy.parms$Y.(h), .F=fgy.parms$F.(h), .G=fgy.parms$G.(h))
     }
-
-    heights <- sort(fgy.parms$h.bounds)
-    fgy.parms$heights <- heights[heights>=0 & heights<=max.sample.time-min(times)]
 
     fgy.mat <- t(sapply(fgy.parms$heights, function(h)
         with(get.fgy(h), {
             c(as.vector(.F), as.vector(.G), as.vector(.Y))
         })
     ))
-    # pmax has no effect with a single argument, I don't know why Erik calls it here...
-    return(list(mat=pmax(fgy.mat), func=get.fgy, parms=fgy.parms))
+    return(list(mat=fgy.mat, func=get.fgy, parms=fgy.parms))
 }
 
 
@@ -82,6 +91,7 @@ init.QAL.solver <- function(fgy, sample.heights) {
 
 
 solve.A.mx <- function(fgy, sample.states, sample.heights) {
+    # The A matrix represents the number of extant (sampled) lineages over time.
     # unpack list argument
     fgy.mat <- fgy$mat
     get.fgy <- fgy$func
@@ -170,7 +180,7 @@ get.event.times <- function(A.mx, sample.heights) {
 }
 
 
-.simulate.ode.tree <- function(sample.times, sample.times) {
+.simulate.ode.tree <- function(sample.times) {
     n <- length(sample.times)
     S <- 1
     L <- 0
@@ -183,7 +193,7 @@ get.event.times <- function(A.mx, sample.heights) {
     edge.length <- rep(-1, Nnode + n-1)  # does not include root edge
     edge <- matrix(-1, nrow=Nnode+n-1, ncol=2)
 
-if (is.null(names(sorted.sample.heights))) {
+    if (is.null(names(sorted.sample.heights))) {
         tip.label <- as.character(1:n)  # arbitrary labels
     } else {
         tip.label <- names(sorted.sample.heights)
