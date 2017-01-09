@@ -1,14 +1,19 @@
-get.fgy <- function(sol, max.sample.time) {
+# Based on Erik Volz's implementation in rcolgem (https://github.com/rforge/colgem)
+
+# @article{volz2012complex,
+#   title={Complex population dynamics and the coalescent under neutrality},
+#   author={Volz, Erik M},
+#   journal={Genetics},
+#   volume={190},
+#   number={1},
+#   pages={187--201},
+#   year={2012},
+#   publisher={Genetics Soc America}
+# }
+
+init.fgy <- function(sol, max.sample.time) {
     # Rescale the time axis of F/G/Y matrices in reverse time with maximum
     # sample time as origin.
-    #
-    #                          max sample time
-    # origin    t0                    V         t1
-    #   * - - - |---+---+---+---+---+---+---+---|
-    #
-    #           |  range of heights   |  -->       Shift by offset
-    #                     |  range of heights'  |  Rescale to time axis
-    #           |   .   .   .   .   .   .   .   |
     #
     # Args:
     #   sol:  Return value from solve.ode()
@@ -39,7 +44,7 @@ get.fgy <- function(sol, max.sample.time) {
     if (hoffset < 0) stop("Time axis does not cover the last sample time")
 
     # convert height argument to index on time-axis of ODE solution
-    #  at h = max.sample.time-t0, returns fgy.parms$resolution
+    #  at h = max.sample.time-min(times), returns max index (fgy.parms$resolution)
     #  at h = 0, returns
     fgy.parms$get.index <- function(h) {
         min(1 + fgy.parms$resolution * (h + hoffset) / (max(times)-min(times)),
@@ -62,7 +67,10 @@ get.fgy <- function(sol, max.sample.time) {
 }
 
 
-init.QAL.solver <- function(fgy, sample.heights) {
+init.QAL.solver <- function(fgy, sample.states, sample.heights) {
+    # A
+    # L is the cumulative hazard of coalescence
+    #
     # Args:
     #   fgy:  List returned from get.fgy()
     #   sample.heights:  A vector of sampling times relative to most recent
@@ -73,6 +81,8 @@ init.QAL.solver <- function(fgy, sample.heights) {
     get.fgy <- fgy$func
     fgy.parms <- fgy$parms
 
+    # passed along in returned function's environment
+    m <- ncol(sample.states)  # number of demes
     max.height <- max(sample.heights)
 
     # internal function to solve for matrices using Erik Volz's C implementation
@@ -92,6 +102,13 @@ init.QAL.solver <- function(fgy, sample.heights) {
 
 solve.A.mx <- function(fgy, sample.states, sample.heights) {
     # The A matrix represents the number of extant (sampled) lineages over time.
+    # Args:
+    #   fgy:  List returned from get.fgy()
+    #   sample.states:
+    #   sample.heights:
+    # Returns:
+    #   A list containing numerical solution for A matrix, time axis and an accessor function
+
     # unpack list argument
     fgy.mat <- fgy$mat
     get.fgy <- fgy$func
@@ -134,14 +151,8 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
         })
     }
 
-    # this appears to be an unused variable!
-    A.intervals <- c(sorted.sample.heights[2:length(unique.sorted.sample.heights)], max.height)
-
-    h0 <- 0
-    sampled.at.h <- function(h) which(sorted.sample.heights==h)
-    haxis <- seq(0, max.height, length.out=fgy.parms$resolution)
-
     # numerical solution of ODE
+    haxis <- seq(0, max.height, length.out=fgy.parms$resolution)
     odA <- ode(y=colSums(sorted.sample.states), times=haxis, func=dA, parms=NA, method='adams')
 
     # unpack results from numerical solution
@@ -162,6 +173,8 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
 
 
 get.event.times <- function(A.mx, sample.heights) {
+    #  An event is either the coalescence of two lineages or a state transition where a single lineage
+    #  migrates between demes.
     A.plus.unsampled <- A.mx$mat
     haxis <- A.mx$haxis
 
@@ -172,6 +185,8 @@ get.event.times <- function(A.mx, sample.heights) {
 
     node.heights <- sort(approx(A.mono, haxis, xout=runif(n-1, 0, 1))$y)
     unique.sample.heights <- unique(sample.heights)
+
+    # events occur at internal nodes of the tree
     event.times <- c(unique.sample.heights, node.heights)
 
     is.sample.event <- c(rep(TRUE, length(unique.sample.heights)), rep(FALSE, length(node.heights)))
@@ -180,18 +195,39 @@ get.event.times <- function(A.mx, sample.heights) {
 }
 
 
-.simulate.ode.tree <- function(sample.times) {
-    n <- length(sample.times)
+.simulate.ode.tree <- function(sample.times, sample.states, fgy, solve.QAL, A.mx, Et) {
+    # Args:
+    #   sample.times:
+    #   sample.states:
+    #   fgy:  List returned from init.fgy()
+    #   solve.QAL:  Function returned from init.QAL.solver()
+    #   A.mx:  List returned from solve.A.mx()
+    #   Et:  List returned from get.event.times()
+
+    # Unpack objects from list arguments
+    event.times <- Et$event.times
+    is.sample.event <- Et$is.sample.event
+    get.fgy <- fgy$get.fgy
+    get.A <- A.mx$get.A
+
+    m <- ncol(sample.states)  # number of demes
+    n <- length(sample.times)  # number of tips (sampled lineages)
     S <- 1
     L <- 0
+
     max.sample.time <- max(sample.times)
     sample.heights <- max.sample.time - sample.times
-    sorted.sample.heights <- sort(sample.heights)
+    index <- order(sample.heights)
+    sorted.sample.heights <- sample.heights[index]
+    sampled.at.h <- function(h) which(sorted.sample.heights==h)
+
+    sorted.sample.states <- sample.states[index]
 
     # initialize variables
     Nnode <- n-1
+    num.nodes <- Nnode + n
     edge.length <- rep(-1, Nnode + n-1)  # does not include root edge
-    edge <- matrix(-1, nrow=Nnode+n-1, ncol=2)
+    edge <- matrix(-1, nrow=num.nodes-1, ncol=2)
 
     if (is.null(names(sorted.sample.heights))) {
         tip.label <- as.character(1:n)  # arbitrary labels
@@ -199,13 +235,63 @@ get.event.times <- function(A.mx, sample.heights) {
         tip.label <- names(sorted.sample.heights)
     }
 
-    heights <- rep(0, Nnode+n)
+    heights <- rep(0, num.nodes)
     heights[1:n] <- sorted.sample.heights
+
+    # initialize containers
     parent.heights <- rep(-1, Nnode+n)
     in.edge.map <- rep(-1, Nnode+n)
     out.edge.map <- matrix(-1, nrow=Nnode+n, ncol=2)
     parent <- 1:(Nnode+n)
     daughters <- matrix(-1, Nnode+n, 2)
+
+    lstates <- matrix(-1, Nnode+n, m)  # matrix of deme states closer to the present
+    lstates[1:n,] <- sorted.sample.states
+    mstates <- matrix(-1, Nnode+n, m)
+    mstates[1:n,] <- lstates[1:n]
+    ustates <- matrix(-1, Nnode+n, m)  # matrix of deme states closer to the root
+
+    ssm <- matrix(0, nrow=n, ncol=m)
+
+    # initialize extant lineage statistics with most recent tips (height 0)
+    h0 <- 0
+    is.extant <- rep(FALSE, Nnode+n)
+    is.extant[sampled.at.h(h0)] <- TRUE
+    extant.lines <- which(is.extant)
+
+    if (length(extant.lines) > 1) {
+        A0 <- colSums(as.matrix(sorted.sample.states[extant.lines, ], nrow=length(extant.lines)))
+    } else {
+        A0 <- sorted.sample.states[extant.lines, ]
+    }
+
+    # loop over events
+    lineage.counter <- n+1
+    for (ih in 1:(length(event.times)-1)) {
+        h0 <- event.times[ih]
+        h1 <- event.times[ih+1]
+        fgy <- get.fgy(h1)
+
+        n.extant <- sum(is.extant)
+
+        # process new samples and calculate the state of new lineages
+        A0 <- get.A(h0)
+        out <- solve.QAL(h0, h1, A0, L)
+        Q <- out[[1]]
+        A <- out[[2]]
+        L <- out[[3]]
+
+        # clean outputs
+        if (is.nan(L)) { L <- Inf }
+        if (any(is.nan(Q))) { Q <- diag(length(A)) }
+        if (any(is.nan(A))) { A <- A0 }
+
+        # update mstates
+        if (n.extant > 1) {
+            mstates[is.extant, ] <- t( t(Q) %*% mstates[is.extant, ] )
+        } else {
+        }
+    }
 }
 
 
@@ -240,8 +326,8 @@ simulate.ode.tree <- function(sol, sample.times, sample.states, integration.meth
     }
 
     ## call helper functions
-    fgy <- get.fgy(sol, max.sample.time)
-    solve.QAL <- init.QAL.solver(fgy, sample.heights)
+    fgy <- init.fgy(sol, max.sample.time)
+    solve.QAL <- init.QAL.solver(fgy, sample.states, sample.heights)
     A.mx <- solve.A.mx(fgy, sample.states, sample.heights)
     Et <- get.event.times(A.mx, sample.heights)
 

@@ -12,3 +12,10 @@ tree.h
 tree.c
 newick_lexer.l
 newick_parser.y
+
+
+The following source files were originally implemented by
+  Erik Volz <erik@erikvolz.info>
+and distributed under the GPLv3 license in the R package colgem:
+
+dQAL-6.3.c

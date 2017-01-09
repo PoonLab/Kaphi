@@ -63,11 +63,11 @@ solve.ode <- function(expr, t0, t1, x0, parms, time.pts=2000, integrationMethod=
     #   time.pts:  Number of time points in range [t0, t1]
     #   integrationMethod:  passed to ode()
     #
-    # Returns a list containing:
-    #   times:  Time points of numerical solutions in reverse order
-    #   Y:  Matrix of deme population sizes
-    #   F:  Matrix of birth rates
-    #   G:  Matrix of migration rates
+    # Returns a list containing (K = time.pts):
+    #   times:  (K) time points of numerical solutions in reverse order
+    #   Y:  K (m) vectors of deme population sizes
+    #   F:  K (m x m) matrices of birth rates
+    #   G:  K (m x m) matrices of migration rates
     #   sol:  Return value of ode()
 
     # unpack expressions list
@@ -75,7 +75,6 @@ solve.ode <- function(expr, t0, t1, x0, parms, time.pts=2000, integrationMethod=
     nonDemeNames <- expr$nonDemeNames
     m <- length(demeNames)      # number of demes
     mm <- length(nonDemeNames)  # number of non-demes
-
 
     # validate initial conditions argument
     if (length(x0) != m+mm) {
