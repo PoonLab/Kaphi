@@ -74,8 +74,6 @@ void dQAL( int *neq, double *t, double *y, double *ydot, double *yout, int*ip)
 		dA(k) = 0.;
 		if (Y(i,k) > 0) {
 			a[k] = r *  A(k)/ Y(i,k);
-			//~ a[k] =  max(0, min(1, r *  A(k)/Y(i,k)));
-			//~ a[k] = max( min(r * A(k)/Y(i,k), 1), 0) ;
 		} else{
 			a[k] = 1.;  // avoid division by zero when Y_k(s) = 0
 		} 
@@ -109,7 +107,6 @@ void dQAL( int *neq, double *t, double *y, double *ydot, double *yout, int*ip)
 					}
 				}
 				// coalescent:
-				//~ dQ(k,z) -= (F(i,k,l)+F(i,l,k)) * a[l] * Q(k,z)/Y(i,k);
 				if (Q(k,z) > 0){
 					dQ(k,z) -= F(i,k,l) * a[l] * Q(k,z)/  max(Q(k,z), Y(i,k));
 				}
@@ -133,66 +130,4 @@ void dQAL( int *neq, double *t, double *y, double *ydot, double *yout, int*ip)
 		}
 	}
 	dL = max(dL, 0);
-}
-
-void dQAL2012( int *neq, double *t, double *y, double *ydot, double *yout, int*ip)
-{
-	//p_i from 2012 paper
-	// time index
-	//~ int i =  (int)min( 1+(int)( hres * (*t) / treeT ), hres);
-	int i =  (int)min( (int)( hres * (*t) / treeT ), hres-1);
-	int k,l,z,w;
-	
-	double a[m]; //normalized nlft 
-	double sumA = 0.; 
-	for (k = 0; k < m; k++) sumA += A(k);
-	double r = Atotal / sumA;
-	for (k = 0; k < m; k++) { 
-		dA(k) = 0.;
-		if (Y(i,k) > 0) {
-			a[k] = r * A(k)/Y(i,k);
-			//~ a[k] = max( min(r * A(k)/Y(i,k), 1), 0) ;
-		} else{
-			a[k] = 1.; //
-		} 
-	}
-	
-	//dA
-	for (k = 0; k < m; k++){
-		for (l = 0; l < m; l++){
-			if (k==l){
-				dA(k) -= a[l] * (F(i,l,k)) * a[k];
-			} else{
-				dA(k) += ((1 - a[k]) * F(i,k,l) + G(i,k,l)) * a[l] ;
-				dA(k) -= (F(i,l,k) + G(i,l,k)) * a[k];
-			}
-		}
-	}
-	//dQ
-	for (z = 0; z < m; z++){ // col of Q
-		for (k = 0; k < m; k++){ //row of Q
-			dQ(k,z) = 0.;
-			for (l = 0. ; l < m; l++){
-				if (k!=l){
-					dQ(k,z) += (F(i,k,l)*(1-a[k]) + G(i,k,l)) * Q(l,z)/Y(i,l);
-					dQ(k,z) -= (F(i,l,k)*(1-a[l]) + G(i,l,k)) * Q(k,z)/Y(i,k);
-				}
-				// coalescent:
-				//~ dQ(k,z) -= (F(i,k,l)+F(i,l,k)) * a[l] * Q(k,z)/Y(i,k);
-				//dQ(k,z) -= F(i,k,l) * a[l] * Q(k,z)/Y(i,k);
-			}
-		}
-	}
-	//dL
-	dL = 0.;
-	for (k = 0; k < m; k++){
-		for (l =0 ; l < m; l++){
-			if (k==l){
-				dL += a[k] * (  (r*A(k)-1)/(Y(i,k)-1)) * F(i,k,l);
-			} else{
-				dL += a[k] * a[l] * F(i,k,l);
-			}
-		}
-	}
-	
 }
