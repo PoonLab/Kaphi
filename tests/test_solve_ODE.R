@@ -38,11 +38,15 @@ test.solve.ode <- function() {
     x0 <- c(S=999, I=1)
     result <- solve.ode(expr, t0=0, t1=100, x0=x0, parms=parms, time.pts=100, integrationMethod='rk4')
 
+    # check time axis
     checkEquals(100, length(result$times))
     checkEquals(0, result$times[100])
     checkEquals(100, result$times[1])
     checkEquals(100/99, result$times[99])
 
     checkEquals(100, length(result$Y))
-    checkEquals(TRUE, all(sapply(result$Y, ncol)==1))
+    checkTrue(all(sapply(result$Y, ncol)==1))
+
+    checkTrue(all(sapply(result$F, ncol)==1))
+    # TODO: is analytical solution feasible for this problem?
 }
