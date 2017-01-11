@@ -31,6 +31,12 @@ export(run.smc)
 export(const.coalescent)
 
 export(parse.ode)
+export(get.times)
 export(solve.ode)
+
+export(init.fgy)
+export(init.QAL.solver)
+export(solve.A.mx)
+export(simulate.ode.tree)
 
 useDynLib(Kaphi)

@@ -18,7 +18,7 @@ require(RUnit, quietly=TRUE)
 source('tests/fixtures/SI-matrices.R')
 
 test.parse.ode <- function() {
-    parms <- list(beta=0.1, mu=0.01, gamma=0.02)
+    parms <- list(beta=0.1, mu=0.01)
     S<-99
     I<-1
     result <- parse.ode(births, deaths, ndd, migrations)
@@ -26,27 +26,32 @@ test.parse.ode <- function() {
     checkEquals('I', result$demeNames)
     checkEquals('S', result$nonDemeNames)
 
-    checkEquals(c(0.1*99*1/(99+1)), eval(result$pbirths))
+    checkEquals(c(0.1*99*1/100), eval(result$pbirths))
     checkEquals(c(0), eval(result$pmigrations))
-    checkEquals(c((0.01+0.02)*1), eval(result$pdeaths))
-    checkEquals(c(0.03-0.1*99/100), eval(result$pndd))
+    checkEquals(c((0.01)*1), eval(result$pdeaths))
+    checkEquals(c(0.01-0.1*99/100), eval(result$pndd))
+}
+
+test.get.times <- function() {
+    result <- get.times(0, 5, 9)
+    expected <- c(0, 0.625, 1.25, 1.875, 2.5, 3.125, 3.75, 4.375, 5)
+    checkEquals(expected, result)
 }
 
 test.solve.ode <- function() {
     expr <- parse.ode(births, deaths, ndd, migrations)
-    parms <- list(beta=0.1, mu=0.01, gamma=0.02)
+    parms <- list(beta=0.1, mu=0.01)
     x0 <- c(S=999, I=1)
-    result <- solve.ode(expr, t0=0, t1=100, x0=x0, parms=parms, time.pts=100, integrationMethod='rk4')
+    result <- solve.ode(expr, t0=0, t1=500, x0=x0, parms=parms, time.pts=100, integrationMethod='rk4')
 
     # check time axis
     checkEquals(100, length(result$times))
     checkEquals(0, result$times[100])
-    checkEquals(100, result$times[1])
-    checkEquals(100/99, result$times[99])
+    checkEquals(500, result$times[1])
+    checkEquals(500/99, result$times[99])
 
     checkEquals(100, length(result$Y))
-    checkTrue(all(sapply(result$Y, ncol)==1))
 
-    checkTrue(all(sapply(result$F, ncol)==1))
-    # TODO: is analytical solution feasible for this problem?
+    # check equilibrium solution
+    checkEquals((1-0.01/0.1)*1000., result$Y[[1]], checkNames=FALSE)
 }

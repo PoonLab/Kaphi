@@ -19,7 +19,7 @@ require(deSolve)
 # Non-demes are subpopulations from which lineages are NOT sampled, but
 #   contribute to the population growth process.
 
-parse.ode <- function(births, deaths, ndd, migrations=NA) {
+parse.ode <- function(births, deaths, ndd, migrations) {
     # parse string matrices into unevaluated R expressions
     result <- list(
         demeNames=rownames(births),

@@ -67,7 +67,7 @@ init.fgy <- function(sol, max.sample.time) {
 }
 
 
-init.QAL.solver <- function(fgy, sample.states, sample.heights) {
+init.QAL.solver <- function(fgy, sample.states, sample.heights, integration.method='rk4') {
     # Q is the state transition (deme migration) rate matrix
     # A is the number of extant (sampled) lineages over time
     # L is the cumulative hazard of coalescence
@@ -84,7 +84,8 @@ init.QAL.solver <- function(fgy, sample.states, sample.heights) {
 
     # passed along in returned function's environment
     m <- ncol(sample.states)  # number of demes
-    max.height <- max(sample.heights)
+    heights <- fgy.parms$heights
+    max.height <- max(heights)
 
     # internal function to solve for matrices using Erik Volz's C implementation
     function(h0, h1, A0, L0) {
@@ -117,7 +118,9 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
     get.fgy <- fgy$func
     fgy.parms <- fgy$parms
 
-    max.height <- max(sample.heights)
+    heights <- fgy.parms$heights
+    max.height <- max(heights)  # max.sample.time - min(times)
+
     ht.index <- order(sample.heights)
     sorted.sample.heights <- sample.heights[ht.index]
     unique.sorted.sample.heights <- unique(sorted.sample.heights)
@@ -128,17 +131,20 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
     m <- ncol(sorted.sample.states)  # number of demes
     n <- nrow(sorted.sample.states)  # number of tips
 
-    # cumulative sorted sample/not-sampled states
+    # cumulative sorted sample/not-yet-sampled states
     cumul.sss <- sapply(1:m, function(k) cumsum(sorted.sample.states[,k]))
-    cumul.snss <- t(cumul.sss[n,] - t(cumul.ssss))
+    cumul.sns <- t(cumul.sss[n,] - t(cumul.sss))
 
     # linear interpolation function on sample heights to locate "not sampled yet" lineages
+    #   e.g., if we are at a height that does not correspond to a sample height, this returns
+    #   the count of lineages that have not yet been sampled.
     nsy.index <- approxfun(
-        x=sort(jitter(sorted.sample.heights, factor=max(1e-6, sorted.sample.heights[length(sorted.sample.heights)]/1e6))),
+        x=sort(jitter(sorted.sample.heights,
+            factor=max(1e-6, sorted.sample.heights[length(sorted.sample.heights)]/1e6))),
         y=1:n, method='constant', rule=2
     )
     not.sampled.yet <- function(h) {
-        cumul.snss[nsy.index(h), ]
+        cumul.sns[nsy.index(h), ]
     }
 
     # derivative function for ODE solution
@@ -160,7 +166,7 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
 
     # unpack results from numerical solution
     haxis <- odA[,1]
-    A.plus.unsampled <- odA[,2:(m+1)]
+    A.plus.unsampled <- odA[,2:(m+1)]  # both sampled and not-yet-sampled lineages over time
     A.plus.unsampled <- as.matrix(A.plus.unsampled, nrows=length(haxis))
 
     # return function
@@ -404,5 +410,6 @@ simulate.ode.tree <- function(sol, sample.times, sample.states, integration.meth
     A.mx <- solve.A.mx(fgy, sample.states, sample.heights)
     Et <- get.event.times(A.mx, sample.heights)
 
-
+    sim.tree <- .simulate.ode.tree(sample.times, sample.states, fgy, solve.QAL, A.mx, Et)
+    return(sim.tree)
 }
