@@ -105,7 +105,7 @@ init.QAL.solver <- function(fgy, sample.states, sample.heights, integration.meth
 
 
 solve.A.mx <- function(fgy, sample.states, sample.heights) {
-    # The A matrix represents the number of extant (sampled) lineages over time.
+    # The A matrix represents the expected number of extant (sampled) lineages over time.
     # Args:
     #   fgy:  List returned from get.fgy()
     #   sample.states:
@@ -135,7 +135,7 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
         return(sum(sorted.sample.heights > unique.sorted.sample.heights[uniq.index]))
     }
 
-    # derivative function for ODE solution
+    # derivative function for ODE solution - see equation (56) from Volz (2012, Genetics)
     dA <- function(h, A, parms, ...) {
         nsy <- not.sampled.yet(h)
         with(get.fgy(h), {
@@ -174,6 +174,7 @@ get.event.times <- function(A.mx, sample.heights) {
     #  migrates between demes.
     A.plus.unsampled <- A.mx$mat
     haxis <- A.mx$haxis
+    n <- length(sample.heights)  # number of tips
 
     A.mono <- rowSums(A.plus.unsampled)
     A.mono[is.na(A.mono)] <- min(A.mono[!is.na(A.mono)])
@@ -204,7 +205,7 @@ get.event.times <- function(A.mx, sample.heights) {
     # Unpack objects from list arguments
     event.times <- Et$event.times
     is.sample.event <- Et$is.sample.event
-    get.fgy <- fgy$get.fgy
+    get.fgy <- fgy$func
     get.A <- A.mx$get.A
 
     m <- ncol(sample.states)  # number of demes
@@ -218,7 +219,7 @@ get.event.times <- function(A.mx, sample.heights) {
     sorted.sample.heights <- sample.heights[index]
     sampled.at.h <- function(h) which(sorted.sample.heights==h)
 
-    sorted.sample.states <- sample.states[index]
+    sorted.sample.states <- as.matrix(sample.states[index,])
 
     # initialize variables
     Nnode <- n-1
@@ -235,12 +236,16 @@ get.event.times <- function(A.mx, sample.heights) {
     heights <- rep(0, num.nodes)
     heights[1:n] <- sorted.sample.heights
 
-    # initialize containers
-    lstates <- matrix(-1, Nnode+n, m)  # matrix of deme states closer to the present
+    # matrix of deme states closer to the present
+    lstates <- matrix(-1, Nnode+n, m)
     lstates[1:n,] <- sorted.sample.states
+
+    # p_ik in Volz (2012, Genetics)
     mstates <- matrix(-1, Nnode+n, m)
     mstates[1:n,] <- lstates[1:n]
-    ustates <- matrix(-1, Nnode+n, m)  # matrix of deme states closer to the root
+
+    # matrix of deme states closer to the root
+    ustates <- matrix(-1, Nnode+n, m)
 
     # initialize extant lineage statistics with most recent tips (height 0)
     h0 <- 0
@@ -282,7 +287,7 @@ get.event.times <- function(A.mx, sample.heights) {
         if (n.extant > 1) {
             mstates[is.extant, ] <- t( t(Q) %*% mstates[is.extant, ] )
             mstates[is.extant, ] <- abs(mstates[is.extant, ]) /
-                rowSums(as.matrix(abs(mstates[is.extant, ], nrow=length(is.extant))))
+                rowSums(as.matrix(abs(mstates[is.extant, ]), nrow=length(is.extant)))
             A <- colSums(as.matrix(mstates[is.extant, ], nrow=length(is.extant)))
         } else {
             mstates[is.extant, ] <- t( t(Q) %*% mstates[is.extant, ] )
@@ -307,7 +312,7 @@ get.event.times <- function(A.mx, sample.heights) {
             .lambdamat <- (t(t(a)) %*% a) * .F  # coalescence hazard
 
             # pick two demes at random based on number of lineages
-            kl - sample.int(m^2, size=1, prob=as.vector(.lambdamat))
+            kl <- sample.int(m^2, size=1, prob=as.vector(.lambdamat))
             k <- 1 + ((kl-1) %% m)  # row
             l <- 1 + floor( (kl-1) / m )  # column
 

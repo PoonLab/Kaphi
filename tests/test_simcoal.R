@@ -41,25 +41,35 @@ test.solve.A.mx <- function() {
 
     checkEquals(100, nrow(result$mat))
     checkEquals(seq(0, 90, length.out=100), result$haxis)
-
-    checkEquals(10, result$get.A(0))  # this fails...
+    checkEquals(10, result$get.A(0))
 }
 
 
 test.init.QAL.solver <- function() {
     fgy <- init.fgy(sol, max.sample.time=90)
     sample.states <- matrix(1, nrow=10, ncol=1)
-    sample.heights <- rep(0, times=10)
+    sample.heights <- rep(0, times=10)  # all lineages sampled at same time
     result.func <- init.QAL.solver(fgy, sample.states, sample.heights)
 
     A0 <- 10
     L0 <- 0.1
+    # trivial result
+    result <- result.func(0, 0, A0, L0)
+    checkEquals(as.matrix(1), result[[1]])
+    checkEquals(A0, result[[2]])
+    checkEquals(L0, result[[3]])
 
+    result <- result.func(0, 1, A0, L0)
+    checkTrue(as.vector(result[[1]])>0)
+    checkTrue(as.vector(result[[1]])<1)
+    checkTrue(result[[2]] < A0)  # number of sampled lineages should decrease back in time
+    # TODO: is there a reasonable sanity check on L?
 }
 
 
 test.simulate.ode.tree <- function() {
     sample.times <- rep(90, times=10)  # length determines number of tips
     sample.states <- matrix(1, nrow=10, ncol=1)
-    # result <- simulate.ode.tree(sol, sample.times, sample.states)
+    result <- simulate.ode.tree(sol, sample.times, sample.states)
+    cat(write.tree(result), "\n")
 }
