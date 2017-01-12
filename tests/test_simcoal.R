@@ -42,7 +42,6 @@ test.solve.A.mx <- function() {
     checkEquals(100, nrow(result$mat))
     checkEquals(seq(0, 90, length.out=100), result$haxis)
 
-    #cat("get.A():\n", sapply(result$haxis, function(i) result$get.A(i)), "\n")
     checkEquals(10, result$get.A(0))  # this fails...
 }
 

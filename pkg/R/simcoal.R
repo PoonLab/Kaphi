@@ -129,22 +129,10 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
     sorted.sample.states <- as.matrix(sample.states[ht.index,])
 
     m <- ncol(sorted.sample.states)  # number of demes
-    n <- nrow(sorted.sample.states)  # number of tips
 
-    # cumulative sorted sample/not-yet-sampled states
-    cumul.sss <- sapply(1:m, function(k) cumsum(sorted.sample.states[,k]))
-    cumul.sns <- t(cumul.sss[n,] - t(cumul.sss))
-
-    # linear interpolation function on sample heights to locate "not sampled yet" lineages
-    #   e.g., if we are at a height that does not correspond to a sample height, this returns
-    #   the count of lineages that have not yet been sampled.
-    nsy.index <- approxfun(
-        x=sort(jitter(sorted.sample.heights,
-            factor=max(1e-6, sorted.sample.heights[length(sorted.sample.heights)]/1e6))),
-        y=1:n, method='constant', rule=2
-    )
     not.sampled.yet <- function(h) {
-        cumul.sns[nsy.index(h), ]
+        uniq.index <- as.integer(cut(h, breaks=c(unique.sorted.sample.heights, Inf), right=FALSE))
+        return(sum(sorted.sample.heights > unique.sorted.sample.heights[uniq.index]))
     }
 
     # derivative function for ODE solution
