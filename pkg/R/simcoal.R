@@ -362,9 +362,21 @@ get.event.times <- function(A.mx, sample.heights) {
         heights=heights
     )
     class(new.tree) <- "phylo"
+    phylo <- read.tree(text=write.tree(new.tree))
 
-    return(new.tree)  # TODO: post-processing of tree
+    # reorder edges for compatibility with ape::phylo functions
+    sample.times.2 <- sample.times[names(sorted.sample.heights)]
+    sample.states.2 <- as.matrix(lstates[1:n,], nrow=n)
+    rownames(sample.states.2) <- tip.label
+    sample.times.2 <- sample.times.2[phylo$tip.label]
+    sample.states.2 <- as.matrix(sample.states.2[phylo$tip.label, ], nrow=length(phylo$tip.label))
+
+    phylo$sampleTimes <- sample.times.2
+    phylo$sampleStates <- sample.states.2
+
+    return(phylo)
 }
+
 
 
 simulate.ode.tree <- function(sol, sample.times, sample.states, integration.method='rk4') {

@@ -16,6 +16,7 @@
 require(Kaphi, quietly=TRUE)
 require(RUnit, quietly=TRUE)
 source('tests/fixtures/SI-matrices.R')
+source('tests/fixtures/kingman.R')
 
 test.parse.ode <- function() {
     parms <- list(beta=0.1, mu=0.01)
@@ -52,6 +53,14 @@ test.solve.ode <- function() {
 
     checkEquals(100, length(result$Y))
 
-    # check equilibrium solution
+    # check equilibrium solution for SIS model
     checkEquals((1-0.01/0.1)*1000., result$Y[[1]], checkNames=FALSE)
+
+    # pure birth SI model without dampening by S is exponential growth
+    result <- unlist(k.sol$Y)
+    expected <- exp(k.parms$beta*unlist(k.sol$times))
+    # rk4 tends to underestimate I(t) -- improves at higher resolutions
+    checkEquals(expected, result, tolerance=1e-6, checkNames=FALSE)
 }
+
+

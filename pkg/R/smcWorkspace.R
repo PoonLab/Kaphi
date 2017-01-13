@@ -46,7 +46,13 @@ get.tip.heights <- function(phy) {
 	tip.dists <- node.depth.edgelength(phy)[1:n.tips]
 	return(max(tip.dists)-tip.dists)
 }
-
+get.node.heights <- function(phy) {
+    n.tips <- Ntip(phy)
+    n.nodes <- Nnode(phy)
+    tip.dists <- node.depth.edgelength(phy)[1:n.tips]
+    node.dists <- node.depth.edgelength(phy)[(n.tips+1):(n.tips+n.nodes)]
+    return(max(tip.dists)-node.dists)
+}
 
 parse.labels <- function(labels, regex) {
 	m <- regexpr(regex, labels, perl=TRUE)

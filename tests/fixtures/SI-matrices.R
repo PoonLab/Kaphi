@@ -14,3 +14,10 @@ names(deaths) <- demes
 
 # non-deme dynamics
 ndd <- c(S='(parms$mu)*I - parms$beta*S*I/(S+I)')
+
+# calculate at global scope to avoid redundant work
+expr <- parse.ode(births, deaths, ndd, migrations)
+parms <- list(beta=0.1, mu=0.01)
+x0 <- c(S=999, I=1)
+sol <- solve.ode(expr, t0=0, t1=100, x0=x0, parms=parms, time.pts=100,
+                 integrationMethod='rk4')

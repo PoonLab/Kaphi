@@ -14,6 +14,7 @@ export(plot.smc.config)
 
 export(parse.input.tree)
 export(get.tip.heights)
+export(get.node.heights)
 export(parse.labels)
 export(init.workspace)
 export(print.smc.workspace)

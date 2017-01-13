@@ -1,14 +1,7 @@
 require(Kaphi, quietly=TRUE)
 require(RUnit, quietly=TRUE)
 source('tests/fixtures/SI-matrices.R')
-
-# calculate at global scope to avoid redundant work
-expr <- parse.ode(births, deaths, ndd, migrations)
-parms <- list(beta=0.1, mu=0.01, gamma=0.02)
-x0 <- c(S=999, I=1)
-sol <- solve.ode(expr, t0=0, t1=100, x0=x0, parms=parms, time.pts=100,
-                 integrationMethod='rk4')
-
+source('tests/fixtures/kingman.R')
 
 test.init.fgy <- function() {
     result <- init.fgy(sol, max.sample.time=90)
@@ -71,5 +64,13 @@ test.simulate.ode.tree <- function() {
     sample.times <- rep(90, times=10)  # length determines number of tips
     sample.states <- matrix(1, nrow=10, ncol=1)
     result <- simulate.ode.tree(sol, sample.times, sample.states)
-    cat(write.tree(result), "\n")
+
+    sample.times <- rep(50, times=100)
+    sample.states <- matrix(1, nrow=100, ncol=1)
+    result <- simulate.ode.tree(k.sol, sample.times, sample.states)
+    checkEquals('phylo', class(result))
+    checkEquals(100, Ntip(result))
+
+    node.heights <- get.node.heights(result)
+
 }
