@@ -170,18 +170,26 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
 
 
 get.event.times <- function(A.mx, sample.heights) {
-    #  An event is either the coalescence of two lineages or a state transition where a single lineage
-    #  migrates between demes.
+    #  An event is either:
+    #   1. sampling of a lineage
+    #   2. coalescence of two lineages or
+    #   3. a state transition where a single lineage migrates between demes.
+    #  Currently this function only looks at the first two event types.
+
     A.plus.unsampled <- A.mx$mat
     haxis <- A.mx$haxis
     n <- length(sample.heights)  # number of tips
 
-    A.mono <- rowSums(A.plus.unsampled)
-    A.mono[is.na(A.mono)] <- min(A.mono[!is.na(A.mono)])
-    A.mono <- A.mono - min(A.mono)
-    A.mono <- (max(A.mono)-A.mono) / max(A.mono)
+    A.mono <- rowSums(A.plus.unsampled)  # sum across demes per time point
+    A.mono[is.na(A.mono)] <- min(A.mono[!is.na(A.mono)])  # impute missing entries
+    A.mono <- A.mono - min(A.mono)  # shift values to zero lower bound
+    A.mono <- (max(A.mono)-A.mono) / max(A.mono)  # invert and normalize to range [0,1]
 
-    node.heights <- sort(approx(A.mono, haxis, xout=runif(n-1, 0, 1))$y)
+    # note max(A.mono) should coincide with most recent time point
+
+    # sample n-1 random points along normalized A.mono trajectory
+    # use interpolation to impute heights for these internal nodes
+    node.heights <- sort(approx(x=A.mono, y=haxis, xout=runif(n-1, 0, 1))$y)
     unique.sample.heights <- unique(sample.heights)
 
     # events occur at internal nodes of the tree
@@ -240,9 +248,10 @@ get.event.times <- function(A.mx, sample.heights) {
     lstates <- matrix(-1, Nnode+n, m)
     lstates[1:n,] <- sorted.sample.states
 
-    # p_ik in Volz (2012, Genetics)
+    # p_ik in Volz (2012, Genetics):
+    #   The probability that branch (i) is in state (k) at time (s) in the past
     mstates <- matrix(-1, Nnode+n, m)
-    mstates[1:n,] <- lstates[1:n]
+    mstates[1:n,] <- lstates[1:n]  # observed sample states
 
     # matrix of deme states closer to the root
     ustates <- matrix(-1, Nnode+n, m)
@@ -301,6 +310,8 @@ get.event.times <- function(A.mx, sample.heights) {
             is.extant[sat.h1] <- TRUE
             heights[sat.h1] <- h1
         } else {
+
+
             # coalescent event
             .F <- fgy$.F
             .G <- fgy$.G
