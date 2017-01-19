@@ -117,6 +117,7 @@ solve.ode <- function(expr, t0, t1, x0, parms, time.pts=2000, integrationMethod=
 
     # Function that computes values of derivatives in ODE system (see help(ode))
     dx <- function(t, y, parms, ...) {
+        # see equation (28) in Volz 2012 Genetics
         dxdeme <- setNames(
             tBirths(y,t) + tMigrationsIn(y,t) - tMigrationsOut(y,t) - tDeaths(y,t),
         demeNames)
