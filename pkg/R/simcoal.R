@@ -274,25 +274,26 @@ get.event.times <- function(A.mx, sample.heights) {
         # process new samples and calculate the state of new lineages
         A0 <- get.A(h0)
         out <- solve.QAL(h0, h1, A0, L)
-        Q <- out[[1]]
-        A <- out[[2]]
-        L <- out[[3]]
+        Q <- out[[1]]  # state transition probability matrix
+        A <- out[[2]]  # update A for this time interval (given Q..)
+        L <- out[[3]]  # likelihood?  It's not used here...
 
         # clean outputs
         if (is.nan(L)) { L <- Inf }
         if (any(is.nan(Q))) { Q <- diag(length(A)) }
         if (any(is.nan(A))) { A <- A0 }
 
-        # update mstates
+        # update mstates (i.e., p_ik(s))
         if (n.extant > 1) {
             mstates[is.extant, ] <- t( t(Q) %*% mstates[is.extant, ] )
             mstates[is.extant, ] <- abs(mstates[is.extant, ]) /
                 rowSums(as.matrix(abs(mstates[is.extant, ]), nrow=length(is.extant)))
+            # A_k = sum(p_ik) over i
             A <- colSums(as.matrix(mstates[is.extant, ], nrow=length(is.extant)))
         } else {
             mstates[is.extant, ] <- t( t(Q) %*% mstates[is.extant, ] )
             mstates[is.extant, ] <- abs(mstates[is.extant, ]) / sum(abs(mstates[is.extant, ]))
-            A <-  mstates[is.extant,]
+            A <-  mstates[is.extant,]  # only one extant lineage, no summation necessary
         }
 
         if (is.sample.event[ih+1]) {
