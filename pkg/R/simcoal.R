@@ -233,9 +233,10 @@ update.mstates <- function(mstates, is.extant, h0, h1, L, get.A, solve.QAL) {
 }
 
 
-coalesce.lineages <- function(A, ) {
+coalesce.lineages <- function(h1, A, is.extant, mstates, lstates, heights, edge, edge.length, get.fgy) {
     # current number of sampled lineages at this time point
     n.extant <- sum(is.extant)
+    m <- ncol(A) # number of demes
 
     # retrieve F(s), G(s) and Y(s) for this node height
     fgy <- get.fgy(h1)
@@ -357,7 +358,7 @@ coalesce.lineages <- function(A, ) {
 
     # initialize extant lineage statistics with most recent tips (height 0)
     h0 <- 0
-    is.extant <- rep(FALSE, Nnode+n)
+    is.extant <- rep(FALSE, num.nodes)
     is.extant[sampled.at.h(h0)] <- TRUE
     extant.lines <- which(is.extant)
 
@@ -385,9 +386,13 @@ coalesce.lineages <- function(A, ) {
 
         # update node states
         result <- update.mstates(mstates, is.extant, h0, h1, L, get.A, solve.QAL)
-        A <- result$A
-        L <- result$L
-        mstates <- result$mstates
+        A <- result$A; L <- result$L; mstates <- result$mstates  # unpack outputs
+
+        # coalesce lineages
+        result <- coalesce.lineages(h1, A, is.extant, mstates, lstates, heights, edge, edge.length, get.fgy)
+        A <- result$A; is.extant <- result$is.extant; heights <- result$heights  # unpack outputs
+        mstates <- result$mstates; lstates <- result$lstates
+        edge <- result$edge; edge.length <- result$edge.length
     }
 
     # convert tree variables into ape::phylo object
