@@ -201,6 +201,105 @@ get.event.times <- function(A.mx, sample.heights) {
 }
 
 
+update.mstates <- function(mstates, is.extant, h0, h1, L, get.A, solve.QAL) {
+    n.extant <- sum(is.extant)
+
+    # process new samples and calculate the state of new lineages
+    A0 <- get.A(h0)
+    out <- solve.QAL(h0, h1, A0, L)
+    Q <- out[[1]]  # state transition probability matrix
+    A <- out[[2]]  # update A for this time interval (given Q..)
+    L <- out[[3]]  # likelihood?
+
+    # clean outputs
+    if (is.nan(L)) { L <- Inf }
+    if (any(is.nan(Q))) { Q <- diag(length(A)) }
+    if (any(is.nan(A))) { A <- A0 }
+
+    # update mstates (i.e., p_ik(s))
+    if (n.extant > 1) {
+        mstates[is.extant, ] <- t( t(Q) %*% mstates[is.extant, ] )
+        mstates[is.extant, ] <- abs(mstates[is.extant, ]) /
+            rowSums(as.matrix(abs(mstates[is.extant, ]), nrow=length(is.extant)))
+        # A_k = sum(p_ik) over i
+        A <- colSums(as.matrix(mstates[is.extant, ], nrow=length(is.extant)))
+    } else {
+        # only one extant lineage
+        mstates[is.extant, ] <- t( t(Q) %*% mstates[is.extant, ] )
+        mstates[is.extant, ] <- abs(mstates[is.extant, ]) / sum(abs(mstates[is.extant, ]))
+        A <-  mstates[is.extant,]  # no need to sum
+    }
+    return(list(A=A, L=L, mstates=mstates))
+}
+
+
+coalesce.lineages <- function(A, ) {
+    # current number of sampled lineages at this time point
+    n.extant <- sum(is.extant)
+
+    # retrieve F(s), G(s) and Y(s) for this node height
+    fgy <- get.fgy(h1)
+    .F <- fgy$.F
+    .G <- fgy$.G
+    .Y <- fgy$.Y
+
+    a <- A / .Y  # normalized lineage counts per deme at coalescent event
+
+    extant.lines <- which(is.extant)
+    .lambdamat <- (t(t(a)) %*% a) * .F  # coalescence hazard
+
+    # pick two demes at random based on number of lineages
+    kl <- sample.int(m^2, size=1, prob=as.vector(.lambdamat))
+    k <- 1 + ((kl-1) %% m)  # row
+    l <- 1 + floor( (kl-1) / m )  # column
+
+    # sample lineages to coalesce from respective demes
+    probstates <- as.matrix(mstates[extant.lines,], nrow=length(extant.lines))
+    u.i <- sample.int(n.extant, size=1, prob=probstates[,k])
+    probstates[u.i,] <- 0
+    u <- extant.lines[u.i]
+    v <- sample(extant.lines, size=1, prob=probstates[,l])
+
+    ustates[u,] <- mstates[u,]
+    ustates[v,] <- mstates[v,]
+    a.u <- pmin(1, mstates[u,] / .Y)
+    a.v <- pmin(1, mstates[v,] / .Y)
+
+    # matrix of coalescence rates by deme states
+    lambda.uv <- ( a.u %*% t(a.v) ) * .F + ( a.v %*% t(a.u) ) * .F
+
+    # deme state of new lineage determined by relative proportions of coalescence rates
+    palpha <- rowSums(lambda.uv) / sum(lambda.uv)
+
+    # new branch is numbered by counter
+    alpha <- lineage.counter
+    lineage.counter <- lineage.counter + 1
+
+    is.extant[alpha] <- TRUE
+    is.extant[u] <- FALSE  # deactivate lineages that coalesced
+    is.extant[v] <- FALSE
+
+    mstates[alpha,] <- palpha
+    lstates[alpha,] = palpha  # why use this assignment operator?
+    heights[alpha] <- h1
+
+    # update tree variables with new node -- needs alpha, u, v
+    edge[u,] <- c(alpha, u)
+    edge.length[u] <- h1 - heights[u]
+    edge[v,] <- c(alpha, v)
+    edge.length[v] <- h1 - heights[v]
+
+    return (list(
+        count=lineage.count,
+        mstates=mstates,
+        lstates=lstates,
+        heights=heights,
+        edge=edge,
+        edge.length=edge.length
+    ))
+}
+
+
 .simulate.ode.tree <- function(sample.times, sample.states, fgy, solve.QAL, A.mx, Et) {
     # Args:
     #   sample.times:
@@ -275,94 +374,20 @@ get.event.times <- function(A.mx, sample.heights) {
     for (ih in 1:(length(event.times)-1)) {
         h0 <- event.times[ih]
         h1 <- event.times[ih+1]
-        fgy <- get.fgy(h1)
-
-        # current number of sampled lineages at this time point
-        n.extant <- sum(is.extant)
-
-        # process new samples and calculate the state of new lineages
-        A0 <- get.A(h0)
-        out <- solve.QAL(h0, h1, A0, L)
-        Q <- out[[1]]  # state transition probability matrix
-        A <- out[[2]]  # update A for this time interval (given Q..)
-        L <- out[[3]]  # likelihood?  It's not used here...
-
-        # clean outputs
-        if (is.nan(L)) { L <- Inf }
-        if (any(is.nan(Q))) { Q <- diag(length(A)) }
-        if (any(is.nan(A))) { A <- A0 }
-
-        # update mstates (i.e., p_ik(s))
-        if (n.extant > 1) {
-            mstates[is.extant, ] <- t( t(Q) %*% mstates[is.extant, ] )
-            mstates[is.extant, ] <- abs(mstates[is.extant, ]) /
-                rowSums(as.matrix(abs(mstates[is.extant, ]), nrow=length(is.extant)))
-            # A_k = sum(p_ik) over i
-            A <- colSums(as.matrix(mstates[is.extant, ], nrow=length(is.extant)))
-        } else {
-            mstates[is.extant, ] <- t( t(Q) %*% mstates[is.extant, ] )
-            mstates[is.extant, ] <- abs(mstates[is.extant, ]) / sum(abs(mstates[is.extant, ]))
-            A <-  mstates[is.extant,]  # only one extant lineage, no summation necessary
-        }
 
         if (is.sample.event[ih+1]) {
             # add new tips
             sat.h1 <- sampled.at.h(h1)
             is.extant[sat.h1] <- TRUE
             heights[sat.h1] <- h1
-        } else {
-
-
-            # coalescent event
-            .F <- fgy$.F
-            .G <- fgy$.G
-            .Y <- fgy$.Y
-
-            a <- A / .Y  # normalized lineages over time
-
-            extant.lines <- which(is.extant)
-            .lambdamat <- (t(t(a)) %*% a) * .F  # coalescence hazard
-
-            # pick two demes at random based on number of lineages
-            kl <- sample.int(m^2, size=1, prob=as.vector(.lambdamat))
-            k <- 1 + ((kl-1) %% m)  # row
-            l <- 1 + floor( (kl-1) / m )  # column
-
-            # sample lineages to coalesce from respective demes
-            probstates <- as.matrix(mstates[extant.lines,], nrow=length(extant.lines))
-            u.i <- sample.int(n.extant, size=1, prob=probstates[,k])
-            probstates[u.i,] <- 0
-            u <- extant.lines[u.i]
-            v <- sample(extant.lines, size=1, prob=probstates[,l])
-
-            ustates[u,] <- mstates[u,]
-            ustates[v,] <- mstates[v,]
-            a.u <- pmin(1, mstates[u,] / .Y)
-            a.v <- pmin(1, mstates[v,] / .Y)
-
-            # matrix of coalescence rates by deme states
-            lambda.uv <- ( a.u %*% t(a.v) ) * .F + ( a.v %*% t(a.u) ) * .F
-
-            # deme state of new lineage determined by relative proportions of coalescence rates
-            palpha <- rowSums(lambda.uv) / sum(lambda.uv)
-
-            # new branch is numbered by counter
-            alpha <- lineage.counter
-            lineage.counter <- lineage.counter + 1
-            is.extant[alpha] <- TRUE
-            is.extant[u] <- FALSE  # deactivate lineages that coalesced
-            is.extant[v] <- FALSE
-
-            mstates[alpha,] <- palpha
-            lstates[alpha,] = palpha  # why use this assignment operator?
-            heights[alpha] <- h1
-
-            # update tree variables with new node
-            edge[u,] <- c(alpha, u)
-            edge.length[u] <- h1 - heights[u]
-            edge[v,] <- c(alpha, v)
-            edge.length[v] <- h1 - heights[v]
+            next  # continue to next event, bypassing calculations below
         }
+
+        # update node states
+        result <- update.mstates(mstates, is.extant, h0, h1, L, get.A, solve.QAL)
+        A <- result$A
+        L <- result$L
+        mstates <- result$mstates
     }
 
     # convert tree variables into ape::phylo object
