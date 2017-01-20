@@ -233,10 +233,9 @@ update.mstates <- function(mstates, is.extant, h0, h1, L, get.A, solve.QAL) {
 }
 
 
-coalesce.lineages <- function(h1, A, is.extant, mstates, lstates, heights, edge, edge.length, get.fgy) {
+coalesce.lineages <- function(m, lcount, h1, A, is.extant, heights, mstates, lstates, ustates, edge, edge.length, get.fgy) {
     # current number of sampled lineages at this time point
     n.extant <- sum(is.extant)
-    m <- ncol(A) # number of demes
 
     # retrieve F(s), G(s) and Y(s) for this node height
     fgy <- get.fgy(h1)
@@ -272,9 +271,9 @@ coalesce.lineages <- function(h1, A, is.extant, mstates, lstates, heights, edge,
     # deme state of new lineage determined by relative proportions of coalescence rates
     palpha <- rowSums(lambda.uv) / sum(lambda.uv)
 
-    # new branch is numbered by counter
-    alpha <- lineage.counter
-    lineage.counter <- lineage.counter + 1
+    # new branch is numbered by lineage counter (lcount)
+    alpha <- lcount
+    lcount <- lcount + 1
 
     is.extant[alpha] <- TRUE
     is.extant[u] <- FALSE  # deactivate lineages that coalesced
@@ -291,9 +290,10 @@ coalesce.lineages <- function(h1, A, is.extant, mstates, lstates, heights, edge,
     edge.length[v] <- h1 - heights[v]
 
     return (list(
-        count=lineage.count,
+        lcount=lcount,
         mstates=mstates,
         lstates=lstates,
+        ustates=ustates,
         heights=heights,
         edge=edge,
         edge.length=edge.length
@@ -389,9 +389,11 @@ coalesce.lineages <- function(h1, A, is.extant, mstates, lstates, heights, edge,
         A <- result$A; L <- result$L; mstates <- result$mstates  # unpack outputs
 
         # coalesce lineages
-        result <- coalesce.lineages(h1, A, is.extant, mstates, lstates, heights, edge, edge.length, get.fgy)
-        A <- result$A; is.extant <- result$is.extant; heights <- result$heights  # unpack outputs
-        mstates <- result$mstates; lstates <- result$lstates
+        result <- coalesce.lineages(m, lineage.counter, h1, A, is.extant, heights, mstates, lstates, ustates,
+                                    edge, edge.length, get.fgy)
+        # unpack outputs
+        A <- result$A; is.extant <- result$is.extant; heights <- result$heights; lineage.counter <- result$lcount
+        mstates <- result$mstates; lstates <- result$lstates; ustates <- result$ustates
         edge <- result$edge; edge.length <- result$edge.length
     }
 
