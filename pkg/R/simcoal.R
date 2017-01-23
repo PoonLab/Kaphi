@@ -10,6 +10,7 @@
 #   year={2012},
 #   publisher={Genetics Soc America}
 # }
+require(ECctmc)
 
 init.fgy <- function(sol, max.sample.time) {
     # Rescale the time axis of F/G/Y matrices in reverse time with maximum
@@ -234,7 +235,85 @@ update.mstates <- function(z, solve.QAL) {
 }
 
 
-coalesce.lineages <- function(z) {
+
+# from R package ECctmc - tweaked to bypass zero row sums check
+sample.path <- function (a, b, t0, t1, Q, method = "mr", npaths = 1, eigen_vals = NULL,
+    eigen_vecs = NULL, inverse_vecs = NULL, P = NULL)
+{
+    if (!method %in% c("mr", "unif")) {
+        stop("Simulation method mus be either ", dQuote("mr"),
+            " or ", dQuote("unif"))
+    }
+    if (!all(abs(rowSums(Q)) < .Machine$double.eps)) {  # originally "< 0"
+        stop("The rate matrix is not valid. The rates must sum to 0 zero within each row.")
+    }
+    if (!all(diag(Q) <= 0)) {
+        stop("The rate matrix is not valid. The diagonal entries must all be non-positive.")
+    }
+    if (t0 >= t1) {
+        stop("t0 must be less than t1.")
+    }
+    if (!all(c(a, b) %in% 1:nrow(Q))) {
+        stop("The endpoints must be given in as row numbers in the rate matrix.")
+    }
+    if (!is.null(eigen_vals) || !is.null(eigen_vecs) || !is.null(inverse_vecs)) {
+        if (is.null(eigen_vals) || is.null(eigen_vecs) || is.null(inverse_vecs)) {
+            stop("If one part of the eigen decomposition of Q was provided, all parts must be provided.")
+        }
+    }
+    if (!is.null(P) && !all(rowSums(P) == 1)) {
+        stop("A valid transition probability matrix must be provided.")
+    }
+    if (all(Q[a, ] == 0) & a != b) {
+        stop("The process cannot start in an absorbing state if the endpoints are different.")
+    }
+    if (npaths == 1) {
+        if (method == "mr") {
+            path <- sample_path_mr(a = a, b = b, t0 = t0, t1 = t1,
+                Q = Q)
+        }
+        else {
+            if (is.null(eigen_vals) & is.null(P)) {
+                path <- sample_path_unif(a = a, b = b, t0 = t0,
+                  t1 = t1, Q = Q)
+            }
+            else if (!is.null(eigen_vals) & is.null(P)) {
+                path <- sample_path_unif2(a = a, b = b, t0 = t0,
+                  t1 = t1, Q = Q, eigen_vals = eigen_vals, eigen_vecs = eigen_vecs,
+                  inverse_vecs = inverse_vecs)
+            }
+            else if (is.null(eigen_vals) & !is.null(P)) {
+                path <- sample_path_unif3(a = a, b = b, t0 = t0,
+                  t1 = t1, Q = Q, P = P)
+            }
+        }
+        colnames(path) <- c("time", "state")
+    }
+    else {
+        path <- vector(mode = "list", length = npaths)
+        if (method == "mr") {
+            for (k in 1:npaths) {
+                path[[k]] <- sample_path_mr(a = a, b = b, t0 = t0,
+                  t1 = t1, Q = Q)
+                colnames(path[[k]]) <- c("time", "state")
+            }
+        }
+        else {
+            if (is.null(P)) {
+                P <- comp_expmat(Q = Q * (t1 - t0))
+            }
+            for (k in 1:npaths) {
+                path[[k]] <- sample_path_unif3(a = a, b = b,
+                  t0 = t0, t1 = t1, Q = Q, P = P)
+                colnames(path[[k]]) <- c("time", "state")
+            }
+        }
+    }
+    return(path)
+}
+
+
+coalesce.lineages <- function(z, solve.QAL) {
     # current number of sampled lineages at this time point
     z$n.extant <- sum(z$is.extant)
 
@@ -266,7 +345,7 @@ coalesce.lineages <- function(z) {
     a.u <- pmin(1, z$mstates[u,] / .Y)
     a.v <- pmin(1, z$mstates[v,] / .Y)
 
-    # matrix of coalescence rates by deme states
+    # coalescence rates by deme states for these two lineages
     lambda.uv <- ( a.u %*% t(a.v) ) * .F + ( a.v %*% t(a.u) ) * .F
 
     # deme state of new lineage determined by relative proportions of coalescence rates
@@ -289,6 +368,15 @@ coalesce.lineages <- function(z) {
     z$edge.length[u] <- z$h1 - z$heights[u]
     z$edge[v,] <- c(alpha, v)
     z$edge.length[v] <- z$h1 - z$heights[v]
+
+
+    # construct instantaneous rate matrix for state (deme) transitions
+    # see equation (51), Volz Genetics 2012
+    qm <- t(a.u * t(.G) + a.u %*% t(1-a/.Y) * t(.F))
+    diag(qm) <- -rowSums(qm)
+    a.state <- sample(1:m, 1, prob=palpha)
+    b.state <- sample(1:m, 1, prob=z$lstates[u,])
+    path <- sample.path(a.state, b.state, z$h0, z$h1, qm)
 
     return (z)
 }
@@ -330,6 +418,9 @@ coalesce.lineages <- function(z) {
     z$num.nodes <- z$Nnode + z$n
     z$edge.length <- rep(-1, z$Nnode + z$n-1)  # does not include root edge
     z$edge <- matrix(-1, nrow=z$num.nodes-1, ncol=2)
+
+    z$inner.edge <- list()
+
 
     if (is.null(names(sorted.sample.heights))) {
         z$tip.label <- as.character(1:z$n)  # arbitrary labels
