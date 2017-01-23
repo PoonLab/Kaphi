@@ -281,7 +281,7 @@ coalesce.lineages <- function(z) {
     z$is.extant[v] <- FALSE
 
     z$mstates[alpha,] <- palpha
-    z$lstates[alpha,] <- palpha  # why use this assignment operator?
+    z$lstates[alpha,] <- palpha
     z$heights[alpha] <- z$h1
 
     # update tree variables with new node -- needs alpha, u, v
@@ -347,7 +347,7 @@ coalesce.lineages <- function(z) {
     # p_ik in Volz (2012, Genetics):
     #   The probability that branch (i) is in state (k) at time (s) in the past
     z$mstates <- matrix(-1, z$num.nodes, z$m)
-    z$mstates[1:z$n,] <- z$lstates[1:z$n]  # observed sample states
+    z$mstates[1:z$n,] <- z$lstates[1:z$n,]  # observed sample states
 
     # matrix of deme states closer to the root
     z$ustates <- matrix(-1, z$num.nodes, z$m)
@@ -357,14 +357,6 @@ coalesce.lineages <- function(z) {
     z$is.extant <- rep(FALSE, z$num.nodes)
     z$is.extant[sampled.at.h(z$h0)] <- TRUE
     z$extant.lines <- which(z$is.extant)
-
-    # A0 is a vector of the number of lineages at height 0 per deme
-    if (length(z$extant.lines) > 1) {
-        z$A0 <- colSums(as.matrix(sorted.sample.states[z$extant.lines, ], nrow=length(z$extant.lines)))
-    } else {
-        # handle the case of a single deme
-        z$A0 <- sorted.sample.states[z$extant.lines, ]
-    }
 
     # loop over events
     z$lineage.counter <- z$n+1
