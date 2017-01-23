@@ -239,10 +239,10 @@ coalesce.lineages <- function(z) {
     z$n.extant <- sum(z$is.extant)
 
     # retrieve F(s), G(s) and Y(s) for this node height
-    fgy <- z$get.fgy(z$h1)
-    .F <- fgy$.F
-    .G <- fgy$.G
-    .Y <- fgy$.Y
+    this.fgy <- z$get.fgy(z$h1)
+    .F <- this.fgy$.F
+    .G <- this.fgy$.G
+    .Y <- this.fgy$.Y
 
     a <- z$A / .Y  # normalized lineage counts per deme at coalescent event
 
@@ -276,12 +276,12 @@ coalesce.lineages <- function(z) {
     alpha <- z$lineage.counter
     z$lineage.counter <- z$lineage.counter + 1
 
-    z$is.extant[z$alpha] <- TRUE
+    z$is.extant[alpha] <- TRUE
     z$is.extant[u] <- FALSE  # deactivate lineages that coalesced
     z$is.extant[v] <- FALSE
 
     z$mstates[alpha,] <- palpha
-    z$lstates[alpha,] = palpha  # why use this assignment operator?
+    z$lstates[alpha,] <- palpha  # why use this assignment operator?
     z$heights[alpha] <- z$h1
 
     # update tree variables with new node -- needs alpha, u, v
@@ -346,8 +346,8 @@ coalesce.lineages <- function(z) {
 
     # p_ik in Volz (2012, Genetics):
     #   The probability that branch (i) is in state (k) at time (s) in the past
-    mstates <- matrix(-1, z$num.nodes, z$m)
-    mstates[1:z$n,] <- z$lstates[1:z$n]  # observed sample states
+    z$mstates <- matrix(-1, z$num.nodes, z$m)
+    z$mstates[1:z$n,] <- z$lstates[1:z$n]  # observed sample states
 
     # matrix of deme states closer to the root
     z$ustates <- matrix(-1, z$num.nodes, z$m)
@@ -380,8 +380,8 @@ coalesce.lineages <- function(z) {
             next  # continue to next event, bypassing calculations below
         }
 
+		# call helper functions
         z <- update.mstates(z, solve.QAL)
-
         z <- coalesce.lineages(z)
     }
 
