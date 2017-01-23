@@ -251,7 +251,7 @@ get.event.times <- function(A.mx, sample.heights) {
     # p_ik in Volz (2012, Genetics):
     #   The probability that branch (i) is in state (k) at time (s) in the past
     mstates <- matrix(-1, Nnode+n, m)
-    mstates[1:n,] <- lstates[1:n]  # observed sample states
+    mstates[1:n,] <- lstates[1:n,]  # observed sample states
 
     # matrix of deme states closer to the root
     ustates <- matrix(-1, Nnode+n, m)
@@ -294,7 +294,7 @@ get.event.times <- function(A.mx, sample.heights) {
 
         # update mstates (i.e., p_ik(s))
         if (n.extant > 1) {
-            mstates[is.extant, ] <- t( t(Q) %*% mstates[is.extant, ] )
+            mstates[is.extant, ] <- t( t(Q) %*% t(mstates[is.extant, ]) )
             mstates[is.extant, ] <- abs(mstates[is.extant, ]) /
                 rowSums(as.matrix(abs(mstates[is.extant, ]), nrow=length(is.extant)))
             # A_k = sum(p_ik) over i

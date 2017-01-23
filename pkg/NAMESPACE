@@ -37,6 +37,7 @@ export(solve.ode)
 
 export(init.fgy)
 export(init.QAL.solver)
+export(get.event.times)
 export(solve.A.mx)
 export(simulate.ode.tree)
 
