@@ -201,69 +201,70 @@ get.event.times <- function(A.mx, sample.heights) {
 }
 
 
-update.mstates <- function(mstates, is.extant, h0, h1, L, get.A, solve.QAL) {
-    n.extant <- sum(is.extant)
+update.mstates <- function(z, solve.QAL) {
+    z$n.extant <- sum(z$is.extant)
 
     # process new samples and calculate the state of new lineages
-    A0 <- get.A(h0)
-    out <- solve.QAL(h0, h1, A0, L)
-    Q <- out[[1]]  # state transition probability matrix
-    A <- out[[2]]  # update A for this time interval (given Q..)
-    L <- out[[3]]  # likelihood?
+    z$A0 <- z$get.A(z$h0)
+    out <- solve.QAL(z$h0, z$h1, z$A0, z$L)
+    z$Q <- out[[1]]  # state transition probability matrix
+    z$A <- out[[2]]  # update A for this time interval (given Q..)
+    z$L <- out[[3]]  # likelihood?
 
     # clean outputs
-    if (is.nan(L)) { L <- Inf }
-    if (any(is.nan(Q))) { Q <- diag(length(A)) }
-    if (any(is.nan(A))) { A <- A0 }
+    if (is.nan(z$L)) { z$L <- Inf }
+    if (any(is.nan(z$Q))) { z$Q <- diag(length(z$A)) }
+    if (any(is.nan(z$A))) { z$A <- z$A0 }
 
     # update mstates (i.e., p_ik(s))
-    if (n.extant > 1) {
-        mstates[is.extant, ] <- t( t(Q) %*% mstates[is.extant, ] )
-        mstates[is.extant, ] <- abs(mstates[is.extant, ]) /
-            rowSums(as.matrix(abs(mstates[is.extant, ]), nrow=length(is.extant)))
+    if (z$n.extant > 1) {
+        z$mstates[z$is.extant,] <- t( t(z$Q) %*% t(z$mstates[z$is.extant, ]) )
+
+        z$mstates[z$is.extant, ] <- abs(z$mstates[z$is.extant, ]) /
+            rowSums(as.matrix(abs(z$mstates[z$is.extant, ]), nrow=length(z$is.extant)))
         # A_k = sum(p_ik) over i
-        A <- colSums(as.matrix(mstates[is.extant, ], nrow=length(is.extant)))
+        z$A <- colSums(as.matrix(z$mstates[z$is.extant, ], nrow=length(z$is.extant)))
     } else {
         # only one extant lineage
-        mstates[is.extant, ] <- t( t(Q) %*% mstates[is.extant, ] )
-        mstates[is.extant, ] <- abs(mstates[is.extant, ]) / sum(abs(mstates[is.extant, ]))
-        A <-  mstates[is.extant,]  # no need to sum
+        z$mstates[z$is.extant, ] <- t( t(z$Q) %*% z$mstates[z$is.extant, ] )
+        z$mstates[z$is.extant, ] <- abs(z$mstates[z$is.extant, ]) / sum(abs(z$mstates[z$is.extant, ]))
+        z$A <-  z$mstates[z$is.extant,]  # no need to sum
     }
-    return(list(A=A, L=L, mstates=mstates))
+    return(z)
 }
 
 
-coalesce.lineages <- function(m, lcount, h1, A, is.extant, heights, mstates, lstates, ustates, edge, edge.length, get.fgy) {
+coalesce.lineages <- function(z) {
     # current number of sampled lineages at this time point
-    n.extant <- sum(is.extant)
+    z$n.extant <- sum(z$is.extant)
 
     # retrieve F(s), G(s) and Y(s) for this node height
-    fgy <- get.fgy(h1)
+    fgy <- z$get.fgy(z$h1)
     .F <- fgy$.F
     .G <- fgy$.G
     .Y <- fgy$.Y
 
-    a <- A / .Y  # normalized lineage counts per deme at coalescent event
+    a <- z$A / .Y  # normalized lineage counts per deme at coalescent event
 
-    extant.lines <- which(is.extant)
+    z$extant.lines <- which(z$is.extant)
     .lambdamat <- (t(t(a)) %*% a) * .F  # coalescence hazard
 
     # pick two demes at random based on number of lineages
-    kl <- sample.int(m^2, size=1, prob=as.vector(.lambdamat))
-    k <- 1 + ((kl-1) %% m)  # row
-    l <- 1 + floor( (kl-1) / m )  # column
+    kl <- sample.int(z$m^2, size=1, prob=as.vector(.lambdamat))
+    k <- 1 + ((kl-1) %% z$m)  # row
+    l <- 1 + floor( (kl-1) / z$m )  # column
 
     # sample lineages to coalesce from respective demes
-    probstates <- as.matrix(mstates[extant.lines,], nrow=length(extant.lines))
-    u.i <- sample.int(n.extant, size=1, prob=probstates[,k])
+    probstates <- as.matrix(z$mstates[z$extant.lines,], nrow=length(z$extant.lines))
+    u.i <- sample.int(z$n.extant, size=1, prob=probstates[,k])
     probstates[u.i,] <- 0
-    u <- extant.lines[u.i]
-    v <- sample(extant.lines, size=1, prob=probstates[,l])
+    u <- z$extant.lines[u.i]
+    v <- sample(z$extant.lines, size=1, prob=probstates[,l])
 
-    ustates[u,] <- mstates[u,]
-    ustates[v,] <- mstates[v,]
-    a.u <- pmin(1, mstates[u,] / .Y)
-    a.v <- pmin(1, mstates[v,] / .Y)
+    z$ustates[u,] <- z$mstates[u,]
+    z$ustates[v,] <- z$mstates[v,]
+    a.u <- pmin(1, z$mstates[u,] / .Y)
+    a.v <- pmin(1, z$mstates[v,] / .Y)
 
     # matrix of coalescence rates by deme states
     lambda.uv <- ( a.u %*% t(a.v) ) * .F + ( a.v %*% t(a.u) ) * .F
@@ -272,32 +273,24 @@ coalesce.lineages <- function(m, lcount, h1, A, is.extant, heights, mstates, lst
     palpha <- rowSums(lambda.uv) / sum(lambda.uv)
 
     # new branch is numbered by lineage counter (lcount)
-    alpha <- lcount
-    lcount <- lcount + 1
+    alpha <- z$lineage.counter
+    z$lineage.counter <- z$lineage.counter + 1
 
-    is.extant[alpha] <- TRUE
-    is.extant[u] <- FALSE  # deactivate lineages that coalesced
-    is.extant[v] <- FALSE
+    z$is.extant[z$alpha] <- TRUE
+    z$is.extant[u] <- FALSE  # deactivate lineages that coalesced
+    z$is.extant[v] <- FALSE
 
-    mstates[alpha,] <- palpha
-    lstates[alpha,] = palpha  # why use this assignment operator?
-    heights[alpha] <- h1
+    z$mstates[alpha,] <- palpha
+    z$lstates[alpha,] = palpha  # why use this assignment operator?
+    z$heights[alpha] <- z$h1
 
     # update tree variables with new node -- needs alpha, u, v
-    edge[u,] <- c(alpha, u)
-    edge.length[u] <- h1 - heights[u]
-    edge[v,] <- c(alpha, v)
-    edge.length[v] <- h1 - heights[v]
+    z$edge[u,] <- c(alpha, u)
+    z$edge.length[u] <- z$h1 - z$heights[u]
+    z$edge[v,] <- c(alpha, v)
+    z$edge.length[v] <- z$h1 - z$heights[v]
 
-    return (list(
-        lcount=lcount,
-        mstates=mstates,
-        lstates=lstates,
-        ustates=ustates,
-        heights=heights,
-        edge=edge,
-        edge.length=edge.length
-    ))
+    return (z)
 }
 
 
@@ -310,108 +303,103 @@ coalesce.lineages <- function(m, lcount, h1, A, is.extant, heights, mstates, lst
     #   A.mx:  List returned from solve.A.mx()
     #   Et:  List returned from get.event.times()
 
-    # Unpack objects from list arguments
-    event.times <- Et$event.times
-    is.sample.event <- Et$is.sample.event
-    get.fgy <- fgy$func
-    get.A <- A.mx$get.A
+    z <- list()  # workspace to pass to subfunctions
 
-    m <- ncol(sample.states)  # number of demes
-    n <- length(sample.times)  # number of tips (sampled lineages)
-    S <- 1
-    L <- 0
+    # Transfer objects from list arguments
+    z$event.times <- Et$event.times
+    z$is.sample.event <- Et$is.sample.event
+    z$get.fgy <- fgy$func
+    z$get.A <- A.mx$get.A
 
-    max.sample.time <- max(sample.times)
-    sample.heights <- max.sample.time - sample.times
-    index <- order(sample.heights)
-    sorted.sample.heights <- sample.heights[index]
+    z$m <- ncol(sample.states)  # number of demes
+    z$n <- length(sample.times)  # number of tips (sampled lineages)
+    z$S <- 1
+    z$L <- 0
+
+    z$max.sample.time <- max(sample.times)
+    z$sample.heights <- z$max.sample.time - sample.times
+
+    index <- order(z$sample.heights)
+    sorted.sample.heights <- z$sample.heights[index]
     sampled.at.h <- function(h) which(sorted.sample.heights==h)
 
     sorted.sample.states <- as.matrix(sample.states[index,])
 
     # initialize variables
-    Nnode <- n-1
-    num.nodes <- Nnode + n
-    edge.length <- rep(-1, Nnode + n-1)  # does not include root edge
-    edge <- matrix(-1, nrow=num.nodes-1, ncol=2)
+    z$Nnode <- z$n-1
+    z$num.nodes <- z$Nnode + z$n
+    z$edge.length <- rep(-1, z$Nnode + z$n-1)  # does not include root edge
+    z$edge <- matrix(-1, nrow=z$num.nodes-1, ncol=2)
 
     if (is.null(names(sorted.sample.heights))) {
-        tip.label <- as.character(1:n)  # arbitrary labels
+        z$tip.label <- as.character(1:z$n)  # arbitrary labels
     } else {
-        tip.label <- names(sorted.sample.heights)
+        z$tip.label <- names(sorted.sample.heights)
     }
 
-    heights <- rep(0, num.nodes)
-    heights[1:n] <- sorted.sample.heights
+    z$heights <- rep(0, z$num.nodes)
+    z$heights[1:z$n] <- sorted.sample.heights
 
     # matrix of deme states closer to the present
-    lstates <- matrix(-1, Nnode+n, m)
-    lstates[1:n,] <- sorted.sample.states
+    z$lstates <- matrix(-1, z$num.nodes, z$m)
+    z$lstates[1:z$n,] <- sorted.sample.states
 
     # p_ik in Volz (2012, Genetics):
     #   The probability that branch (i) is in state (k) at time (s) in the past
-    mstates <- matrix(-1, Nnode+n, m)
-    mstates[1:n,] <- lstates[1:n]  # observed sample states
+    mstates <- matrix(-1, z$num.nodes, z$m)
+    mstates[1:z$n,] <- z$lstates[1:z$n]  # observed sample states
 
     # matrix of deme states closer to the root
-    ustates <- matrix(-1, Nnode+n, m)
+    z$ustates <- matrix(-1, z$num.nodes, z$m)
 
     # initialize extant lineage statistics with most recent tips (height 0)
-    h0 <- 0
-    is.extant <- rep(FALSE, num.nodes)
-    is.extant[sampled.at.h(h0)] <- TRUE
-    extant.lines <- which(is.extant)
+    z$h0 <- 0
+    z$is.extant <- rep(FALSE, z$num.nodes)
+    z$is.extant[sampled.at.h(z$h0)] <- TRUE
+    z$extant.lines <- which(z$is.extant)
 
     # A0 is a vector of the number of lineages at height 0 per deme
-    if (length(extant.lines) > 1) {
-        A0 <- colSums(as.matrix(sorted.sample.states[extant.lines, ], nrow=length(extant.lines)))
+    if (length(z$extant.lines) > 1) {
+        z$A0 <- colSums(as.matrix(sorted.sample.states[z$extant.lines, ], nrow=length(z$extant.lines)))
     } else {
         # handle the case of a single deme
-        A0 <- sorted.sample.states[extant.lines, ]
+        z$A0 <- sorted.sample.states[z$extant.lines, ]
     }
 
     # loop over events
-    lineage.counter <- n+1
-    for (ih in 1:(length(event.times)-1)) {
-        h0 <- event.times[ih]
-        h1 <- event.times[ih+1]
+    z$lineage.counter <- z$n+1
+    for (ih in 1:(length(z$event.times)-1)) {
+        z$h0 <- z$event.times[ih]
+        z$h1 <- z$event.times[ih+1]
 
-        if (is.sample.event[ih+1]) {
+        if (z$is.sample.event[ih+1]) {
             # add new tips
             sat.h1 <- sampled.at.h(h1)
-            is.extant[sat.h1] <- TRUE
-            heights[sat.h1] <- h1
+            z$is.extant[sat.h1] <- TRUE
+            z$heights[sat.h1] <- z$h1
             next  # continue to next event, bypassing calculations below
         }
 
-        # update node states
-        result <- update.mstates(mstates, is.extant, h0, h1, L, get.A, solve.QAL)
-        A <- result$A; L <- result$L; mstates <- result$mstates  # unpack outputs
+        z <- update.mstates(z, solve.QAL)
 
-        # coalesce lineages
-        result <- coalesce.lineages(m, lineage.counter, h1, A, is.extant, heights, mstates, lstates, ustates,
-                                    edge, edge.length, get.fgy)
-        # unpack outputs
-        A <- result$A; is.extant <- result$is.extant; heights <- result$heights; lineage.counter <- result$lcount
-        mstates <- result$mstates; lstates <- result$lstates; ustates <- result$ustates
-        edge <- result$edge; edge.length <- result$edge.length
+        z <- coalesce.lineages(z)
     }
 
     # convert tree variables into ape::phylo object
     new.tree <- list(
-        edge=edge,
-        edge.length=edge.length,
-        Nnode=Nnode,
-        tip.label=tip.label,
-        heights=heights
+        edge=z$edge,
+        edge.length=z$edge.length,
+        Nnode=z$Nnode,
+        tip.label=z$tip.label,
+        heights=z$heights
     )
     class(new.tree) <- "phylo"
     phylo <- read.tree(text=write.tree(new.tree))
 
     # reorder edges for compatibility with ape::phylo functions
     sample.times.2 <- sample.times[names(sorted.sample.heights)]
-    sample.states.2 <- as.matrix(lstates[1:n,], nrow=n)
-    rownames(sample.states.2) <- tip.label
+    sample.states.2 <- as.matrix(z$lstates[1:z$n,], nrow=z$n)
+    rownames(sample.states.2) <- z$tip.label
     sample.times.2 <- sample.times.2[phylo$tip.label]
     sample.states.2 <- as.matrix(sample.states.2[phylo$tip.label, ], nrow=length(phylo$tip.label))
 
