@@ -488,7 +488,7 @@ invert.list <- function(l) {
     phylo$sampleTimes <- sample.times.2
 
     # return sample paths
-    if (simulate.migrations) {
+    if (simulate.migrations & z$m > 1) {
         # use tip labels to match internal nodes between `phylo` and `z`
         px <- lapply(phylo$edge[,2], function(i) {
             idx <- get.terminals(i, phylo)
