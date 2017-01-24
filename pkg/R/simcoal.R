@@ -10,7 +10,6 @@
 #   year={2012},
 #   publisher={Genetics Soc America}
 # }
-require(ECctmc)
 
 init.fgy <- function(sol, max.sample.time) {
     # Rescale the time axis of F/G/Y matrices in reverse time with maximum
@@ -240,12 +239,14 @@ update.mstates <- function(z, solve.QAL) {
 sample.path <- function (a, b, t0, t1, Q, method = "mr", npaths = 1, eigen_vals = NULL,
     eigen_vecs = NULL, inverse_vecs = NULL, P = NULL)
 {
+    require(ECctmc)
+
     if (!method %in% c("mr", "unif")) {
         stop("Simulation method mus be either ", dQuote("mr"),
             " or ", dQuote("unif"))
     }
-    if (!all(abs(rowSums(Q)) < .Machine$double.eps)) {  # originally "< 0"
-        stop("The rate matrix is not valid. The rates must sum to 0 zero within each row.")
+    if (!all(abs(rowSums(Q) < .Machine$double.eps))) {  # originally "< 0"
+        stop("The rate matrix is not valid. The rates must sum to 0 zero within each row.", Q)
     }
     if (!all(diag(Q) <= 0)) {
         stop("The rate matrix is not valid. The diagonal entries must all be non-positive.")
@@ -313,7 +314,7 @@ sample.path <- function (a, b, t0, t1, Q, method = "mr", npaths = 1, eigen_vals 
 }
 
 
-coalesce.lineages <- function(z, solve.QAL) {
+coalesce.lineages <- function(z) {
     # current number of sampled lineages at this time point
     z$n.extant <- sum(z$is.extant)
 
@@ -372,11 +373,21 @@ coalesce.lineages <- function(z, solve.QAL) {
 
     # construct instantaneous rate matrix for state (deme) transitions
     # see equation (51), Volz Genetics 2012
-    qm <- t(a.u * t(.G) + a.u %*% t(1-a/.Y) * t(.F))
-    diag(qm) <- -rowSums(qm)
-    a.state <- sample(1:m, 1, prob=palpha)
-    b.state <- sample(1:m, 1, prob=z$lstates[u,])
-    path <- sample.path(a.state, b.state, z$h0, z$h1, qm)
+    if (z$m > 1) {
+        qm <- t(a.u * t(.G) + a.u %*% t(1-a/.Y) * t(.F))
+        diag(qm) <- -rowSums(qm)
+        a.state <- sample(1:z$m, 1, prob=palpha)
+        b.state <- sample(1:z$m, 1, prob=z$lstates[u,])
+        path <- sample.path(a.state, b.state, 0, z$edge.length[u], qm)
+        z$inner.edge[[u]] <- path
+
+        qm <- t(a.v * t(.G) + a.v %*% t(1-a/.Y) * t(.F))
+        diag(qm) <- -rowSums(qm)
+        b.state <- sample(1:z$m, 1, prob=z$lstates[v,])
+        path <- sample.path(a.state, b.state, 0, z$edge.length[v], qm)
+        z$inner.edge[[v]] <- path
+    }
+
 
     return (z)
 }
@@ -416,10 +427,11 @@ coalesce.lineages <- function(z, solve.QAL) {
     # initialize variables
     z$Nnode <- z$n-1
     z$num.nodes <- z$Nnode + z$n
-    z$edge.length <- rep(-1, z$Nnode + z$n-1)  # does not include root edge
+    z$edge.length <- rep(-1, z$num.nodes-1)  # does not include root edge
     z$edge <- matrix(-1, nrow=z$num.nodes-1, ncol=2)
 
-    z$inner.edge <- list()
+    # to cache state transitions along branches
+    z$inner.edge <- as.list(1:z$num.nodes-1)
 
 
     if (is.null(names(sorted.sample.heights))) {
