@@ -36,6 +36,7 @@ export(get.times)
 export(solve.ode)
 
 export(init.fgy)
+export(get.event.times)
 export(init.QAL.solver)
 export(get.event.times)
 export(solve.A.mx)

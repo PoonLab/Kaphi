@@ -64,6 +64,7 @@ test.init.QAL.solver <- function() {
 test.simulate.ode.tree <- function() {
     sample.times <- rep(90, times=10)  # length determines number of tips
     sample.states <- matrix(1, nrow=10, ncol=1)
+    colnames(sample.states) <- 'I'
     result <- simulate.ode.tree(sol, sample.times, sample.states)
 
     sample.times <- rep(50, times=100)
