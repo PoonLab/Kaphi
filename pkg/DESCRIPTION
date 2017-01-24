@@ -8,7 +8,8 @@ Maintainer: Art FY Poon <artpoon@gmail.com>
 Depends:
     ape,
     deSolve,
-    yaml
+    yaml,
+    ECctmc
 Description: Kaphi is a package for phylodynamic using approximate Bayesian computation 
  (ABC).  It uses a kernel method to compare the shapes of phylogenies, which is the 
  basis for parameter rejection in the context of ABC.  Kaphi implements an adaptive

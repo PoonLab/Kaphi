@@ -236,15 +236,8 @@ update.mstates <- function(z, solve.QAL) {
 
 
 # from R package ECctmc - tweaked to bypass zero row sums check
-sample.path <- function (a, b, t0, t1, Q, method = "mr", npaths = 1, eigen_vals = NULL,
-    eigen_vecs = NULL, inverse_vecs = NULL, P = NULL)
+sample.path <- function (a, b, t0, t1, Q)
 {
-    require(ECctmc)
-
-    if (!method %in% c("mr", "unif")) {
-        stop("Simulation method mus be either ", dQuote("mr"),
-            " or ", dQuote("unif"))
-    }
     if (!all(abs(rowSums(Q) < .Machine$double.eps))) {  # originally "< 0"
         stop("The rate matrix is not valid. The rates must sum to 0 zero within each row.", Q)
     }
@@ -257,59 +250,11 @@ sample.path <- function (a, b, t0, t1, Q, method = "mr", npaths = 1, eigen_vals 
     if (!all(c(a, b) %in% 1:nrow(Q))) {
         stop("The endpoints must be given in as row numbers in the rate matrix.")
     }
-    if (!is.null(eigen_vals) || !is.null(eigen_vecs) || !is.null(inverse_vecs)) {
-        if (is.null(eigen_vals) || is.null(eigen_vecs) || is.null(inverse_vecs)) {
-            stop("If one part of the eigen decomposition of Q was provided, all parts must be provided.")
-        }
-    }
-    if (!is.null(P) && !all(rowSums(P) == 1)) {
-        stop("A valid transition probability matrix must be provided.")
-    }
     if (all(Q[a, ] == 0) & a != b) {
         stop("The process cannot start in an absorbing state if the endpoints are different.")
     }
-    if (npaths == 1) {
-        if (method == "mr") {
-            path <- sample_path_mr(a = a, b = b, t0 = t0, t1 = t1,
-                Q = Q)
-        }
-        else {
-            if (is.null(eigen_vals) & is.null(P)) {
-                path <- sample_path_unif(a = a, b = b, t0 = t0,
-                  t1 = t1, Q = Q)
-            }
-            else if (!is.null(eigen_vals) & is.null(P)) {
-                path <- sample_path_unif2(a = a, b = b, t0 = t0,
-                  t1 = t1, Q = Q, eigen_vals = eigen_vals, eigen_vecs = eigen_vecs,
-                  inverse_vecs = inverse_vecs)
-            }
-            else if (is.null(eigen_vals) & !is.null(P)) {
-                path <- sample_path_unif3(a = a, b = b, t0 = t0,
-                  t1 = t1, Q = Q, P = P)
-            }
-        }
-        colnames(path) <- c("time", "state")
-    }
-    else {
-        path <- vector(mode = "list", length = npaths)
-        if (method == "mr") {
-            for (k in 1:npaths) {
-                path[[k]] <- sample_path_mr(a = a, b = b, t0 = t0,
-                  t1 = t1, Q = Q)
-                colnames(path[[k]]) <- c("time", "state")
-            }
-        }
-        else {
-            if (is.null(P)) {
-                P <- comp_expmat(Q = Q * (t1 - t0))
-            }
-            for (k in 1:npaths) {
-                path[[k]] <- sample_path_unif3(a = a, b = b,
-                  t0 = t0, t1 = t1, Q = Q, P = P)
-                colnames(path[[k]]) <- c("time", "state")
-            }
-        }
-    }
+    # fixed to a single path by modified rejection sampling
+    path <- sample_path_mr(a = a, b = b, t0 = t0, t1 = t1, Q = Q)
     return(path)
 }
 
@@ -371,29 +316,69 @@ coalesce.lineages <- function(z) {
     z$edge.length[v] <- z$h1 - z$heights[v]
 
 
-    # construct instantaneous rate matrix for state (deme) transitions
-    # see equation (51), Volz Genetics 2012
-    if (z$m > 1) {
-        qm <- t(a.u * t(.G) + a.u %*% t(1-a/.Y) * t(.F))
-        diag(qm) <- -rowSums(qm)
-        a.state <- sample(1:z$m, 1, prob=palpha)
-        b.state <- sample(1:z$m, 1, prob=z$lstates[u,])
+    if (z$m > 1 & z$simulate.migrations) {
+        # construct instantaneous rate matrix for state (deme) transitions
+        # see equation (51), Volz Genetics 2012
+        qm <- t(a.u * t(.G) + a.u %*% t(1-a) * t(.F))
+
+        qm <- matrix(pmax(0, qm), nrow=nrow(qm))  # ensure non-negative entries
+        diag(qm) <- -rowSums(qm)  # make rows sum to zero
+
+        a.state <- sample(1:z$m, 1, prob=palpha)  # from state
+        b.state <- sample(1:z$m, 1, prob=z$lstates[u,])  # to state
+
+        # use modified rejection sampling to simulate state transitions
         path <- sample.path(a.state, b.state, 0, z$edge.length[u], qm)
         z$inner.edge[[u]] <- path
 
-        qm <- t(a.v * t(.G) + a.v %*% t(1-a/.Y) * t(.F))
+        # apply to other branch
+        qm <- t(a.v * t(.G) + a.v %*% t(1-a) * t(.F))
+        qm <- matrix(pmax(0, qm), nrow=nrow(qm))
         diag(qm) <- -rowSums(qm)
         b.state <- sample(1:z$m, 1, prob=z$lstates[v,])
         path <- sample.path(a.state, b.state, 0, z$edge.length[v], qm)
         z$inner.edge[[v]] <- path
     }
 
-
     return (z)
 }
 
 
-.simulate.ode.tree <- function(sample.times, sample.states, fgy, solve.QAL, A.mx, Et) {
+get.terminals <- function(node, tree) {
+    # Emulate functionality of BioPython.Phylo:get.terminals()
+    # Args:
+    #   node: integer index of node in ape:phylo object, as corresponds to tree$edge
+    #   tree: ape:phylo Tree object
+    # Returns:
+    #   Vector of node indices for all terminal nodes (tips) that descend from this node.
+	parents <- c(node)
+	tips <- c()
+	while (length(parents) > 0) {
+		for (parent in parents) {
+			children <- tree$edge[which(tree$edge[,1]==parent),2]
+			parents <- parents[parents!=parent]
+			if (length(children) > 0) {
+				parents <- c(parents, children)
+			} else {
+				tips <- c(tips, parent)
+			}
+		}
+	}
+	return(tips)
+}
+
+
+invert.list <- function(l) {
+	result <- list()
+	for (i in 1:length(l)) {
+		key <- paste(l[[i]], collapse=' ')
+		result[key] <- i
+	}
+	return(result)
+}
+
+
+.simulate.ode.tree <- function(sample.times, sample.states, fgy, solve.QAL, A.mx, Et, simulate.migrations) {
     # Args:
     #   sample.times:
     #   sample.states:
@@ -409,6 +394,7 @@ coalesce.lineages <- function(z) {
     z$is.sample.event <- Et$is.sample.event
     z$get.fgy <- fgy$func
     z$get.A <- A.mx$get.A
+    z$simulate.migrations <- simulate.migrations
 
     z$m <- ncol(sample.states)  # number of demes
     z$n <- length(sample.times)  # number of tips (sampled lineages)
@@ -492,21 +478,39 @@ coalesce.lineages <- function(z) {
     phylo <- read.tree(text=write.tree(new.tree))
 
     # reorder edges for compatibility with ape::phylo functions
-    sample.times.2 <- sample.times[names(sorted.sample.heights)]
     sample.states.2 <- as.matrix(z$lstates[1:z$n,], nrow=z$n)
     rownames(sample.states.2) <- z$tip.label
-    sample.times.2 <- sample.times.2[phylo$tip.label]
     sample.states.2 <- as.matrix(sample.states.2[phylo$tip.label, ], nrow=length(phylo$tip.label))
-
-    phylo$sampleTimes <- sample.times.2
     phylo$sampleStates <- sample.states.2
+
+    sample.times.2 <- sample.times[names(sorted.sample.heights)]
+    sample.times.2 <- sample.times.2[phylo$tip.label]
+    phylo$sampleTimes <- sample.times.2
+
+    # return sample paths
+    if (simulate.migrations) {
+        # use tip labels to match internal nodes between `phylo` and `z`
+        px <- lapply(phylo$edge[,2], function(i) {
+            idx <- get.terminals(i, phylo)
+            sort(as.integer(phylo$tip.label[idx]))
+        })
+        ipx <- invert.list(px)
+
+        zx <- lapply(z$edge[,2], function(i) {
+            sort(get.terminals(i, z))
+        })
+        izx <- invert.list(zx)
+
+        # maps edges from `z` to `phylo`
+        index <- as.integer(izx[names(ipx)])
+        phylo$samplePaths <- z$inner.edge[index]
+    }
 
     return(phylo)
 }
 
 
-
-simulate.ode.tree <- function(sol, sample.times, sample.states, integration.method='rk4') {
+simulate.ode.tree <- function(sol, sample.times, sample.states, integration.method='rk4', simulate.migrations=FALSE) {
     # Args:
     #   sol:  return value from ode()
     #   sample.times:  a n-vector of sample collection times, where n is sample size
@@ -542,6 +546,6 @@ simulate.ode.tree <- function(sol, sample.times, sample.states, integration.meth
     A.mx <- solve.A.mx(fgy, sample.states, sample.heights)
     Et <- get.event.times(A.mx, sample.heights)
 
-    sim.tree <- .simulate.ode.tree(sample.times, sample.states, fgy, solve.QAL, A.mx, Et)
+    sim.tree <- .simulate.ode.tree(sample.times, sample.states, fgy, solve.QAL, A.mx, Et, simulate.migrations)
     return(sim.tree)
 }
