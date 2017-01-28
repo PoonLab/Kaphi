@@ -129,10 +129,17 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
     sorted.sample.states <- as.matrix(sample.states[ht.index,])
 
     m <- ncol(sorted.sample.states)  # number of demes
-
+    
+    # cumulative sorted sample states
+	cm.sss <- sapply(1:z$m, function(k) cumsum(sorted.sample.states[,k]))
+	
+	# cumulative sorted not sampled states
+	cm.snss <- t(cm.sss[z$n,] - t(cm.sss))
+	nsy.index <- cumsum(table(sorted.sample.heights))
     not.sampled.yet <- function(h) {
         uniq.index <- as.integer(cut(h, breaks=c(unique.sorted.sample.heights, Inf), right=FALSE))
-        return(sum(sorted.sample.heights > unique.sorted.sample.heights[uniq.index]))
+        cm.snss[nsy.index[uniq.index],]
+        #return(sum(sorted.sample.heights > unique.sorted.sample.heights[uniq.index]))
     }
 
     # derivative function for ODE solution - see equation (56) from Volz (2012, Genetics)
@@ -262,6 +269,10 @@ sample.path <- function (a, b, t0, t1, Q)
 coalesce.lineages <- function(z) {
     # current number of sampled lineages at this time point
     z$n.extant <- sum(z$is.extant)
+    if (z$n.extant == 1) {
+    	# cannot coalesce when only one lineage is extant!
+    	return(z)
+    }
 
     # retrieve F(s), G(s) and Y(s) for this node height
     this.fgy <- z$get.fgy(z$h1)
@@ -455,7 +466,7 @@ invert.list <- function(l) {
 
         if (z$is.sample.event[ih+1]) {
             # add new tips
-            sat.h1 <- sampled.at.h(h1)
+            sat.h1 <- sampled.at.h(z$h1)
             z$is.extant[sat.h1] <- TRUE
             z$heights[sat.h1] <- z$h1
             next  # continue to next event, bypassing calculations below

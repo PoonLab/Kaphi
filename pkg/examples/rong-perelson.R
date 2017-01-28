@@ -49,31 +49,68 @@ expr <- parse.ode(births, deaths, ndd, migrations)
 
 # ----------------------------------------------------
 
-simulate.RP <- function(expr, demes, parms, start.time, end.time, integ.method, fgy.resol, x0, nsamples.V, nsamples.T, ntimes) {	
+simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method='rk4', fgy.resol=1e4) {
+	demes <- expr$demeNames
+	
 	sol <- solve.ode(expr, t0=start.time, t1=end.time, x0=x0, parms=parms, time.pts=fgy.resol, integrationMethod=integ.method)
 	
-	# initialize sample state matrix
-	sample.states <- matrix(0, ncol=3, nrow=ntimes * nsamples)
-	colnames(sample.states) <- demes
+	if (any(is.nan(sol$sol))) {
+		# get 10x resolution for first 10%
+		t1 <- start.time + 0.1*(end.time-start.time)
+		sol0 <- solve.ode(expr, t0=start.time, t1=t1, x0=x0, parms=parms, time.pts=fgy.resol, integrationMethod=integ.method)
+		
+		# for downsampling 10x interval
+		indices <- seq(fgy.resol, 1, -10)
+		
+		# copy over last entry of 10x interval as steady state solution
+		for (i in 1:(fgy.resol-length(indices))) {  # 1..9000
+			# i=1 is the last point in time
+			sol$F[[i]] <- sol0$F[[1]]
+			sol$G[[i]] <- sol0$G[[1]]
+			sol$Y[[i]] <- sol0$Y[[1]]
+			sol$sol[fgy.resol-(i-1), ] <- sol0$sol[fgy.resol,]
+		}
+		
+		# copy over high-res values
+		for (i in length(indices):1) {  # 9001..10000
+			sol$F[[fgy.resol-i+1]] <- sol0$F[[indices[i]]]
+			sol$G[[fgy.resol-i+1]] <- sol0$G[[indices[i]]]
+			sol$Y[[fgy.resol-i+1]] <- sol0$Y[[indices[i]]]
+			sol$sol[i,] <- sol0$sol[indices[i],]
+		}
+		sol$sol[,1] <- rev(sol$times)
+	}
 	
-	# assume uniform sampling over times
-	time.points <- seq(fgy.resol, 0, -ceiling(fgy.resol/ntimes))[1:ntimes]
-	nsamples <- nsamples.V + nsamples.T
-	sample.times <- sol$sol[rep(time.points, each=nsamples), 1]
+	## generate sample states matrix
 	
-	for (i in 1:length(time.points)) {
-		tp <- time.points[i]
-		row <- as.list(sol$sol[tp,])  # extract time slice
-		nsamples.L <- rbinom(1, nsamples.T, row$L/(row$L+row$Ts))  # number of latent cells in sample as binomial outcome
-		nsamples.Ts <- nsamples.T - nsamples.L
-		to.col <- c(rep(1, nsamples.V), rep(2, nsamples.L), rep(3, nsamples.Ts))
+	nsamples <- length(sample.times)
+	sample.states <- matrix(0, ncol=3, nrow=nsamples)
 	
-		# use (to.col) to assign 1's to random permutation of rows within time point block
-		permut <- sample(1:nsamples, nsamples)
-		for (j in 1:nsamples) {
-			sample.states[permut[j]+(i-1)*nsamples, to.col[j]] <- 1
+	samples <- split(1:length(sample.times), sample.times)
+	for (i in 1:length(samples)) {
+		samp <- samples[[i]]  # vector of tip indices
+		
+		# locate time point on ODE solution time axis
+		time.pt <- as.integer(names(samples)[i])
+		h <- as.integer(cut(time.pt, c(-Inf, sol$times)))
+
+		n <- length(samp)
+		n.V <- sum(is.rna[samp])
+		n.T <- n - n.V
+		
+		# use numerical solution of ODE to partition cells into L and Ts states
+		row <- as.list(sol$sol[h,])  # extract time slice
+		n.L <- rbinom(1, n.T, row$L/(row$L+row$Ts))  # number of latent cells in sample as binomial outcome
+		n.Ts <- n.T - n.L
+		
+		col.idx <- c(rep(1, n.V), rep(2, n.L), rep(3, n.Ts))
+		col.idx <- sample(col.idx, n)  # permutation
+		for (j in 1:n) {
+			sample.states[samp[j], col.idx[j]] <- 1
 		}
 	}
+	colnames(sample.states) <- demes
+	rownames(sample.states) <- 1:nsamples
 	
 	tree <- simulate.ode.tree(sol, sample.times, sample.states, simulate.migrations=TRUE)
 	
@@ -93,17 +130,82 @@ simulate.RP <- function(expr, demes, parms, start.time, end.time, integ.method, 
 }
 
 
+# read tree to compare
+setwd('~/Documents/Seminars/Dynamics/Dynamics2017/jones')
+obs.tree <- read.tree('data/patient_13889.less.rtt.nwk')
 
+
+# shift tip dates so that origin roughly coincides with estimated MRCA from 
+#  BEAST strict clock analysis - median root height = 6293 days
+sample.times <- as.integer(gsub(".+_([0-9]+)", "\\1", obs.tree$tip.label))
+sample.times <- sample.times + 10  # shift right
+
+# parse tip labels
+is.rna <- grepl("PLASMA", obs.tree$tip.label)
+
+
+
+# time elapsed in units of days
 start.time <- 0
-end.time <- 300  # time elapsed in units of days
+end.time <- max(sample.times)
 
+# initial conditions
+x0 <- c(V=1, T=600, Ts=0, L=0)
+
+
+# ODE settings
+fgy.resol <- 1e4  # needs to be cranked up to capture early dynamics
 integ.method <- 'rk4'
-fgy.resol <- 1e4
-x0 <- c(V=50, T=600, Ts=0.3, L=2)
 
-nsamples.V <- 50
-nsamples.T <- 50
-ntimes <- 1
 
-# batch processing here
+get.steady.state <- function(params) {
+	# Equation (2) from paper (epsilon = 0)
+	V.0 <- with(params, N * lambda / c * (1 - d.0 / (d.0 + a.L) * eta) - d.T / k)
+	T.0 <- with(params, lambda / (d.T + k * V.0))
+	L.0 <- with(params, eta * k * V.0 * T.0 / (d.0 + a.L))
+	Ts.0 <- with(params, c * V.0 / (N * delta))
+	
+	c(V=V.0, T=T.0, L=L.0, Ts=Ts.0)
+}
+
+# prior distributions over model parameters
+sample.prior <- function(max.tries=1e3) {
+	tries <- 0
+	while(tries < max.tries) {
+		retry <- FALSE
+		proposal <- list(
+			lambda = rlnorm(1, meanlog=log(1e4), sdlog=3),
+			d.T    = rlnorm(1, log(0.01), 3),
+			k      = rlnorm(1, log(2.4e-8), 3),
+			eta    = rbeta(1, 0.1, 9.9),
+			d.0    = rlnorm(1, log(0.001), 3),
+			a.L    = rlnorm(1, log(0.1), 3),
+			delta  = rlnorm(1, 0, 3),
+			N      = rlnorm(1, log(2000), 3),
+			c      = rlnorm(1, log(23), 3)
+		)
+		tries <- tries + 1
+		x.inf <- get.steady.state(proposal)
+		if (any(x.inf<= 1)) {
+			retry <- TRUE
+		}
+		if (!retry) {
+			break
+		}
+	}
+	return (proposal)
+}
+
+
+p0 <- sample.prior()
+sim.tree <- simulate.RP(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method, fgy.resol)  # this isn't working :-(
+
+require(rcolgem)
+tfgy <- make.fgy(start.time, end.time, births, deaths, ndd, x0, migrations=migrations,  parms=parms, fgyResolution = 2000)
+sample.states <- matrix(0, nrow=20, ncol=3)
+for (i in 1:20) {
+	sample.states[i,sample(1:3,1)] <- 1
+}
+tree <- simulate.binary.dated.tree.fgy( tfgy[[1]], tfgy[[2]], tfgy[[3]], tfgy[[4]], sample.times, sample.states)
+
 
