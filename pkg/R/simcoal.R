@@ -129,12 +129,13 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
     sorted.sample.states <- as.matrix(sample.states[ht.index,])
 
     m <- ncol(sorted.sample.states)  # number of demes
+    n <- length(sample.heights)  # number of tips (samples)
     
     # cumulative sorted sample states
-	cm.sss <- sapply(1:z$m, function(k) cumsum(sorted.sample.states[,k]))
+	cm.sss <- sapply(1:m, function(k) cumsum(sorted.sample.states[,k]))
 	
 	# cumulative sorted not sampled states
-	cm.snss <- t(cm.sss[z$n,] - t(cm.sss))
+	cm.snss <- t(cm.sss[n,] - t(cm.sss))
 	nsy.index <- cumsum(table(sorted.sample.heights))
     not.sampled.yet <- function(h) {
         uniq.index <- as.integer(cut(h, breaks=c(unique.sorted.sample.heights, Inf), right=FALSE))
@@ -469,12 +470,15 @@ invert.list <- function(l) {
             sat.h1 <- sampled.at.h(z$h1)
             z$is.extant[sat.h1] <- TRUE
             z$heights[sat.h1] <- z$h1
+
+            cat(ih, z$h0, z$h1, sum(z$is.extant), 'sample\n')
             next  # continue to next event, bypassing calculations below
         }
 
 		# call helper functions
         z <- update.mstates(z, solve.QAL)
         z <- coalesce.lineages(z)
+        cat(ih, z$h0, z$h1, sum(z$is.extant), 'coalesce\n')
     }
 
     # convert tree variables into ape::phylo object

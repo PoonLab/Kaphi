@@ -76,7 +76,7 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 			sol$F[[fgy.resol-i+1]] <- sol0$F[[indices[i]]]
 			sol$G[[fgy.resol-i+1]] <- sol0$G[[indices[i]]]
 			sol$Y[[fgy.resol-i+1]] <- sol0$Y[[indices[i]]]
-			sol$sol[i,] <- sol0$sol[indices[i],]
+			sol$sol[i,] <- sol0$sol[rev(indices)[i],]
 		}
 		sol$sol[,1] <- rev(sol$times)
 	}
@@ -112,7 +112,7 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 	colnames(sample.states) <- demes
 	rownames(sample.states) <- 1:nsamples
 	
-	tree <- simulate.ode.tree(sol, sample.times, sample.states, simulate.migrations=TRUE)
+	tree <- simulate.ode.tree(sol, sample.times, sample.states, simulate.migrations=FALSE) # TRUE)
 	
 	# apply sample states to label tips
 	tree$tip.label <- paste(tree$tip.label, apply(tree$sampleStates, 1, function(x) demes[which(x == 1)]), sep="."); 
@@ -198,14 +198,14 @@ sample.prior <- function(max.tries=1e3) {
 
 
 p0 <- sample.prior()
-sim.tree <- simulate.RP(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method, fgy.resol)  # this isn't working :-(
+sim.tree <- simulate.RP(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method, fgy.resol)
 
-require(rcolgem)
-tfgy <- make.fgy(start.time, end.time, births, deaths, ndd, x0, migrations=migrations,  parms=parms, fgyResolution = 2000)
-sample.states <- matrix(0, nrow=20, ncol=3)
-for (i in 1:20) {
-	sample.states[i,sample(1:3,1)] <- 1
-}
-tree <- simulate.binary.dated.tree.fgy( tfgy[[1]], tfgy[[2]], tfgy[[3]], tfgy[[4]], sample.times, sample.states)
+#require(rcolgem)
+#tfgy <- make.fgy(start.time, end.time, births, deaths, ndd, x0, migrations=migrations,  parms=parms, fgyResolution = 2000)
+#sample.states <- matrix(0, nrow=20, ncol=3)
+#for (i in 1:20) {
+#	sample.states[i,sample(1:3,1)] <- 1
+#}
+#tree <- simulate.binary.dated.tree.fgy( tfgy[[1]], tfgy[[2]], tfgy[[3]], tfgy[[4]], sample.times, sample.states)
 
 
