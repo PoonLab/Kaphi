@@ -49,7 +49,7 @@ expr <- parse.ode(births, deaths, ndd, migrations)
 
 # ----------------------------------------------------
 
-simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method='rk4', fgy.resol=1e4) {
+simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method='rk4', fgy.resol=1e4, max.tries=3) {
 	demes <- expr$demeNames
 	
 	sol <- solve.ode(expr, t0=start.time, t1=end.time, x0=x0, parms=parms, time.pts=fgy.resol, integrationMethod=integ.method)
@@ -79,6 +79,10 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 			sol$sol[i,] <- sol0$sol[rev(indices)[i],]
 		}
 		sol$sol[,1] <- rev(sol$times)
+	}
+	if (any(is.nan(sol$sol))) {
+		# still not a valid ODE solution
+		return(NA)
 	}
 	
 	## generate sample states matrix
@@ -112,7 +116,20 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 	colnames(sample.states) <- demes
 	rownames(sample.states) <- 1:nsamples
 	
-	tree <- simulate.ode.tree(sol, sample.times, sample.states, simulate.migrations=FALSE) # TRUE)
+	# simulate tree from ODE solution
+	tries <- 0
+	while(tries < max.tries)
+	{
+		try(tree <- simulate.ode.tree(sol, sample.times, sample.states, simulate.migrations=TRUE))
+		 tries <- tries + 1
+		if (exists('tree')) {
+			break
+		}
+	}
+	if (tries == max.tries) {
+		cat("Failed to simulate tree..\n")
+		return(NA)
+	}
 	
 	# apply sample states to label tips
 	tree$tip.label <- paste(tree$tip.label, apply(tree$sampleStates, 1, function(x) demes[which(x == 1)]), sep="."); 
@@ -129,16 +146,26 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 	return(tree.2)
 }
 
+################################################################
+
+# tree kernel configuration
+config <- list(
+	decay.factor=0.2, 
+	rbf.variance=2.0, 
+	sst.control=1, 
+	norm.mode='mean'
+)
 
 # read tree to compare
 setwd('~/Documents/Seminars/Dynamics/Dynamics2017/jones')
-obs.tree <- read.tree('data/patient_13889.less.rtt.nwk')
+obs.tree <- preprocess.tree(read.tree('data/patient_13889.less.rtt.nwk'), config)
+obs.labels <- ifelse(grepl("PLASMA", obs.tree$tip.label), 'V', 'C')
+obs.denom <- tree.kernel(obs.tree, obs.tree, lambda=config$decay.factor, sigma=config$rbf.variance, label1=obs.labels, label2=obs.labels)
 
 
 # shift tip dates so that origin roughly coincides with estimated MRCA from 
 #  BEAST strict clock analysis - median root height = 6293 days
 sample.times <- as.integer(gsub(".+_([0-9]+)", "\\1", obs.tree$tip.label))
-sample.times <- sample.times + 10  # shift right
 
 # parse tip labels
 is.rna <- grepl("PLASMA", obs.tree$tip.label)
@@ -146,7 +173,7 @@ is.rna <- grepl("PLASMA", obs.tree$tip.label)
 
 
 # time elapsed in units of days
-start.time <- 0
+start.time <- -500  # some tips sampled at t=0
 end.time <- max(sample.times)
 
 # initial conditions
@@ -197,15 +224,40 @@ sample.prior <- function(max.tries=1e3) {
 }
 
 
-p0 <- sample.prior()
-sim.tree <- simulate.RP(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method, fgy.resol)
+# prepare output file
+cat(c('rep', 'lambda', 'd.T', 'k', 'eta', 'd.0', 'a.L', 'delta', 'N', 'c', 'kernel',  'kernel.norm', 'newick', '\n'), file='trial1.log', sep='\t')
 
-#require(rcolgem)
-#tfgy <- make.fgy(start.time, end.time, births, deaths, ndd, x0, migrations=migrations,  parms=parms, fgyResolution = 2000)
-#sample.states <- matrix(0, nrow=20, ncol=3)
-#for (i in 1:20) {
-#	sample.states[i,sample(1:3,1)] <- 1
-#}
-#tree <- simulate.binary.dated.tree.fgy( tfgy[[1]], tfgy[[2]], tfgy[[3]], tfgy[[4]], sample.times, sample.states)
 
+
+
+
+run1 <- function(rep) {
+	# sample parameters from prior distribution
+	p0 <- sample.prior()
+
+	# simulate tree
+	sim.tree <- simulate.RP(sample.times, is.rna, expr, p0, x0, start.time, end.time, integ.method, fgy.resol)
+	if (!exists('sim.tree') | is.na(sim.tree)) { return }
+	
+	# process the resulting tree 
+	sim.tree <- preprocess.tree(sim.tree, config)
+
+	sim.labels <- ifelse(grepl("V", sim.tree$tip.label), 'V', 'C')
+	sim.denom <- tree.kernel(sim.tree, sim.tree, lambda=config$decay.factor, sigma=config$rbf.variance, label1=sim.labels, label2=sim.labels)
+
+	# compute kernel score
+	res <- tree.kernel(obs.tree, sim.tree, lambda=config$decay, sigma=config$rbf, label1=obs.labels, label2=sim.labels)
+	res.norm <- res / sqrt(obs.denom * sim.denom)
+
+	# write output line
+	newick <- paste0('"', write.tree(sim.tree), '"')
+	write(c(rep, p0$lambda, p0$d.T, p0$k, p0$eta, p0$d.0, p0$a.L, p0$delta, p0$N, p0$c, res, res.norm, newick), append=TRUE, file='trial1.log', sep='\t')
+}
+
+#require(parallel)
+#mclapply(1:1000, function(i) run1(i), mc.cores=4)
+
+for (i in 1:1000) {
+	run1(i)
+}
 

@@ -136,26 +136,36 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
 	
 	# cumulative sorted not sampled states
 	cm.snss <- t(cm.sss[n,] - t(cm.sss))
-	nsy.index <- cumsum(table(sorted.sample.heights))
-    not.sampled.yet <- function(h) {
-        uniq.index <- as.integer(cut(h, breaks=c(unique.sorted.sample.heights, Inf), right=FALSE))
-        cm.snss[nsy.index[uniq.index],]
-        #return(sum(sorted.sample.heights > unique.sorted.sample.heights[uniq.index]))
-    }
+	
+	nsy.index <-  approxfun(
+	   sort( jitter( sorted.sample.heights
+	     , factor=max(1e-6, sorted.sample.heights[length(sorted.sample.heights)]/1e6)) )
+	   , 1:n , method='constant', rule=2)
+	not.sampled.yet <- function(h) { cm.snss[ nsy.index(h), ] }
+
+	# FIXME: I thought this implementation was cleaner, but it results in different
+	#        ODE solutions (see issue #33)
+	#nsy.index <- cumsum(table(sorted.sample.heights))
+    #not.sampled.yet <- function(h) {
+    #    uniq.index <- as.integer(cut(h, breaks=c(unique.sorted.sample.heights, Inf), right=FALSE))
+    #    cm.snss[nsy.index[uniq.index],]
+    #}
 
     # derivative function for ODE solution - see equation (56) from Volz (2012, Genetics)
-    dA <- function(h, A, parms, ...) {
-        nsy <- not.sampled.yet(h)
-        with(get.fgy(h), {
-            A.Y <- (A-nsy) / .Y
-            A.Y[is.nan(A.Y)] <- 0
-            csFpG <- colSums(.F+.G)
-            list(setNames(as.vector(
-                .G %*% A.Y - csFpG * A.Y + (.F %*% A.Y) * pmax(1-A.Y, 0)
-            ), names(A)))
-        })
-    }
-
+	dA <- function(h, A, parms, ...)
+	{
+		nsy <- not.sampled.yet(h) 
+		with(get.fgy(h), 
+		{ 
+			A_Y 	<- (A-nsy) / .Y
+			A_Y[is.nan(A_Y)] <- 0
+			csFpG 	<- colSums( .F + .G )
+			list( setNames( as.vector(
+			  .G %*% A_Y - csFpG * A_Y + (.F %*% A_Y) * pmax(1-A_Y, 0) 
+			  ), names(A)
+			))
+		})
+	}
     # numerical solution of ODE
     haxis <- seq(0, max.height, length.out=fgy.parms$resolution)
     odA <- ode(y=colSums(sorted.sample.states), times=haxis, func=dA, parms=NA, method='adams')
@@ -271,8 +281,7 @@ coalesce.lineages <- function(z) {
     # current number of sampled lineages at this time point
     z$n.extant <- sum(z$is.extant)
     if (z$n.extant == 1) {
-    	# cannot coalesce when only one lineage is extant!
-    	return(z)
+    	stop("cannot coalesce when only one lineage is extant!")
     }
 
     # retrieve F(s), G(s) and Y(s) for this node height
@@ -384,7 +393,7 @@ invert.list <- function(l) {
 	result <- list()
 	for (i in 1:length(l)) {
 		key <- paste(l[[i]], collapse=' ')
-		result[key] <- i
+		result[key] <- names(l)[i]
 	}
 	return(result)
 }
@@ -471,14 +480,14 @@ invert.list <- function(l) {
             z$is.extant[sat.h1] <- TRUE
             z$heights[sat.h1] <- z$h1
 
-            cat(ih, z$h0, z$h1, sum(z$is.extant), 'sample\n')
+            cat(ih, length(z$event.times), z$h0, z$h1, sum(z$is.extant), 'sample\n')
             next  # continue to next event, bypassing calculations below
         }
 
 		# call helper functions
         z <- update.mstates(z, solve.QAL)
         z <- coalesce.lineages(z)
-        cat(ih, z$h0, z$h1, sum(z$is.extant), 'coalesce\n')
+        cat(ih, length(z$event.times), z$h0, z$h1, sum(z$is.extant), 'coalesce\n')
     }
 
     # convert tree variables into ape::phylo object
@@ -505,15 +514,18 @@ invert.list <- function(l) {
     # return sample paths
     if (simulate.migrations & z$m > 1) {
         # use tip labels to match internal nodes between `phylo` and `z`
-        px <- lapply(phylo$edge[,2], function(i) {
+        px <- lapply(phylo$edge[,2], function(i) {  # note iteration over 2nd column skips root node
             idx <- get.terminals(i, phylo)
             sort(as.integer(phylo$tip.label[idx]))
         })
+        names(px) <- phylo$edge[,2]
         ipx <- invert.list(px)
 
         zx <- lapply(z$edge[,2], function(i) {
-            sort(get.terminals(i, z))
+            idx <- get.terminals(i, z)
+            sort(as.integer(z$tip.label[idx]))
         })
+        names(zx) <- z$edge[,2]
         izx <- invert.list(zx)
 
         # maps edges from `z` to `phylo`

@@ -61,6 +61,7 @@ preprocess.tree <- function(tree, config) {
     tree <- rescale.tree(tree, config$norm.mode)
 
     # cache self-kernel score
+    # FIXME:  this won't work for labelled kernel
     tree$kernel <- tree.kernel(tree, tree,
         lambda=config$decay.factor,
         sigma=config$rbf.variance,

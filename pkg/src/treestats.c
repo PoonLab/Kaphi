@@ -936,7 +936,7 @@ long int my_igraph_strvector_search(const igraph_strvector_t *a, char *val) {
     return -1;
 }
 
-/* convert tree lavels to index reference */
+/* convert tree labels to index reference */
 void get_labels(const igraph_t *tree1, const igraph_t *tree2, long int *label1, long int *label2) {
     long int i;
     char * current_string;
@@ -959,16 +959,16 @@ void get_labels(const igraph_t *tree1, const igraph_t *tree2, long int *label1, 
     for (i = 0; i < igraph_strvector_size(&string_label1); ++i) {
         igraph_strvector_get(&string_label1, i, &current_string);
         label1[i] = my_igraph_strvector_search(&string_label_all, current_string);
-        printf("%ld: '%s' (%ld)\n", i, current_string, label1[i]);
+        //printf("%ld: '%s' (%ld)\n", i, current_string, label1[i]);
     }
 
     for (i = 0; i < igraph_strvector_size(&string_label2); ++i) {
         igraph_strvector_get(&string_label2, i, &current_string);
         label2[i] = my_igraph_strvector_search(&string_label_all, current_string);
-        printf("%ld: '%s' (%ld)\n", i, current_string, label2[i]);
+        //printf("%ld: '%s' (%ld)\n", i, current_string, label2[i]);
     }
 
-    printf("\n");
+    //printf("\n");
 
     // free memory
     igraph_strvector_destroy(&string_label_all);
