@@ -237,21 +237,21 @@ run1 <- function(rep) {
 
 	# simulate tree
 	sim.tree <- simulate.RP(sample.times, is.rna, expr, p0, x0, start.time, end.time, integ.method, fgy.resol)
-	if (!exists('sim.tree') | is.na(sim.tree)) { return }
-	
-	# process the resulting tree 
-	sim.tree <- preprocess.tree(sim.tree, config)
+	if (class(sim.tree) == 'phylo') { 
+		# process the resulting tree 
+		sim.tree <- preprocess.tree(sim.tree, config)
 
-	sim.labels <- ifelse(grepl("V", sim.tree$tip.label), 'V', 'C')
-	sim.denom <- tree.kernel(sim.tree, sim.tree, lambda=config$decay.factor, sigma=config$rbf.variance, label1=sim.labels, label2=sim.labels)
+		sim.labels <- ifelse(grepl("V", sim.tree$tip.label), 'V', 'C')
+		sim.denom <- tree.kernel(sim.tree, sim.tree, lambda=config$decay.factor, sigma=config$rbf.variance, label1=sim.labels, label2=sim.labels)
 
-	# compute kernel score
-	res <- tree.kernel(obs.tree, sim.tree, lambda=config$decay, sigma=config$rbf, label1=obs.labels, label2=sim.labels)
-	res.norm <- res / sqrt(obs.denom * sim.denom)
+		# compute kernel score
+		res <- tree.kernel(obs.tree, sim.tree, lambda=config$decay, sigma=config$rbf, label1=obs.labels, label2=sim.labels)
+		res.norm <- res / sqrt(obs.denom * sim.denom)
 
-	# write output line
-	newick <- paste0('"', write.tree(sim.tree), '"')
-	write(c(rep, p0$lambda, p0$d.T, p0$k, p0$eta, p0$d.0, p0$a.L, p0$delta, p0$N, p0$c, res, res.norm, newick), append=TRUE, file='trial1.log', sep='\t')
+		# write output line
+		newick <- paste0('"', write.tree(sim.tree), '"')
+		write(c(rep, p0$lambda, p0$d.T, p0$k, p0$eta, p0$d.0, p0$a.L, p0$delta, p0$N, p0$c, res, res.norm, newick), append=TRUE, file='trial1.log', sep='\t')
+	}
 }
 
 #require(parallel)
