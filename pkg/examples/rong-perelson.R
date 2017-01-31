@@ -1,5 +1,5 @@
 require(Kaphi)
-
+require(digest)
 
 # Model parameters
 # default values drawn from Rong and Perelson (2009) PLCB e1000533
@@ -121,10 +121,10 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 	while(tries < max.tries)
 	{
 		try(tree <- simulate.ode.tree(sol, sample.times, sample.states, simulate.migrations=TRUE))
-		 tries <- tries + 1
 		if (exists('tree')) {
 			break
 		}
+		tries <- tries + 1
 	}
 	if (tries == max.tries) {
 		cat("Failed to simulate tree..\n")
@@ -196,7 +196,9 @@ get.steady.state <- function(params) {
 }
 
 # prior distributions over model parameters
-sample.prior <- function(max.tries=1e3) {
+sample.prior <- function(is.rna, max.tries=1e3) {
+	rna.count <- sum(is.rna)
+	cell.count <- length(is.rna) - rna.count
 	tries <- 0
 	while(tries < max.tries) {
 		retry <- FALSE
@@ -213,27 +215,29 @@ sample.prior <- function(max.tries=1e3) {
 		)
 		tries <- tries + 1
 		x.inf <- get.steady.state(proposal)
-		if (any(x.inf<= 1)) {
+		if (any(x.inf<= 1) | x.inf['V'] < rna.count | (x.inf['Ts'] + x.inf['L']) < cell.count) {
 			retry <- TRUE
 		}
 		if (!retry) {
 			break
 		}
 	}
+	if (tries == max.tries) {
+		return (NULL)  # failed!
+	}
 	return (proposal)
 }
 
 
 # prepare output file
-cat(c('rep', 'lambda', 'd.T', 'k', 'eta', 'd.0', 'a.L', 'delta', 'N', 'c', 'kernel',  'kernel.norm', 'newick', '\n'), file='trial1.log', sep='\t')
-
-
-
+#cat(c('rep', 'lambda', 'd.T', 'k', 'eta', 'd.0', 'a.L', 'delta', 'N', 'c', 'kernel',  'kernel.norm', 'newick', '\n'),
+#	file='trial1.log', append=TRUE, sep='\t')
 
 
 run1 <- function(rep) {
 	# sample parameters from prior distribution
-	p0 <- sample.prior()
+	p0 <- sample.prior(is.rna)
+	#cat(get.steady.state(p0), "\n")
 
 	# simulate tree
 	sim.tree <- simulate.RP(sample.times, is.rna, expr, p0, x0, start.time, end.time, integ.method, fgy.resol)
@@ -249,8 +253,11 @@ run1 <- function(rep) {
 		res.norm <- res / sqrt(obs.denom * sim.denom)
 
 		# write output line
-		newick <- paste0('"', write.tree(sim.tree), '"')
-		write(c(rep, p0$lambda, p0$d.T, p0$k, p0$eta, p0$d.0, p0$a.L, p0$delta, p0$N, p0$c, res, res.norm, newick), append=TRUE, file='trial1.log', sep='\t')
+		newick <- write.tree(sim.tree)
+		md5 <- digest(newick, 'md5')
+		cat(rep, p0$lambda, p0$d.T, p0$k, p0$eta, p0$d.0, p0$a.L, p0$delta, p0$N, p0$c, res, res.norm, md5, "\n",
+		    sep='\t', append=TRUE, file='trial1.log')
+		cat(md5, newick, "\n", sep='\t', append=TRUE, file='trial1.trees')
 	}
 }
 

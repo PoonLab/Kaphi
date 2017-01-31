@@ -256,8 +256,8 @@ update.mstates <- function(z, solve.QAL) {
 # from R package ECctmc - tweaked to bypass zero row sums check
 sample.path <- function (a, b, t0, t1, Q)
 {
-    if (!all(abs(rowSums(Q) < .Machine$double.eps))) {  # originally "< 0"
-        stop("The rate matrix is not valid. The rates must sum to 0 zero within each row.", Q)
+    if (!all(abs(rowSums(Q)) < 10*.Machine$double.eps)) {  # originally "< 0"
+        stop("The rate matrix is not valid. The rates must sum to 0 zero within each row.", Q[1,], "\n", Q[2,], "\n", Q[3,], "\n")
     }
     if (!all(diag(Q) <= 0)) {
         stop("The rate matrix is not valid. The diagonal entries must all be non-positive.")
@@ -269,7 +269,7 @@ sample.path <- function (a, b, t0, t1, Q)
         stop("The endpoints must be given in as row numbers in the rate matrix.")
     }
     if (all(Q[a, ] == 0) & a != b) {
-        stop("The process cannot start in an absorbing state if the endpoints are different.")
+        stop("The process cannot start in an absorbing state if the endpoints are different.", Q[1,], "\n", Q[2,], "\n", Q[3,], "\na: ", a, "\nb: ", b, "\n")
     }
     # fixed to a single path by modified rejection sampling
     path <- sample_path_mr(a = a, b = b, t0 = t0, t1 = t1, Q = Q)
@@ -480,14 +480,14 @@ invert.list <- function(l) {
             z$is.extant[sat.h1] <- TRUE
             z$heights[sat.h1] <- z$h1
 
-            cat(ih, length(z$event.times), z$h0, z$h1, sum(z$is.extant), 'sample\n')
+            #cat(ih, length(z$event.times), z$h0, z$h1, sum(z$is.extant), 'sample\n')
             next  # continue to next event, bypassing calculations below
         }
 
 		# call helper functions
         z <- update.mstates(z, solve.QAL)
         z <- coalesce.lineages(z)
-        cat(ih, length(z$event.times), z$h0, z$h1, sum(z$is.extant), 'coalesce\n')
+        #cat(ih, length(z$event.times), z$h0, z$h1, sum(z$is.extant), 'coalesce\n')
     }
 
     # convert tree variables into ape::phylo object
