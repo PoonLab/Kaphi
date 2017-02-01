@@ -49,7 +49,7 @@ expr <- parse.ode(births, deaths, ndd, migrations)
 
 # ----------------------------------------------------
 
-simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method='rk4', fgy.resol=1e4, max.tries=3) {
+simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method='rk4', fgy.resol=1e4, max.tries=1) {
 	demes <- expr$demeNames
 	
 	sol <- solve.ode(expr, t0=start.time, t1=end.time, x0=x0, parms=parms, time.pts=fgy.resol, integrationMethod=integ.method)
@@ -127,7 +127,8 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 		tries <- tries + 1
 	}
 	if (tries == max.tries) {
-		cat("Failed to simulate tree..\n")
+		cat("Failed to simulate tree for parameters:\n", str(parms),
+			"\n\nsteady state:\n", str(get.steady.state(parms)), "\n")
 		return(NA)
 	}
 	
@@ -263,8 +264,4 @@ run1 <- function(rep) {
 
 #require(parallel)
 #mclapply(1:1000, function(i) run1(i), mc.cores=4)
-
-for (i in 1:1000) {
-	run1(i)
-}
-
+run1(1)

@@ -341,6 +341,13 @@ coalesce.lineages <- function(z) {
         # construct instantaneous rate matrix for state (deme) transitions
         # see equation (51), Volz Genetics 2012
         qm <- t(a.u * t(.G) + a.u %*% t(1-a) * t(.F))
+        if (any(qm<0)) {
+            cat("qm: ", qm, "\n")
+            cat("a: ", a, "\n")
+            cat("z$A: ", z$A, "\n")
+            cat(".Y: ", .Y, "\n")
+            stop("Error, found negative rate in Q matrix")
+        }
 
         qm <- matrix(pmax(0, qm), nrow=nrow(qm))  # ensure non-negative entries
         diag(qm) <- -rowSums(qm)  # make rows sum to zero
@@ -417,6 +424,24 @@ invert.list <- function(l) {
     z$get.A <- A.mx$get.A
     z$simulate.migrations <- simulate.migrations
 
+    # sanity check - does the number of extant (sampled) lineages ever exceed the total number?
+    for (ih in 1:(length(z$event.times)-1)) {
+        h0 <- z$event.times[ih]
+        h1 <- z$event.times[ih+1]
+
+        this.fgy <- z$get.fgy(h1)
+        .Y <- this.fgy$.Y
+
+        A0 <- z$get.A(h0)
+        out <- solve.QAL(h0, h1, A0, 0)
+        A <- out[[2]]
+
+        if (any(A > .Y)) {
+            stop("Error: number of extant (sampled) lineages exceeds total: ", str(A), "; ", str(.Y))
+        }
+    }
+    cat("Cleared .A/Y check", "\n");
+
     z$m <- ncol(sample.states)  # number of demes
     z$n <- length(sample.times)  # number of tips (sampled lineages)
     z$S <- 1
@@ -480,14 +505,14 @@ invert.list <- function(l) {
             z$is.extant[sat.h1] <- TRUE
             z$heights[sat.h1] <- z$h1
 
-            #cat(ih, length(z$event.times), z$h0, z$h1, sum(z$is.extant), 'sample\n')
+            cat(ih, length(z$event.times), z$h0, z$h1, sum(z$is.extant), 'sample\n')
             next  # continue to next event, bypassing calculations below
         }
 
 		# call helper functions
         z <- update.mstates(z, solve.QAL)
         z <- coalesce.lineages(z)
-        #cat(ih, length(z$event.times), z$h0, z$h1, sum(z$is.extant), 'coalesce\n')
+        cat(ih, length(z$event.times), z$h0, z$h1, sum(z$is.extant), 'coalesce\n')
     }
 
     # convert tree variables into ape::phylo object
