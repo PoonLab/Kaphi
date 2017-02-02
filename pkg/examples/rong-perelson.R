@@ -49,7 +49,7 @@ expr <- parse.ode(births, deaths, ndd, migrations)
 
 # ----------------------------------------------------
 
-simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method='rk4', fgy.resol=1e4, max.tries=1) {
+simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method='rk4', fgy.resol=1e4, max.tries=3) {
 	demes <- expr$demeNames
 	
 	sol <- solve.ode(expr, t0=start.time, t1=end.time, x0=x0, parms=parms, time.pts=fgy.resol, integrationMethod=integ.method)
@@ -80,8 +80,9 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 		}
 		sol$sol[,1] <- rev(sol$times)
 	}
-	if (any(is.nan(sol$sol))) {
+	if (any(is.nan(sol$sol)) | any(sol$sol < 0)) {
 		# still not a valid ODE solution
+        cat("Failed to solve ODE\n")
 		return(NA)
 	}
 	
@@ -166,6 +167,7 @@ obs.denom <- tree.kernel(obs.tree, obs.tree, lambda=config$decay.factor, sigma=c
 # shift tip dates so that origin roughly coincides with estimated MRCA from 
 #  BEAST strict clock analysis - median root height = 6293 days
 sample.times <- as.integer(gsub(".+_([0-9]+)", "\\1", obs.tree$tip.label))
+sample.times <- sample.times + 500
 
 # parse tip labels
 is.rna <- grepl("PLASMA", obs.tree$tip.label)
@@ -173,7 +175,7 @@ is.rna <- grepl("PLASMA", obs.tree$tip.label)
 
 
 # time elapsed in units of days
-start.time <- -500  # some tips sampled at t=0
+start.time <- 0  # some tips sampled at t=0
 end.time <- max(sample.times)
 
 # initial conditions
@@ -255,7 +257,7 @@ if (class(sim.tree) == 'phylo') {
 	# write output line
 	newick <- write.tree(sim.tree)
 	md5 <- digest(newick, 'md5')
-	cat(rep, p0$lambda, p0$d.T, p0$k, p0$eta, p0$d.0, p0$a.L, p0$delta, p0$N, p0$c, res, res.norm, md5, "\n",
+	cat(p0$lambda, p0$d.T, p0$k, p0$eta, p0$d.0, p0$a.L, p0$delta, p0$N, p0$c, res, res.norm, md5, "\n",
 	    sep='\t', append=TRUE, file='trial1.log')
 	cat(md5, newick, "\n", sep='\t', append=TRUE, file='trial1.trees')
 }

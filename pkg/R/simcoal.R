@@ -67,7 +67,7 @@ init.fgy <- function(sol, max.sample.time) {
 }
 
 
-init.QAL.solver <- function(fgy, sample.states, sample.heights, integration.method='rk4') {
+init.QAL.solver <- function(fgy, sample.states, sample.heights, integration.method='adams') {
     # Q is the state transition (deme migration) rate matrix
     # A is the number of extant (sampled) lineages over time
     # L is the cumulative hazard of coalescence
@@ -166,10 +166,19 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
 			))
 		})
 	}
-    # numerical solution of ODE
+    # numerical solution of ODE - note haxis is reverse time (heights)
     haxis <- seq(0, max.height, length.out=fgy.parms$resolution)
     odA <- ode(y=colSums(sorted.sample.states), times=haxis, func=dA, parms=NA, method='adams')
-
+    
+    # ODE has trouble approximating A at low values of .Y
+    for (i in 1:nrow(odA)) {
+    	h <- odA[i,1]
+    	.Y <- get.fgy(h)$.Y
+    	odA[i,2:(m+1)] <- ifelse(odA[i,2:(m+1)] < 0, 
+    		.9*.Y,  # prohibit negative values
+    		pmin(odA[i,2:(m+1)], .9*.Y))
+    }
+    
     # unpack results from numerical solution
     haxis <- odA[,1]
     A.plus.unsampled <- odA[,2:(m+1)]  # both sampled and not-yet-sampled lineages over time
@@ -290,7 +299,17 @@ coalesce.lineages <- function(z) {
     .G <- this.fgy$.G
     .Y <- this.fgy$.Y
 
+	# cannot have more extant lineages than total number
+	if (any(z$A > .Y)) {
+		cat("Warning: adjusting A < Y\n", z$A, "\n", .Y, "\n")
+		z$A <- pmin(z$A, .Y)
+	}
+
     a <- z$A / .Y  # normalized lineage counts per deme at coalescent event
+    if (any(a >= 1)) {
+    	# this causes problems later on
+    	a[a>=1] <- 1.-1e-6
+    }
 
     z$extant.lines <- which(z$is.extant)
     .lambdamat <- (t(t(a)) %*% a) * .F  # coalescence hazard
@@ -424,23 +443,26 @@ invert.list <- function(l) {
     z$get.A <- A.mx$get.A
     z$simulate.migrations <- simulate.migrations
 
-    # sanity check - does the number of extant (sampled) lineages ever exceed the total number?
-    for (ih in 1:(length(z$event.times)-1)) {
-        h0 <- z$event.times[ih]
-        h1 <- z$event.times[ih+1]
+    # # sanity check - does the number of extant (sampled) lineages ever exceed the total number?
+    # for (ih in 1:(length(z$event.times)-1)) {
+        # h0 <- z$event.times[ih]
+        # h1 <- z$event.times[ih+1]
 
-        this.fgy <- z$get.fgy(h1)
-        .Y <- this.fgy$.Y
+        # this.fgy <- z$get.fgy(h1)
+        # .Y <- this.fgy$.Y
 
-        A0 <- z$get.A(h0)
-        out <- solve.QAL(h0, h1, A0, 0)
-        A <- out[[2]]
+        # A0 <- z$get.A(h0)
+        # out <- solve.QAL(h0, h1, A0, 0)
+        # A <- out[[2]]
 
-        if (any(A > .Y)) {
-            stop("Error: number of extant (sampled) lineages exceeds total: ", str(A), "; ", str(.Y))
-        }
-    }
-    cat("Cleared .A/Y check", "\n");
+        # if (any(A > .Y)) {
+            # cat("h1: ", h1, "\n");
+            # cat("A: ", A, "\n")
+            # cat("Y: ", .Y, "\n")
+            # stop("Error: number of extant (sampled) lineages exceeds total")
+        # }
+    # }
+    # cat("Cleared .A/Y check", "\n");
 
     z$m <- ncol(sample.states)  # number of demes
     z$n <- length(sample.times)  # number of tips (sampled lineages)
