@@ -127,8 +127,7 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 		tries <- tries + 1
 	}
 	if (tries == max.tries) {
-		cat("Failed to simulate tree for parameters:\n", str(parms),
-			"\n\nsteady state:\n", str(get.steady.state(parms)), "\n")
+		cat("Failed to simulate tree", "\n")
 		return(NA)
 	}
 	
@@ -235,33 +234,30 @@ sample.prior <- function(is.rna, max.tries=1e3) {
 #	file='trial1.log', append=TRUE, sep='\t')
 
 
-run1 <- function(rep) {
-	# sample parameters from prior distribution
-	p0 <- sample.prior(is.rna)
-	#cat(get.steady.state(p0), "\n")
 
-	# simulate tree
-	sim.tree <- simulate.RP(sample.times, is.rna, expr, p0, x0, start.time, end.time, integ.method, fgy.resol)
-	if (class(sim.tree) == 'phylo') { 
-		# process the resulting tree 
-		sim.tree <- preprocess.tree(sim.tree, config)
+# sample parameters from prior distribution
+p0 <- sample.prior(is.rna)
+#cat(get.steady.state(p0), "\n")
 
-		sim.labels <- ifelse(grepl("V", sim.tree$tip.label), 'V', 'C')
-		sim.denom <- tree.kernel(sim.tree, sim.tree, lambda=config$decay.factor, sigma=config$rbf.variance, label1=sim.labels, label2=sim.labels)
+# simulate tree
+sim.tree <- simulate.RP(sample.times, is.rna, expr, p0, x0, start.time, end.time, integ.method, fgy.resol)
+if (class(sim.tree) == 'phylo') { 
+	# process the resulting tree 
+	sim.tree <- preprocess.tree(sim.tree, config)
 
-		# compute kernel score
-		res <- tree.kernel(obs.tree, sim.tree, lambda=config$decay, sigma=config$rbf, label1=obs.labels, label2=sim.labels)
-		res.norm <- res / sqrt(obs.denom * sim.denom)
+	sim.labels <- ifelse(grepl("V", sim.tree$tip.label), 'V', 'C')
+	sim.denom <- tree.kernel(sim.tree, sim.tree, lambda=config$decay.factor, sigma=config$rbf.variance, label1=sim.labels, label2=sim.labels)
 
-		# write output line
-		newick <- write.tree(sim.tree)
-		md5 <- digest(newick, 'md5')
-		cat(rep, p0$lambda, p0$d.T, p0$k, p0$eta, p0$d.0, p0$a.L, p0$delta, p0$N, p0$c, res, res.norm, md5, "\n",
-		    sep='\t', append=TRUE, file='trial1.log')
-		cat(md5, newick, "\n", sep='\t', append=TRUE, file='trial1.trees')
-	}
+	# compute kernel score
+	res <- tree.kernel(obs.tree, sim.tree, lambda=config$decay, sigma=config$rbf, label1=obs.labels, label2=sim.labels)
+	res.norm <- res / sqrt(obs.denom * sim.denom)
+
+	# write output line
+	newick <- write.tree(sim.tree)
+	md5 <- digest(newick, 'md5')
+	cat(rep, p0$lambda, p0$d.T, p0$k, p0$eta, p0$d.0, p0$a.L, p0$delta, p0$N, p0$c, res, res.norm, md5, "\n",
+	    sep='\t', append=TRUE, file='trial1.log')
+	cat(md5, newick, "\n", sep='\t', append=TRUE, file='trial1.trees')
 }
 
-#require(parallel)
-#mclapply(1:1000, function(i) run1(i), mc.cores=4)
-run1(1)
+
