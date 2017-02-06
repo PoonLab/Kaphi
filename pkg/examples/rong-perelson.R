@@ -49,20 +49,36 @@ expr <- parse.ode(births, deaths, ndd, migrations)
 
 # ----------------------------------------------------
 
-simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method='rk4', fgy.resol=1e4, max.tries=3) {
+simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.time, integ.method='rk4', fgy.resol=1e4, max.tries=2) {
 	demes <- expr$demeNames
-	
+    m <- length(demes)
 	sol <- solve.ode(expr, t0=start.time, t1=end.time, x0=x0, parms=parms, time.pts=fgy.resol, integrationMethod=integ.method)
-	
+
 	if (any(is.nan(sol$sol))) {
-		# get 10x resolution for first 10%
-		t1 <- start.time + 0.1*(end.time-start.time)
+        cat("Failed ODE solution, attempting remedial solution\n")
+
+		# solve for first 20% of timeline
+		t1 <- start.time + 0.2*(end.time-start.time)
 		sol0 <- solve.ode(expr, t0=start.time, t1=t1, x0=x0, parms=parms, time.pts=fgy.resol, integrationMethod=integ.method)
-		
-		# for downsampling 10x interval
-		indices <- seq(fgy.resol, 1, -10)
-		
-		# copy over last entry of 10x interval as steady state solution
+        if (any(is.nan(sol0$sol))) {
+            cat("Remedial solution failed\n")
+            return (NA)
+        }
+
+        # check to see if we're close enough to steady state solution
+        x.inf <- get.steady.state(parms)
+        x.approx <- sol0$sol[fgy.resol, 2:ncol(sol0$sol)]
+        cat("x.inf: ", x.inf, "\nsol0: ", x.approx, "\n")
+        if (any(abs((x.inf-x.approx)/x.inf) > 0.05)) {
+            cat ("Partial solution did not converge to steady state.\n")
+            return (NA)
+        }
+
+		# for downsampling interval
+		indices <- seq(fgy.resol, 1, length.out=0.2*fgy.resol)
+
+		# copy over last entry of interval as steady state solution
+
 		for (i in 1:(fgy.resol-length(indices))) {  # 1..9000
 			# i=1 is the last point in time
 			sol$F[[i]] <- sol0$F[[1]]
@@ -70,7 +86,7 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 			sol$Y[[i]] <- sol0$Y[[1]]
 			sol$sol[fgy.resol-(i-1), ] <- sol0$sol[fgy.resol,]
 		}
-		
+
 		# copy over high-res values
 		for (i in length(indices):1) {  # 9001..10000
 			sol$F[[fgy.resol-i+1]] <- sol0$F[[indices[i]]]
@@ -80,9 +96,10 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 		}
 		sol$sol[,1] <- rev(sol$times)
 	}
+
 	if (any(is.nan(sol$sol)) | any(sol$sol < 0)) {
 		# still not a valid ODE solution
-        cat("Failed to solve ODE\n")
+        cat("\n*** Failed to solve ODE ***\n\n")
 		return(NA)
 	}
 	
@@ -128,7 +145,7 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 		tries <- tries + 1
 	}
 	if (tries == max.tries) {
-		cat("Failed to simulate tree", "\n")
+		cat("\n*** Failed to simulate tree :( ***\n\n")
 		return(NA)
 	}
 	
@@ -144,6 +161,8 @@ simulate.RP <- function(sample.times, is.rna, expr, parms, x0, start.time, end.t
 		states <- (x[,2][1:nrow(x)-1])
 		return(sum(delta.t[states==3]))
 	})
+
+    cat("\n*** success! ***\n\n")
 	return(tree.2)
 }
 
@@ -167,7 +186,6 @@ obs.denom <- tree.kernel(obs.tree, obs.tree, lambda=config$decay.factor, sigma=c
 # shift tip dates so that origin roughly coincides with estimated MRCA from 
 #  BEAST strict clock analysis - median root height = 6293 days
 sample.times <- as.integer(gsub(".+_([0-9]+)", "\\1", obs.tree$tip.label))
-sample.times <- sample.times + 500
 
 # parse tip labels
 is.rna <- grepl("PLASMA", obs.tree$tip.label)
@@ -176,14 +194,14 @@ is.rna <- grepl("PLASMA", obs.tree$tip.label)
 
 # time elapsed in units of days
 start.time <- 0  # some tips sampled at t=0
-end.time <- max(sample.times)
+
 
 # initial conditions
 x0 <- c(V=1, T=600, Ts=0, L=0)
 
 
 # ODE settings
-fgy.resol <- 1e4  # needs to be cranked up to capture early dynamics
+fgy.resol <- 2e4  # needs to be cranked up to capture early dynamics
 integ.method <- 'rk4'
 
 
@@ -194,7 +212,7 @@ get.steady.state <- function(params) {
 	L.0 <- with(params, eta * k * V.0 * T.0 / (d.0 + a.L))
 	Ts.0 <- with(params, c * V.0 / (N * delta))
 	
-	c(V=V.0, T=T.0, L=L.0, Ts=Ts.0)
+	c(V=V.0, L=L.0, Ts=Ts.0, T=T.0)
 }
 
 # prior distributions over model parameters
@@ -213,7 +231,8 @@ sample.prior <- function(is.rna, max.tries=1e3) {
 			a.L    = rlnorm(1, log(0.1), 3),
 			delta  = rlnorm(1, 0, 3),
 			N      = rlnorm(1, log(2000), 3),
-			c      = rlnorm(1, log(23), 3)
+			c      = rlnorm(1, log(23), 3),
+            tmrca1 = runif(1, 0, 1000)
 		)
 		tries <- tries + 1
 		x.inf <- get.steady.state(proposal)
@@ -232,14 +251,16 @@ sample.prior <- function(is.rna, max.tries=1e3) {
 
 
 # prepare output file
-#cat(c('rep', 'lambda', 'd.T', 'k', 'eta', 'd.0', 'a.L', 'delta', 'N', 'c', 'kernel',  'kernel.norm', 'newick', '\n'),
-#	file='trial1.log', append=TRUE, sep='\t')
+#cat(c('lambda', 'd.T', 'k', 'eta', 'd.0', 'a.L', 'delta', 'N', 'c', 'kernel',  'kernel.norm', 'newick', '\n'),
+#	file='trial2.log', append=TRUE, sep='\t')
 
 
 
 # sample parameters from prior distribution
 p0 <- sample.prior(is.rna)
-#cat(get.steady.state(p0), "\n")
+
+sample.times <- sample.times + p0$tmrca1  # adjust times for MRCA
+end.time <- max(sample.times)
 
 # simulate tree
 sim.tree <- simulate.RP(sample.times, is.rna, expr, p0, x0, start.time, end.time, integ.method, fgy.resol)
@@ -257,9 +278,9 @@ if (class(sim.tree) == 'phylo') {
 	# write output line
 	newick <- write.tree(sim.tree)
 	md5 <- digest(newick, 'md5')
-	cat(p0$lambda, p0$d.T, p0$k, p0$eta, p0$d.0, p0$a.L, p0$delta, p0$N, p0$c, res, res.norm, md5, "\n",
-	    sep='\t', append=TRUE, file='trial1.log')
-	cat(md5, newick, "\n", sep='\t', append=TRUE, file='trial1.trees')
+	cat(p0$tmrca1, p0$lambda, p0$d.T, p0$k, p0$eta, p0$d.0, p0$a.L, p0$delta, p0$N, p0$c, res, res.norm, md5, "\n",
+	    sep='\t', append=TRUE, file='trial2.log')
+	cat(md5, newick, "\n", sep='\t', append=TRUE, file='trial2.trees')
 }
 
 

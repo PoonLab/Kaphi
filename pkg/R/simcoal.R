@@ -301,6 +301,10 @@ coalesce.lineages <- function(z) {
 
 	# cannot have more extant lineages than total number
 	if (any(z$A > .Y)) {
+        if ( max(z$A - .Y) > 5. ) {
+            cat("\nA:\n", z$A, "\n\n.Y:\n", .Y, "\n\n")
+            stop("Error: A exceeds .Y beyond tolerance")
+        }
 		cat("Warning: adjusting A < Y\n", z$A, "\n", .Y, "\n")
 		z$A <- pmin(z$A, .Y)
 	}
