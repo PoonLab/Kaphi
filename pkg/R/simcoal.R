@@ -310,10 +310,6 @@ coalesce.lineages <- function(z) {
 	}
 
     a <- z$A / .Y  # normalized lineage counts per deme at coalescent event
-    if (any(a >= 1)) {
-    	# this causes problems later on
-    	a[a>=1] <- 1.-1e-6
-    }
 
     z$extant.lines <- which(z$is.extant)
     .lambdamat <- (t(t(a)) %*% a) * .F  # coalescence hazard
@@ -366,7 +362,6 @@ coalesce.lineages <- function(z) {
         qm <- t(a.u * t(.G) + a.u %*% t(1-a) * t(.F))
         if (any(qm<0)) {
             cat("qm: ", qm, "\n")
-            cat("a: ", a, "\n")
             cat("z$A: ", z$A, "\n")
             cat(".Y: ", .Y, "\n")
             stop("Error, found negative rate in Q matrix")

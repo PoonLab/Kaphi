@@ -279,8 +279,8 @@ if (class(sim.tree) == 'phylo') {
 	newick <- write.tree(sim.tree)
 	md5 <- digest(newick, 'md5')
 	cat(p0$tmrca1, p0$lambda, p0$d.T, p0$k, p0$eta, p0$d.0, p0$a.L, p0$delta, p0$N, p0$c, res, res.norm, md5, "\n",
-	    sep='\t', append=TRUE, file='trial2.log')
-	cat(md5, newick, "\n", sep='\t', append=TRUE, file='trial2.trees')
+	    sep='\t', append=TRUE, file='trial3.log')
+	cat(md5, newick, "\n", sep='\t', append=TRUE, file='trial3.trees')
 }
 
 

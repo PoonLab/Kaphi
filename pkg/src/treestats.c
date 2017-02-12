@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <assert.h>
 #include <string.h>
 #include <Judy.h>
@@ -30,13 +31,33 @@ int _ladder_length(const igraph_t *tree, igraph_vector_t *work, int root);
 int _unbalanced(const igraph_t *tree, int *n, igraph_vector_t *work, int root);
 double _unbalance(const igraph_t *tree, int *n, igraph_vector_t *work, int root);
 
-double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor, 
-        double rbf_variance, double sst_control, const long int *label1, const long int *label2, double label_factor)
+
+double kernel(
+    const igraph_t *t1,  // first tree as igraph object
+    const igraph_t *t2,  // second tree as igraph object
+    double decay_factor,  // decay constant to avoid large kernel scores when comparing tree to itself
+    double rbf_variance,  // for comparing branch lengths, radial basis function variance parameter
+    double sst_control,  // Moschitti's sigma (0 = subtree kernel, 1 = subset tree kernel)
+    const long int *label1,  // vector of node labels converted into integers by get_labels()
+    const long int *label2,
+    double label_factor  // 0 completely penalizes label mismatch
+    )
 {
-    int i, c1, c2, n1, n2, coord, npairs, do_label = label1 != NULL && label2 != NULL;
-    int *production1, *production2, *children1, *children2;
+    int i,  // handy dandy counter
+        c1, c2,  //  child node indices
+        n1, n2,  //
+        npairs,  // total number of pairwise node comparisons between trees
+        do_label = label1 != NULL && label2 != NULL;
+
+    int *production1 = production(t1),  // integer vector of production types
+        *production2 = production(t2),
+        *children1 = children(t1),  // integer indices to child nodes (twice length of num nodes)
+        *children2 = children(t2);
+
     double val, val2, tmp, K = 0;
-    double *bl1, *bl2;
+    double *bl1 = branch_lengths(t1),  // same length as children vector (two entries per internal node)
+           *bl2 = branch_lengths(t2);
+
     Pvoid_t delta = (Pvoid_t) NULL;  // this is a Judy array
     int *pairs, *map, cur = 0;
     PWord_t Pvalue;  // pointer into Judy array
@@ -46,13 +67,6 @@ double kernel(const igraph_t *t1, const igraph_t *t2, double decay_factor,
     assert(decay_factor > 0.0 && decay_factor <= 1.0);
     assert(rbf_variance > 0.0);
     assert(igraph_vcount(t1) < 65535);  // TODO: relax this constraint
-
-    production1 = production(t1);  // returns integer vector of production types
-    production2 = production(t2);
-    children1 = children(t1);  // array of integer indices mapping to child nodes (twice length of num nodes)
-    children2 = children(t2);
-    bl1 = branch_lengths(t1);
-    bl2 = branch_lengths(t2);
 
     npairs = count_node_pairs(production1, production2, igraph_vcount(t1), igraph_vcount(t2));
     pairs = get_node_pairs(t1, t2, production1, production2, npairs);
@@ -650,7 +664,16 @@ double Lp_norm(const double *x1, const double *x2, const double *y1,
     return pow(norm, p);
 }
 
-/* get production rules for each node */
+
+/*
+    production()
+    Get production rules for each node in a binary tree.
+    Returns rules as an integer vector.
+     0 = terminal node
+     1 = internal node, both children are internal nodes
+     2 = internal node, one child is a terminal node
+     3 = internal node, both children are terminal nodes
+*/
 int *production(const igraph_t *tree)
 {
     int i, nnode = igraph_vcount(tree);
@@ -829,7 +852,7 @@ double *branch_lengths(const igraph_t *tree)
 
 
 
-#include <stdio.h>
+
 /* from en.wikipedia.org/wiki/https://en.wikipedia.org/wiki/Heapsort */
 void my_igraph_strvector_swap(igraph_strvector_t *a, long int i1, long int i2) {
     char *tmp1;
@@ -926,6 +949,7 @@ long int my_igraph_strvector_search(const igraph_strvector_t *a, char *val) {
                 start = mid + 1;
             }
             else {
+                // cmp == 0, both strings are equal
                 return mid;
             }
         }
@@ -940,6 +964,8 @@ long int my_igraph_strvector_search(const igraph_strvector_t *a, char *val) {
 void get_labels(const igraph_t *tree1, const igraph_t *tree2, long int *label1, long int *label2) {
     long int i;
     char * current_string;
+
+    // initialize containers for node labels
     igraph_strvector_t string_label1;
     igraph_strvector_t string_label2;
     igraph_strvector_t string_label_all;
@@ -947,15 +973,19 @@ void get_labels(const igraph_t *tree1, const igraph_t *tree2, long int *label1, 
     igraph_strvector_init(&string_label1, 0);
     igraph_strvector_init(&string_label2, 0);
 
+    // igraph - query string vertex attribute for all vertices
     VASV(tree1, "id", &string_label1);
     VASV(tree2, "id", &string_label2);
 
+    // concatenate string vectors
     igraph_strvector_init(&string_label_all, 0);
     igraph_strvector_copy(&string_label_all, &string_label1);
     igraph_strvector_append(&string_label_all, &string_label2);
 
+    // heap sort of all node labels
     my_igraph_strvector_sort(&string_label_all);
 
+    // convert node labels into a reduced set of integer values based on heap sort
     for (i = 0; i < igraph_strvector_size(&string_label1); ++i) {
         igraph_strvector_get(&string_label1, i, &current_string);
         label1[i] = my_igraph_strvector_search(&string_label_all, current_string);
