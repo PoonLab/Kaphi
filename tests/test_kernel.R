@@ -83,7 +83,7 @@ test.kernel.normalized <- function() {
 
 test.kernel.label <- function() {
     #config <- list(decay.factor=1., rbf.variance=1., sst.control=1., rescale.mode='NONE')
-    #t1 <- preprocess.tree(t1, config)
+    #t1 <- preprocess.tree(t1, config)  # (A:0.1,B:0.2)
 
 	# essentially unlabelled
 	cat("essentially unlabelled\n")
@@ -100,6 +100,7 @@ test.kernel.label <- function() {
     # same tree labels switched
     cat("same tree labels switched\n")
     result <- tree.kernel(t1, t1, lambda=1, sigma=1, rho=1, label1=t1$tip.label, label2=t1$tip.label[2:1], gamma=0, normalize=0)
+    cat(result, "\n")
     expected <- exp(-(.1^2+.1^2)/(1.0)) * ((1+1) * (1+1))
     checkEquals(expected, result)
     

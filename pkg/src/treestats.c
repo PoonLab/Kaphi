@@ -44,8 +44,9 @@ double kernel(
     )
 {
     int i,  // handy dandy counter
-        c1, c2,  //  child node indices
-        n1, n2,  //
+        l1, l2,  //  child node indices
+        r1, r2,
+        n1, n2,  // internal node indices
         npairs,  // total number of pairwise node comparisons between trees
         do_label = label1 != NULL && label2 != NULL;
 
@@ -54,7 +55,7 @@ double kernel(
         *children1 = children(t1),  // integer indices to child nodes (twice length of num nodes)
         *children2 = children(t2);
 
-    double val, val2, tmp, K = 0;
+    double val, val1, val2, tmp, K = 0;
     double *bl1 = branch_lengths(t1),  // same length as children vector (two entries per internal node)
            *bl2 = branch_lengths(t2);
 
@@ -74,81 +75,72 @@ double kernel(
     for (cur = 0; cur < npairs; ++cur)
     {
         val = decay_factor;
+
+        // retrieve indices for this node pair
         n1 = pairs[cur] >> 16;  // shift right by 16 bits - why?
         n2 = pairs[cur] & 65535;  // make sure we're in left side of indices
 
-        // branch lengths
+        // pre-compute branch length penalty
         tmp = pow(bl1[2*n1] - bl2[2*n2], 2) + pow(bl1[2*n1+1] - bl2[2*n2+1], 2);
-        val *= exp(-tmp/rbf_variance);
 
-        for (i = 0; i < 2; ++i)  // assume tree is binary
-        {
-            c1 = children1[2*n1+i];
-            c2 = children2[2*n2+i];
+        // first go down left branches and then right branches
+        l1 = children1[2*n1]; r1 = children1[2*n1+1];
+        l2 = children2[2*n2]; r2 = children2[2*n2+1];
 
-            if (production1[c1] == production2[c2])
-            {
-                // children are leaves
-                if (production1[c1] == 0)
-                {
-                	if (do_label && label1[c1] != label2[c2])
-                	    val *= (sst_control + decay_factor * label_factor);
-                	else
-                	    val *= (sst_control + decay_factor);
+        // handle paired cherries
+        if (production1[l1]==0 && production1[r1]==0
+            && production2[l2]==0 && production2[r2]==0) {
+            // evaluate two possible comparisons of cherries
+            val1 = exp(-tmp/rbf_variance);
+            tmp = pow(bl1[2*n1] - bl2[2*n2+1], 2) + pow(bl1[2*n1+1] - bl2[2*n2], 2);
+            val2 = exp(-tmp/rbf_variance);
+
+            if (do_label) {
+                if (label1[l1]==label2[l2] && label1[r1]==label2[r2]) {
+                    val1 *= (sst_control + decay_factor);
+                } else {
+                    // labels don't match
+                    val1 *= (sst_control + decay_factor * label_factor);
                 }
+                if (label1[l1]==label2[r2] && label1[r1]==label2[l2]) {
+                    val2 *= (sst_control + decay_factor);
+                } else {
+                    // rotated labels don't match
+                    val2 *= (sst_control + decay_factor * label_factor);
+                }
+            } else {
+                val1 *= (sst_control + decay_factor);
+                val2 *= (sst_control + decay_factor);
+            }
 
-                // children are not leaves
-                else
-                {
-                    // get the pointer Pvalue associated with index in Judy array delta
-                    JLG(Pvalue, delta, (c1 << 16) | c2);
-                    /* don't visit parents before children */
+            // which maximizes score?
+            val *= (val1 > val2) ? val1 : val2;
+        } else {
+            // branch lengths
+            val *= exp(-tmp/rbf_variance);
+
+            if (production1[l1] == production2[l2]) {  // do lefts
+                if (production1[l1] == 0) {  // children are leaves
+                    if (do_label && label1[l1] != label2[l2]) val *= (sst_control + decay_factor * label_factor);
+                    else val *= (sst_control + decay_factor);
+                } else {
+                    JLG(Pvalue, delta, (l1 << 16) | l2);  // get pointer Pvalue associated with index in Judy array delta
+                    assert(Pvalue != NULL);  // don't visit parents before children
+                    memcpy(&tmp, Pvalue, sizeof(double));
+                    val *= (sst_control + tmp);
+                }
+            }
+            if (production1[r1] == production2[r2]) {  // do rights
+                if (production1[r1] == 0) {
+                    if (do_label && label1[r1] != label2[r2]) val *= (sst_control + decay_factor * label_factor);
+                    else val *= (sst_control + decay_factor);
+                } else {
+                    JLG(Pvalue, delta, (r1 << 16) | r2);
                     assert(Pvalue != NULL);
                     memcpy(&tmp, Pvalue, sizeof(double));
                     val *= (sst_control + tmp);
                 }
             }
-        }
-
-        // check other children pairing if labeled
-        if (do_label) {
-            val2 = decay_factor;
-            n1 = pairs[cur] >> 16;
-            n2 = pairs[cur] & 65535;
-
-            // branch lengths
-            tmp = pow(bl1[2*n1] - bl2[2*n2+1], 2) + pow(bl1[2*n1+1] - bl2[2*n2], 2);
-            val2 *= exp(-tmp/rbf_variance);
-
-            for (i = 0; i < 2; ++i)  // assume tree is binary
-            {
-                c1 = children1[2*n1+i];
-                c2 = children2[2*n2+1-i];
-
-                if (production1[c1] == production2[c2])
-                {
-                    // children are leaves
-                   if (production1[c1] == 0)
-                    {
-                    	if (do_label && label1[c1] != label2[c2])
-                    	    val2 *= (sst_control + decay_factor * label_factor);
-                    	else
-                    	    val2 *= (sst_control + decay_factor);
-                    }
-
-                    // children are not leaves
-                    else
-                    {
-                        JLG(Pvalue, delta, (c1 << 16) | c2);
-                        /* don't visit parents before children */
-                        assert(Pvalue != NULL);
-                        memcpy(&tmp, Pvalue, sizeof(double));
-                        val2 *= (sst_control + tmp);
-                    }
-                }
-            }
-            if (val2 > val)
-        	    val = val2;
         }
 
         // insert into Judy array
