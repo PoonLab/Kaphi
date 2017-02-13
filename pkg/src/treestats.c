@@ -97,20 +97,21 @@ double kernel(
 
             if (do_label) {
                 if (label1[l1]==label2[l2] && label1[r1]==label2[r2]) {
-                    val1 *= (sst_control + decay_factor);
+                    // evaluating both left and right
+                    val1 *= (sst_control + decay_factor) * (sst_control + decay_factor);
                 } else {
                     // labels don't match
-                    val1 *= (sst_control + decay_factor * label_factor);
+                    val1 *= (sst_control + decay_factor * label_factor) * (sst_control + decay_factor * label_factor);
                 }
                 if (label1[l1]==label2[r2] && label1[r1]==label2[l2]) {
-                    val2 *= (sst_control + decay_factor);
+                    val2 *= (sst_control + decay_factor) * (sst_control + decay_factor);
                 } else {
                     // rotated labels don't match
-                    val2 *= (sst_control + decay_factor * label_factor);
+                    val2 *= (sst_control + decay_factor * label_factor) * (sst_control + decay_factor * label_factor);
                 }
             } else {
-                val1 *= (sst_control + decay_factor);
-                val2 *= (sst_control + decay_factor);
+                val1 *= (sst_control + decay_factor) * (sst_control + decay_factor);
+                val2 *= (sst_control + decay_factor) * (sst_control + decay_factor);
             }
 
             // which maximizes score?
