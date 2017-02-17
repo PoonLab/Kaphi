@@ -1,0 +1,34 @@
+require(Kaphi, quietly=TRUE)
+require(RUnit, quietly=TRUE)
+source('tests/fixtures/simple-trees.R')
+
+test.sackin <- function() {
+    # sum of depths for all tips (node distance to root)
+    result <- sackin(t1)
+    expected <- 2
+    checkEquals(expected, result)
+
+    result <- sackin(t2)
+    expected <- 5
+    checkEquals(expected, result)
+
+    result <- sackin(t1, TRUE)
+    expected <- 0.3
+    checkEquals(expected, result)
+
+    result <- sackin(t2, TRUE)
+    expected <- 0.2 + 0.3 + 0.3
+    checkEquals(expected, result)
+}
+
+test.colless <- function() {
+    # sum of absolute differences in numbers of tips that descend from
+    #  left and right branches, for all internal nodes
+    result <- colless(t1)
+    expected <- 0
+    checkEquals(expected, result)
+
+    result <- colless(t2)
+    expected <- 1
+    checkEquals(expected, result)
+}

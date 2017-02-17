@@ -2,6 +2,8 @@ export(preprocess.tree)
 export(rescale.tree)
 export(tree.kernel)
 export(utk)
+export(sackin)
+export(colless)
 
 export(load.config)
 export(set.model)

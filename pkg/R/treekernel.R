@@ -72,7 +72,7 @@ preprocess.tree <- function(tree, config) {
 }
 
 to.newick <- function(tree) {
-    #print ('to.newick')
+    # Make sure that the tree argument is an ape phylo object
     if (class(tree)=='phylo') {
         return (write.tree(tree))
     } else if (class(tree) == 'character') {
@@ -131,4 +131,19 @@ tree.kernel <- function(tree1, tree2,
                  nwk1, nwk2, lambda, sigma, as.double(rho), use.label, gamma, normalize,
                  PACKAGE="Kaphi")
     return (res)
+}
+
+
+## Make other tree shape similarity measures and statistics available
+
+sackin <- function(t1, use.branch.lengths=FALSE) {
+    nwk <- to.newick(t1)
+    res <- .Call("R_Kaphi_sackin", nwk, use.branch.lengths, PACKAGE="Kaphi")
+    return(res)
+}
+
+colless <- function(t1) {
+    nwk <- to.newick(t1)
+    res <- .Call("R_Kaphi_colless", nwk, PACKAGE="Kaphi")
+    return(res)
 }

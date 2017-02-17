@@ -93,6 +93,7 @@ test.kernel.label <- function() {
         
     # same tree labelled
     cat("same tree labelled\n")
+
     result <- tree.kernel(t1, t1, lambda=1, sigma=1, rho=1, label1=t1$tip.label, label2=t1$tip.label, gamma=0, normalize=0)
     expected <- 4
     checkEquals(expected, result)

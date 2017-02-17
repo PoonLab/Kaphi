@@ -123,3 +123,34 @@ SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEX
 
     return (result);
 }
+
+
+SEXP R_Kaphi_sackin(SEXP nwk, SEXP arg_useBL) {
+    SEXP result;
+    igraph_t * t1;
+    int use_branch_lengths = INTEGER(arg_useBL)[0];
+
+    if (use_branch_lengths) {
+        igraph_i_set_attribute_table(&igraph_cattribute_table);
+    }
+    t1 = R_Kaphi_parse_newick(nwk);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = sackin(t1, use_branch_lengths);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    return(result);
+}
+
+SEXP R_Kaphi_colless(SEXP nwk) {
+    SEXP result;
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = colless(t1);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    return(result);
+}
