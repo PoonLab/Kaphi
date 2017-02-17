@@ -124,6 +124,24 @@ SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEX
     return (result);
 }
 
+SEXP R_Kaphi_nLTT(SEXP nwk1, SEXP nwk2) {
+    SEXP result;
+
+    // enable C igraph attribute handler
+    igraph_i_set_attribute_table(&igraph_cattribute_table);
+
+    // parse SEXP arguments passed from R
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk1);
+    igraph_t * t2 = R_Kaphi_parse_newick(nwk2);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = nLTT(t1, t2);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    igraph_destroy(t2);
+    return(result);
+}
 
 SEXP R_Kaphi_sackin(SEXP nwk, SEXP arg_useBL) {
     SEXP result;
@@ -149,6 +167,132 @@ SEXP R_Kaphi_colless(SEXP nwk) {
 
     PROTECT(result = NEW_NUMERIC(1));
     REAL(result)[0] = colless(t1);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    return(result);
+}
+
+SEXP R_Kaphi_cophenetic(SEXP nwk, SEXP arg_useBL) {
+    SEXP result;
+    igraph_t * t1;
+    int use_branch_lengths = INTEGER(arg_useBL)[0];
+
+    if (use_branch_lengths) {
+        igraph_i_set_attribute_table(&igraph_cattribute_table);
+    }
+    t1 = R_Kaphi_parse_newick(nwk);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = cophenetic(t1, use_branch_lengths);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    return(result);
+}
+
+SEXP R_Kaphi_ladder_length(SEXP nwk) {
+    SEXP result;
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = ladder_length(t1);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    return(result);
+}
+
+SEXP R_Kaphi_il_nodes(SEXP nwk) {
+    SEXP result;
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = il_nodes(t1);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    return(result);
+}
+
+SEXP R_Kaphi_width(SEXP nwk) {
+    SEXP result;
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = width(t1);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    return(result);
+}
+
+SEXP R_Kaphi_max_delta_width(SEXP nwk) {
+    SEXP result;
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = max_delta_width(t1);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    return(result);
+}
+
+SEXP R_Kaphi_cherries(SEXP nwk) {
+    SEXP result;
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = cherries(t1);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    return(result);
+}
+
+SEXP R_Kaphi_prop_unbalanced(SEXP nwk) {
+    SEXP result;
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = prop_unbalanced(t1);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    return(result);
+}
+
+SEXP R_Kaphi_avg_unbalance(SEXP nwk) {
+    SEXP result;
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = avg_unbalance(t1);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    return(result);
+}
+
+SEXP R_Kaphi_pybus_gamma(SEXP nwk) {
+    SEXP result;
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = pybus_gamma(t1);
+    UNPROTECT(1);
+
+    igraph_destroy(t1);
+    return(result);
+}
+
+SEXP R_Kaphi_internal_terminal_ratio(SEXP nwk) {
+    SEXP result;
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk);
+
+    PROTECT(result = NEW_NUMERIC(1));
+    REAL(result)[0] = internal_terminal_ratio(t1);
     UNPROTECT(1);
 
     igraph_destroy(t1);
