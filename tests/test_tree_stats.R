@@ -4,7 +4,8 @@ source('tests/fixtures/simple-trees.R')
 
 test.nLTT <- function() {
     result <- nLTT(t1, t2)
-
+    expected <- 0.5 + 0.5
+    checkEquals(expected, result)
 }
 
 test.sackin <- function() {
