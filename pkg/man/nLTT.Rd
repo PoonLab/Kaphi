@@ -1,34 +1,27 @@
 \name{nLTT}
 \alias{nLTT}
-\alias{to.newick}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+  Compute the normalized lineages through time (nLTT) statistic
 }
 \description{
-  This is a wrapper function that calls the associated function in the C extension \code{src/kernel.c} to make available other tree shpae similarity measures and statistics.
+  Slightly modified from the version in \cite{jansen2015approximate} using the trapezoid rule instead of the rectangle method. This is a wrapper function that calls the associated function in the C extension \code{src/kernel.c} to make available other tree shape similarity measures and statistics.
 }
 \usage{
 nLTT(x, y)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
-    An object of class "phylo"
+    An object of class "phylo". The first tree to compare.
 }
   \item{x}{
-    An object of class "phylo"
+    An object of class "phylo". The second tree to compare.
   }
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+Returns the nLTT statistic
 }
 \references{
 %% ~put references to the literature/web site here ~
