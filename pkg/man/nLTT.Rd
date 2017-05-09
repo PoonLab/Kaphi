@@ -17,11 +17,8 @@ nLTT(x, y)
     An object of class "phylo". The second tree to compare.
   }
 }
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
 \value{
-Returns the nLTT statistic
+Returns the nLTT statistic.
 }
 \references{
 %% ~put references to the literature/web site here ~

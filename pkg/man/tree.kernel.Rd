@@ -1,16 +1,11 @@
 \name{tree.kernel}
 \alias{tree.kernel}
-\alias{rescale.tree}
-\alias{preprocess.tree}
-\alias{to.newick}
 \alias{utk}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Tree shape kernel functions
+Tree shape kernel function
 }
 \description{
-A kernel function maps objects into a high dimensional feature space where the inner product between objects can be computed efficiently.  
-Kaphi uses a   
+A kernel function maps objects into a high dimensional feature space where the inner product between objects can be computed efficiently.     
 \code{tree.kernel} is a wrapper function that calls the associated function in the C extension \code{src/kernel.c} to compute a tree shape kernel function. 
 }
 \usage{
@@ -25,13 +20,13 @@ tree.kernel(x, y, lambda, sigma, rho=1.0, normalize=0, label1=NA, label2=NA, gam
     An object of class "phylo"
   }
   \item{lambda}{
-    Decay factor of type ...
+    Decay factor is used in the kernel function to penalize larger subset tree matches. Without penalities, large phylogenies will have enormous values along the diagonal of the kernel matrix because it will always match itself exactly, so then it washes out any other patterns when comparing with other phylogenies. 
   }
   \item{sigma}{
-    (define) RBF variance parameter of type ...
+    Variance of Gaussian radial basis function of branch lengths.
   }
   \item{rho}{
-    (define) SST control parameter. An integer value of 0 to represent a subtree kernel, and an integer value of 1 to represent a subset tree kernel. Default is 1.0.
+    Subset tree control parameter. An integer value of 0 to represent a subtree kernel, and an integer value of 1 to represent a pure subset tree kernel. Default is 1.0.
   }
   \item{normalize}{
     Normalizes kernel score by sqrt(k(x,x) * k(y,y)). Default is 0 (but what does 0 mean?)
@@ -50,22 +45,13 @@ tree.kernel(x, y, lambda, sigma, rho=1.0, normalize=0, label1=NA, label2=NA, gam
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
-Returns results of the associated C extension function that computes a tree shaped kernel function
+  Returns results of the associated C extension function that computes a tree shaped kernel function
 }
 \references{
-%% ~put references to the literature/web site here ~
+  Moschitti, A. (2006). Making tree kernels practical for natural language learning. \emph{Association for Computational Linguistics - European Chapter}. \bold{24}, 113--120.
 }
 \author{
 %%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
-\seealso{
-\code{\link{to.newick}}
 }
 \examples{
 ##---- Should be DIRECTLY executable !! ----

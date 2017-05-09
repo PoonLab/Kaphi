@@ -15,6 +15,7 @@ utk(x, y, config)
 \arguments{
   \item{x}{
     An object of class "phylo"
+    }
   \item{y}{
     An object of class "phylo"
   }
