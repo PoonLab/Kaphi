@@ -133,7 +133,7 @@ solve.ode <- function(expr, t0, t1, x0, parms, time.pts=2000, integrationMethod=
     result <- list(
         times=rev(times),
         Y=lapply(index, function(i) sol[i, demeNames]),
-        F=lapply(index, function(i) .birth.matrix(sol[i,], sol[i,1])),
+        F=lapply(index, function(i) .birth.matrix(sol[i,], sol[i,1])git ),
         G=lapply(index, function(i) .migration.matrix(sol[i,], sol[i,1])),
         sol=sol
     )

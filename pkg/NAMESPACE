@@ -1,5 +1,3 @@
-export(preprocess.tree)
-export(rescale.tree)
 export(tree.kernel)
 export(utk)
 export(nLTT)
@@ -44,7 +42,6 @@ export(run.smc)
 export(const.coalescent)
 
 export(parse.ode)
-export(get.times)
 export(solve.ode)
 
 export(init.fgy)

@@ -77,4 +77,4 @@ Norstrom, M. M., Prosperi, M. C., Gray, R. R., et al. (2012). Phylotempo: a set 
 }
 \seealso{
 \code{\link{nLTT}}
-
+}
