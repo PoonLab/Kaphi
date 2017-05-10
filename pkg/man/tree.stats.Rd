@@ -78,14 +78,3 @@ Norstrom, M. M., Prosperi, M. C., Gray, R. R., et al. (2012). Phylotempo: a set 
 \seealso{
 \code{\link{nLTT}}
 
-\examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function (x) 
-{
-  }
-}
-
