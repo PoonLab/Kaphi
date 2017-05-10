@@ -22,11 +22,11 @@ test.rescale.tree <- function() {
     result <- mean(t1$edge.length)
     checkEquals(expected, result)
 
-    temp <- rescale.tree(t1, "NONE")
+    temp <- .rescale.tree(t1, "NONE")
     result <- mean(temp$edge.length)
     checkEquals(expected, result)
 
-    temp <- rescale.tree(t1, "MEAN")
+    temp <- .rescale.tree(t1, "MEAN")
     expected <- 1.0
     result <- mean(temp$edge.length)
     checkEquals(expected, result)
@@ -83,7 +83,7 @@ test.kernel.normalized <- function() {
 
 test.kernel.label <- function() {
     #config <- list(decay.factor=1., rbf.variance=1., sst.control=1., rescale.mode='NONE')
-    #t1 <- preprocess.tree(t1, config)  # (A:0.1,B:0.2)
+    #t1 <- .preprocess.tree(t1, config)  # (A:0.1,B:0.2)
 
 	# essentially unlabelled
 	cat("essentially unlabelled\n")

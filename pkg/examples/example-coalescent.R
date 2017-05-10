@@ -22,7 +22,7 @@ res <- sapply(x, function(val) {
     theta <- c(Ne.tau=val)
     sim.trees <- const.coalescent(theta, nsim=50, n.tips=100)
     dists <- sapply(sim.trees, function(st) {
-        pt <- preprocess.tree(st, config)
+        pt <- .preprocess.tree(st, config)
         distance(obs.tree, pt, config)
     })
     cat(val, "\n")

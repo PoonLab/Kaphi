@@ -34,7 +34,7 @@ parse.input.tree <- function(obs.tree, config) {
 		}
 	}
 	# ladderize, rescale, and compute self-kernel for the observed tree
-    obs.tree <- preprocess.tree(obs.tree, config)
+    obs.tree <- .preprocess.tree(obs.tree, config)
     return (obs.tree)
 }
 

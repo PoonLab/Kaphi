@@ -1,5 +1,6 @@
-export(preprocess.tree)
-export(rescale.tree)
+export(.to.newick)
+export(.preprocess.tree)
+export(.rescale.tree)
 export(tree.kernel)
 export(utk)
 export(nLTT)

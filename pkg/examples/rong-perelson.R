@@ -178,7 +178,7 @@ config <- list(
 
 # read tree to compare
 setwd('~/Documents/Seminars/Dynamics/Dynamics2017/jones')
-obs.tree <- preprocess.tree(read.tree('data/patient_13889.less.rtt.nwk'), config)
+obs.tree <- .preprocess.tree(read.tree('data/patient_13889.less.rtt.nwk'), config)
 obs.labels <- ifelse(grepl("PLASMA", obs.tree$tip.label), 'V', 'C')
 obs.denom <- tree.kernel(obs.tree, obs.tree, lambda=config$decay.factor, sigma=config$rbf.variance, label1=obs.labels, label2=obs.labels)
 
@@ -266,7 +266,7 @@ end.time <- max(sample.times)
 sim.tree <- simulate.RP(sample.times, is.rna, expr, p0, x0, start.time, end.time, integ.method, fgy.resol)
 if (class(sim.tree) == 'phylo') { 
 	# process the resulting tree 
-	sim.tree <- preprocess.tree(sim.tree, config)
+	sim.tree <- .preprocess.tree(sim.tree, config)
 
 	sim.labels <- ifelse(grepl("V", sim.tree$tip.label), 'V', 'C')
 	sim.denom <- tree.kernel(sim.tree, sim.tree, lambda=config$decay.factor, sigma=config$rbf.variance, label1=sim.labels, label2=sim.labels)

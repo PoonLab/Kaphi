@@ -23,7 +23,6 @@ utk(x, y, config)
     A cached object of self-kernel
   }
 }
-}
 \details{
 %%  ~~ If necessary, more details than the description above ~~
 }
@@ -36,11 +35,6 @@ Returns a tree kernel with labelled tree tips.
 \author{
 %%  ~~who you are~~
 }
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
 \code{\link{tree.kernel}}
@@ -55,7 +49,3 @@ function (x)
 {
   }
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
