@@ -33,7 +33,7 @@ parse.ode <- function(births, deaths, ndd, migrations) {
 }
 
 
-get.times <- function(t0, t1, time.pts) {
+.get.times <- function(t0, t1, time.pts) {
     # generate vector of time points
     times1 <- seq(t0, t1, length.out=time.pts)
     tdelta <- times1[2] - times1[1]  # time difference
@@ -88,7 +88,7 @@ solve.ode <- function(expr, t0, t1, x0, parms, time.pts=2000, integrationMethod=
     # process time arguments
     if (time.pts < 1) stop("time.pts argument must be >= 1")
     if (t0 > t1) stop("Start time t0 must be less than end time t1")
-    times <- get.times(t0, t1, time.pts)
+    times <- .get.times(t0, t1, time.pts)
 
 
     # internal functions
