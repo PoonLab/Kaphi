@@ -11,7 +11,6 @@
 \alias{prop.unbalanced}
 \alias{avg.unbalanced}
 \alias{internal.terminal.ratio}
-
 \title{Compute Tree Statistics}
 \description{
 \code{sackin} is a wrapper function that returns the sum of node depths (branch lengths) from each tip to the root.\cr\cr
@@ -48,7 +47,6 @@ internal.terminal.ratio(x)
   \item{use.branch.lengths}
     If 0, all branches are treated as if they had unit length.
 }
-
 \details{
 All wrapper functions call the associated function in the C extension \code{src/kernel.c}  \cr\cr
 Sackin's imbalance is a summary metric used to summarize the topology of the tree. It is measured as the average length of the paths from the leaves to the root of the tree.  \cr\cr
@@ -64,14 +62,12 @@ An unbalanced tree would have different numbers of descending tips on the left a
 The average ratio of unbalanced substrees in the specified tree is defined as the average of min(L, R) / max(L, R) where L (with respect to R) is the number of tips descending from the left subtree (with respect to the right subtree).  \cr\cr
 The ratio of itnernal to terminal branch lengths is described as the ratio of the average internal branch length to the average terminal branch length.\cr\cr
 }
-
 \references{
 Colijn, C., & Gardy, J. (2014). Phylogenetic tree shapes resolve disease transmission patterns. \emph{Evolution, Medicine, & Public Health}, \bold{1}, 96--108.\cr\cr
 Mir, A., Rossello F., & Rotger, L. (2013). A new balance index for phylogenetic trees. \emph{Mathematical Biosciences}, \bold{241.1}, 125--136.\cr\cr
 Pybus, O. G., & Harvey, P. H. (2000). Testing macro-evolutionary models using incomplete molecular phylogenies. \emph{Proceedings of the Royal Society of London. Series B. Biological Sciences}, \bold{267}, 2267--2272.\cr\cr
 Norstrom, M. M., Prosperi, M. C., Gray, R. R., et al. (2012). Phylotempo: a set of R scripts for assessing and visualizing temporal clustering in genealogies inferred from serially sampled viral sequences. \emph{Evolutionary Bioinformatics; London}, \bold{8}, 261.\cr\cr
 }
-
 \author{
 %%  ~~who you are~~
 }
