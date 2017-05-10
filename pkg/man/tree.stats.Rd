@@ -53,7 +53,7 @@ internal.terminal.ratio(x)
 All wrapper functions call the associated function in the C extension \code{src/kernel.c}  \cr\cr
 Sackin's imbalance is a summary metric used to summarize the topology of the tree. It is measured as the average length of the paths from the leaves to the root of the tree.  \cr\cr
 The Colless imbalance is a normalized measure of the asymmetry of a rooted full binary tree. A completely asymmetric tree will have an imbalance of 1 and a symmetric tree will have an imbalance of 0.  \cr\cr
-The \emph{total cophenetic index} is the sum over all pairs of different leaves at the deapth of their least common ancestor.  \cr\cr
+The \emph{total cophenetic index} is the sum over all pairs of different leaves at the depth of their least common ancestor.  \cr\cr
 Pybus' gamma-statistic summarizes the information contained in the inter-node intervals of a phylogeny. The tree should be ultrameric, but this isn't checked by the function, so if it is not ultrameric, the returned result may not be meaningful.   \cr\cr
 Ladder length is defined as the maximum path length in the tree, in untis of number of branches (edges, not the branch length). In other terms, it is the max number of connected internal nodes with a single leaf descendant, divided by the number of leaves in the tree. Also known as the trunk length.  \cr\cr
 The "IL" portion of the nodes is the proportion of internal nodes with a single leaf descendant.  \cr\cr
