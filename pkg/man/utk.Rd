@@ -1,7 +1,5 @@
 \name{utk}
 \alias{utk}
-\alias{tree.kernel}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Unlabelled tree-shaped kernel
 }
