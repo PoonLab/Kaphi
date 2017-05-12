@@ -44,7 +44,7 @@ A list is returned of items stored in \code{config}, an \code{smc.config} object
     Number of samples per particle. Default is 5. 
   }
   \item{ess.tolerance}{
-    Explained sum of squares (ESS) is a quantity describing how well the model represents the data being modelled. It measures how much variation there is in the modelled values compared to the total sum of squares (variation in the observed data) as well as the residual sum of squares (variation in modelling errors). Default is 1.5.
+     The effective sample size tolerance level. Effective sample size if defined for a sample from a distribution when the observations in the sample are correlated or weighted. Default is 1.5.
   }
   \item{final.epsilon}{
     Final epsilon value. Default is 0.01.
@@ -56,7 +56,7 @@ A list is returned of items stored in \code{config}, an \code{smc.config} object
     Quality of the distribution? Default is 0.95.
   }
   \item{step.tolerance}{
-    The tolerance level decreases by this amount at subsequent algorithmic time steps until it reaches \code{final.epsilon}. If \code{step.tolerance} decreases too slowly then the algorithm will be too computationally intensive. If tolerance levels decrease too fast, the algorithm can perform poorly. Default is 1e-5.
+    The tolerance level decreases by this amount at subsequent algorithmic time steps until it reaches \code{final.epsilon}. Default is 1e-5.
   }
   \item{decay.factor}{
     Decay factor is used in the kernel function to penalize larger subset tree matches. Default is 0.2.
