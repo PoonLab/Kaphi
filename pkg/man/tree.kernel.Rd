@@ -1,6 +1,5 @@
 \name{tree.kernel}
 \alias{tree.kernel}
-\alias{utk}
 \title{
 Tree shape kernel function
 }
@@ -47,6 +46,7 @@ tree.kernel(x, y, lambda, sigma, rho=1.0, normalize=0, label1=NA, label2=NA, gam
 \value{
   Returns results of the associated C extension function that computes a tree shaped kernel function
 }
+\seealso{\code{\link{utk}}}
 \references{
   Moschitti, A. (2006). Making tree kernels practical for natural language learning. \emph{Association for Computational Linguistics - European Chapter}. \bold{24}, 113--120.
 }
