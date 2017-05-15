@@ -75,6 +75,6 @@ test.simulate.ode.tree <- function() {
     checkEquals('phylo', class(result))
     checkEquals(100, Ntip(result))
 
-    node.heights <- get.node.heights(result)
+    node.heights <- .get.node.heights(result)
 
 }
