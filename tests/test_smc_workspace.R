@@ -44,6 +44,13 @@ test.get.tip.heights <- function() {
     checkEquals(expected, result)
 }
 
+test.get.node.heights <- function() {
+  result <- .get.node.heights(t2)
+  # ((A:0.1,B:0.2):0.1,C:0.3):0;
+  expected <- c(0.3, 0.2)
+  checkEquals(expected, result)
+}
+
 test.parse.labels <- function() {
     labels <- c('1_A', '2_B', '3_A', '4_')
     regex <- '_([A-Z]*)$'
