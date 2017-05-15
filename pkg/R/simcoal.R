@@ -11,7 +11,7 @@
 #   publisher={Genetics Soc America}
 # }
 
-init.fgy <- function(sol, max.sample.time) {
+.init.fgy <- function(sol, max.sample.time) {
     # Rescale the time axis of F/G/Y matrices in reverse time with maximum
     # sample time as origin.
     #
@@ -67,7 +67,7 @@ init.fgy <- function(sol, max.sample.time) {
 }
 
 
-init.QAL.solver <- function(fgy, sample.states, sample.heights, integration.method='adams') {
+.init.QAL.solver <- function(fgy, sample.states, sample.heights, integration.method='adams') {
     # Q is the state transition (deme migration) rate matrix
     # A is the number of extant (sampled) lineages over time
     # L is the cumulative hazard of coalescence
@@ -104,7 +104,7 @@ init.QAL.solver <- function(fgy, sample.states, sample.heights, integration.meth
 }
 
 
-solve.A.mx <- function(fgy, sample.states, sample.heights) {
+.solve.A.mx <- function(fgy, sample.states, sample.heights) {
     # The A matrix represents the expected number of extant (sampled) lineages over time.
     # Args:
     #   fgy:  List returned from get.fgy()
@@ -196,7 +196,7 @@ solve.A.mx <- function(fgy, sample.states, sample.heights) {
 }
 
 
-get.event.times <- function(A.mx, sample.heights) {
+.get.event.times <- function(A.mx, sample.heights) {
     #  An event is either:
     #   1. sampling of a lineage
     #   2. coalescence of two lineages or
@@ -228,7 +228,7 @@ get.event.times <- function(A.mx, sample.heights) {
 }
 
 
-update.mstates <- function(z, solve.QAL) {
+.update.mstates <- function(z, solve.QAL) {
     z$n.extant <- sum(z$is.extant)
 
     # process new samples and calculate the state of new lineages
@@ -263,7 +263,7 @@ update.mstates <- function(z, solve.QAL) {
 
 
 # from R package ECctmc - tweaked to bypass zero row sums check
-sample.path <- function (a, b, t0, t1, Q)
+.sample.path <- function (a, b, t0, t1, Q)
 {
     if (!all(abs(rowSums(Q)) < 10*.Machine$double.eps)) {  # originally "< 0"
         stop("The rate matrix is not valid. The rates must sum to 0 zero within each row.", Q[1,], "\n", Q[2,], "\n", Q[3,], "\n")
@@ -286,7 +286,7 @@ sample.path <- function (a, b, t0, t1, Q)
 }
 
 
-coalesce.lineages <- function(z) {
+.coalesce.lineages <- function(z) {
     # current number of sampled lineages at this time point
     z$n.extant <- sum(z$is.extant)
     if (z$n.extant == 1) {
@@ -374,7 +374,7 @@ coalesce.lineages <- function(z) {
         b.state <- sample(1:z$m, 1, prob=z$lstates[u,])  # to state
 
         # use modified rejection sampling to simulate state transitions
-        path <- sample.path(a.state, b.state, 0, z$edge.length[u], qm)
+        path <- .sample.path(a.state, b.state, 0, z$edge.length[u], qm)
         z$inner.edge[[u]] <- path
 
         # apply to other branch
@@ -382,7 +382,7 @@ coalesce.lineages <- function(z) {
         qm <- matrix(pmax(0, qm), nrow=nrow(qm))
         diag(qm) <- -rowSums(qm)
         b.state <- sample(1:z$m, 1, prob=z$lstates[v,])
-        path <- sample.path(a.state, b.state, 0, z$edge.length[v], qm)
+        path <- .sample.path(a.state, b.state, 0, z$edge.length[v], qm)
         z$inner.edge[[v]] <- path
     }
 
@@ -390,8 +390,8 @@ coalesce.lineages <- function(z) {
 }
 
 
-get.terminals <- function(node, tree) {
-    # Emulate functionality of BioPython.Phylo:get.terminals()
+.get.terminals <- function(node, tree) {
+    # Emulate functionality of BioPython.Phylo:.get.terminals()
     # Args:
     #   node: integer index of node in ape:phylo object, as corresponds to tree$edge
     #   tree: ape:phylo Tree object
@@ -414,7 +414,7 @@ get.terminals <- function(node, tree) {
 }
 
 
-invert.list <- function(l) {
+.invert.list <- function(l) {
 	result <- list()
 	for (i in 1:length(l)) {
 		key <- paste(l[[i]], collapse=' ')
@@ -428,10 +428,10 @@ invert.list <- function(l) {
     # Args:
     #   sample.times:
     #   sample.states:
-    #   fgy:  List returned from init.fgy()
-    #   solve.QAL:  Function returned from init.QAL.solver()
-    #   A.mx:  List returned from solve.A.mx()
-    #   Et:  List returned from get.event.times()
+    #   fgy:  List returned from .init.fgy()
+    #   solve.QAL:  Function returned from .init.QAL.solver()
+    #   A.mx:  List returned from .solve.A.mx()
+    #   Et:  List returned from .get.event.times()
 
     z <- list()  # workspace to pass to subfunctions
 
@@ -531,8 +531,8 @@ invert.list <- function(l) {
         }
 
 		# call helper functions
-        z <- update.mstates(z, solve.QAL)
-        z <- coalesce.lineages(z)
+        z <- .update.mstates(z, solve.QAL)
+        z <- .coalesce.lineages(z)
         cat(ih, length(z$event.times), z$h0, z$h1, sum(z$is.extant), 'coalesce\n')
     }
 
@@ -561,18 +561,18 @@ invert.list <- function(l) {
     if (simulate.migrations & z$m > 1) {
         # use tip labels to match internal nodes between `phylo` and `z`
         px <- lapply(phylo$edge[,2], function(i) {  # note iteration over 2nd column skips root node
-            idx <- get.terminals(i, phylo)
+            idx <- .get.terminals(i, phylo)
             sort(as.integer(phylo$tip.label[idx]))
         })
         names(px) <- phylo$edge[,2]
-        ipx <- invert.list(px)
+        ipx <- .invert.list(px)
 
         zx <- lapply(z$edge[,2], function(i) {
-            idx <- get.terminals(i, z)
+            idx <- .get.terminals(i, z)
             sort(as.integer(z$tip.label[idx]))
         })
         names(zx) <- z$edge[,2]
-        izx <- invert.list(zx)
+        izx <- .invert.list(zx)
 
         # maps edges from `z` to `phylo`
         index <- as.integer(izx[names(ipx)])
@@ -614,10 +614,10 @@ simulate.ode.tree <- function(sol, sample.times, sample.states, integration.meth
     }
 
     ## call helper functions
-    fgy <- init.fgy(sol, max.sample.time)
-    solve.QAL <- init.QAL.solver(fgy, sample.states, sample.heights)
-    A.mx <- solve.A.mx(fgy, sample.states, sample.heights)
-    Et <- get.event.times(A.mx, sample.heights)
+    fgy <- .init.fgy(sol, max.sample.time)
+    solve.QAL <- .init.QAL.solver(fgy, sample.states, sample.heights)
+    A.mx <- .solve.A.mx(fgy, sample.states, sample.heights)
+    Et <- .get.event.times(A.mx, sample.heights)
 
     sim.tree <- .simulate.ode.tree(sample.times, sample.states, fgy, solve.QAL, A.mx, Et, simulate.migrations)
     return(sim.tree)
