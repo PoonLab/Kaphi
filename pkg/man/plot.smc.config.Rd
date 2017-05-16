@@ -13,7 +13,6 @@ plot.smc.config(config, nreps=1000)
   \item{config}{
     A list of settings configured based on YAML input from the user. A \code{smc.config} object.
 }
-}
   \item{nreps}{
     Number of replicates. Default is 1000. 
   }
