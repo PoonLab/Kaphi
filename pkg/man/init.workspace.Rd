@@ -44,7 +44,7 @@
         observed tree.
     }
     \item{n.tips}{
-        The number of tips in obs.tree.
+        The number of tips in \code{obs.tree}.
     }
     \item{tip.heights}{
         A numeric vector containing the tip heights.
@@ -93,7 +93,7 @@
 }
 
 \references{
-    Del Moral, P., Doucet, A., & Jasra, A. (2012) An adaptive sequential Monte Carlo method for approximate Bayesian computation. \emph{Statistics and Computing}, \blod{22}(5), 1009--1020.
+    Del Moral, P., Doucet, A., & Jasra, A. (2012) An adaptive sequential Monte Carlo method for approximate Bayesian computation. \emph{Statistics and Computing}, \bold{22}(5), 1009--1020.
 }
 
 \author{

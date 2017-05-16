@@ -1,13 +1,5 @@
 \name{solve.ode}
 \alias{solve.ode}
-\alias{.birth.matrix}
-\alias{.migration.matrix}
-\alias{tBirths}
-\alias{tMigrationsIn}
-\alias{tMigrationsOut}
-\alias{tDeaths}
-\alias{dNonDeme}
-\alias{dx}
 
 \title{
     Numerical Solution of ODE System
