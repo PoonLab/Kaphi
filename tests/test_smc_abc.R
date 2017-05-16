@@ -70,7 +70,7 @@ test.distance <- function() {
 
 
 test.ess <- function() {
-    result <- ess(seq(0, 1, 0.1))
+    result <- .ess(seq(0, 1, 0.1))
     expected <- 1./(0+0.01+0.04+0.09+0.16+0.25+0.36+0.49+0.64+0.81+1.)
     checkEquals(expected, result)
 }
@@ -86,14 +86,14 @@ test.epsilon.obj.func <- function() {
             quality=0.9
         )
     )
-    result <- epsilon.obj.func(ws, 0.13)
+    result <- .epsilon.obj.func(ws, 0.13)
 
 
     # particle 1: num = 1, denom = 1
     # particle 2: num = 1, denom = 1
     # particle 3: num = 0, denom = 2
     new.weights <- c(0.2 * (1/1), 0.3 * (1/1), 0.5 * 0) / 0.5
-    expected <- ess(new.weights) - 0.9 * ess(ws$weights)
+    expected <- .ess(new.weights) - 0.9 * .ess(ws$weights)
     checkEquals(expected, result)
 }
 
@@ -110,22 +110,22 @@ test.next.epsilon <- function() {
             final.epsilon=0.01
         )
     )
-    result <- ess(ws$weights)
+    result <- .ess(ws$weights)
     expected <- 10.
     checkEquals(expected, result)
 
-    result <- epsilon.obj.func(ws, 0.085)  # two particles out
+    result <- .epsilon.obj.func(ws, 0.085)  # two particles out
     expected <- 8 - 0.9 * 10
     checkEquals(expected, result)
 
-    result <- epsilon.obj.func(ws, 0.055)  # five particles out
+    result <- .epsilon.obj.func(ws, 0.055)  # five particles out
     expected <- 5 - 0.9 * 10
     checkEquals(expected, result)
 
     # adjust alpha (quality) so that root is around 0.055
     ws$epsilon <- 0.11
     ws$config$quality <- 0.5
-    result <- next.epsilon(ws)$epsilon
+    result <- .next.epsilon(ws)$epsilon
     expected <- 0.055
     checkEquals(expected, result, tolerance=0.01)
 }
@@ -185,7 +185,7 @@ test.resample.particles <- function() {
     class(workspace) <- 'smc.workspace'
 
     set.seed(42)  # sample(1:5,5,replace=T,prob=ws$weights) -> c(1,1,4,2,3)
-    workspace <- resample.particles(workspace)
+    workspace <- .resample.particles(workspace)
 
     checkEquals(class(workspace), "smc.workspace")
     checkEquals(names(workspace), c('particles', 'weights', 'dists', 'config'))
@@ -219,7 +219,7 @@ test.perturb.particles <- function() {
     ws <- initialize.smc(ws)
     before <- ws
     set.seed(11)  # with this seed acceptance rate is 7/10
-    after <- perturb.particles(ws)
+    after <- .perturb.particles(ws)
 
     # all the particles should be alive
     checkEquals(after$alive, 10)
