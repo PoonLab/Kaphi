@@ -220,9 +220,21 @@ print.smc.config <- function(config, ...) {
 }
 
 
-plot.smc.config <- function(config, nreps=1000) {
+plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
+    # numr = number of rows of plots to be displayed at one time
+    # numc = number of columns of plots to be displayed at one time
     # display prior distributions
     y <- sapply(1:nreps, function(x) sample.priors(config))
     h <- apply(y, 1, hist)
-    plot(h[[1]], xlab=names(h)[1], main='Sample from prior distribution')  # TODO: Prompt user to go to next plot
+    s <- 1        # counter
+    # x11()
+    par(ask=T)    # prompts user to 'Hit <Return> to see next plot'
+    
+    for (i in 1:(numr * numc)){
+      par(mfrow = c(numr, numc))     # multiple plot display option
+      for (slot in 1:(numr * numc)){
+        plot(h[[s]], xlab=names(h)[1], main='Sample from prior distribution')  # TODO: Adjust x-axis for each plot
+        s <- s + 1
+      }
+    }
 }
