@@ -7,7 +7,7 @@ Display Prior Distributions
 Plots the different prior distributions within the Kaphi sequential Monte Carlo configuration settings. Multiple plots are generated, one plot each for every sample from the prior distribution.
 }
 \usage{
-plot.smc.config(config, nreps=1000)
+plot.smc.config(config, nreps=1000, numr=1, numc=1)
 }
 \arguments{
   \item{config}{
@@ -16,9 +16,15 @@ plot.smc.config(config, nreps=1000)
   \item{nreps}{
     Number of replicates. Default is 1000. 
   }
+  \item{numr}{
+    Number of rows of prior distributions to be displayed at one time. Default is 1.
+  }
+  \item{numc}{
+    Number of columns of prior distributions to be displayed at one time. Default is 1.
+  }
 }
 \note{
-User has to advance onto the next plot using the right arrow key in the graphical window.
+User will be prompted to advance onto the next plot in the graphical window by using the <Return> key.
 }
 \references{
 %% ~put references to the literature/web site here ~
