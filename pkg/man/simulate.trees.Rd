@@ -2,10 +2,15 @@
 \alias{simulate.trees}
 
 \title{
-    Simulate Trees Under a Model
+    Simulate Trees from Particle
 }
 \description{
-
+    \code{simulate.trees} uses the model specified in
+    workspace$config to create a list of simulated trees
+    that is the length of the number of samples per particle.
+    
+    Each simulated tree is preprocessed by ladderizing, rescaling,
+    and computing the self kernel for the tree.
 }
 
 \usage{
@@ -14,25 +19,24 @@
 
 \arguments{
     \item{workspace}{
-        smc.workspace object.
-}
+        An object of class 'smc.workspace'.
+    }
     \item{theta}{
-        parameter vector.
-}
+        A named vector of parameter values.
+    }
     \item{seed}{
-        argument to \code{set.seed()}.
-}
-    \item{\dots}{}
+        Argument to \code{set.seed()}.
+    }
+    \item{\dots}{
+        Additional arguments to pass to config@generator.
+    }
 }
 
 \details{}
 
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+    A list of objects of class 'phylo', the length of which is
+    equal to the number of samples per particle.
 }
 
 \references{
@@ -46,12 +50,31 @@
 \note{}
 
 \seealso{
-
+    \code{\link{initialize.smc}} for the use of the output of this function.
 }
 
 \examples{
+## Set observed tree
+t2 <- read.tree(text="((A:0.1,B:0.2):0.1,C:0.3):0;")
 
+## Set SMC configuration and workspace
+ config <- list(
+        nparticle=10,
+        model=const.coalescent,
+        nsample=10,
+        decay.factor=0.2,
+        rbf.variance=2.0,
+        sst.control=1.0,
+        norm.mode='NONE'
+    )
+
+workspace <- init.workspace(t2, config)
+
+## Set Parameters
+theta <- c(1)
+names(theta) <- c('Ne.tau')
+
+simulate.trees(workspace, theta)
 }
 
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }
+\keyword{simulate}

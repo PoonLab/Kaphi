@@ -33,7 +33,7 @@ run.smc(ws, trace.file = "", regex = NA, seed = NA, nthreads = 1, verbose = FALS
 %%     ~~Describe \code{verbose} here~~
     }
     \item{\dots}{
-        additional arguments to pass to config@generator via simulate.trees().
+        Additional arguments to pass to config@generator via simulate.trees().
     }
 }
 
