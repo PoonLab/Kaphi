@@ -6,45 +6,63 @@
 }
 
 \description{
-
+    \code{run.smc()} performs a Sequential Monte Carlo (SMC) for
+    Approximate Bayesian Computation (ABC).
 }
 
 \usage{
-run.smc(ws, trace.file = "", regex = NA, seed = NA, nthreads = 1, verbose = FALSE, ...)
+    run.smc(ws, trace.file = "", regex = NA, seed = NA, nthreads = 1, verbose = FALSE, ...)
 }
 
 \arguments{
     \item{ws}{
-        smc.workspace object.
+        An object of class 'smc.workspace'.
     }
     \item{trace.file}{
-        (optional) path to a file to write outputs.
+        (optional) path to a file to write outputs. The default
+        value of '' prints the output to the screen.
     }
     \item{regex}{
-        
+        (optional) A regular expression to pass to \code{parse.labels()}
+        via \code{init.workspace()}. Default is NA.
     }
     \item{seed}{
-        (optional) integer to set random seed.
+        (optional) integer to set random seed, passed to \code{simulate.trees()}.
+        Default is NA.
     }
     \item{nthreads}{
-        (optional) for running on multiple cores.
+        (optional) for running on multiple cores. Default is 1.
     }
     \item{verbose}{
-%%     ~~Describe \code{verbose} here~~
+        If TRUE, additional information is printed to the screen
+        with each iteration. Default is FALSE.
     }
     \item{\dots}{
-        Additional arguments to pass to config@generator via simulate.trees().
+        Additional arguments to pass to config@generator via \code{simulate.trees()}.
     }
 }
 
 \details{}
 
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+    A list of returned values:
+    \item{niter}{
+        Number of iterations.
+    }
+    \item{theta}{
+        A list of matricies containing the theta parameter values
+        for each particle at each iteration.
+    }
+    \item{weights}{
+        A list of vectors containg the weight of each particle at
+        each iteration.
+    }
+    \item{accept.rate}{
+        A vector containing the acceptance rate at each iteration.
+    }
+    \item{epsilons}{
+        A vector containing the value of epsilon at each iteration.
+    }
 }
 
 \references{
@@ -58,12 +76,27 @@ run.smc(ws, trace.file = "", regex = NA, seed = NA, nthreads = 1, verbose = FALS
 \note{}
 
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+    \code{\link{initialize.smc}}
 }
 
 \examples{
+## Set observed tree
+t2 <- read.tree(text="((A:0.1,B:0.2):0.1,C:0.3):0;")
 
+## Set SMC configuration (will need to setwd() if running in GUI)
+config <- load.config('tests/fixtures/test-coalescent.yaml')
+
+## Set model
+config <- set.model(config, const.coalescent)
+
+## Initialize workspace
+ws <- init.workspace(t2, config)
+
+## Initialize SMC
+ws <- initialize.smc(ws)
+
+result <- run.smc(ws)
 }
 
-\keyword{ ~kwd1 }
+\keyword{SMC}
 \keyword{ ~kwd2 }
