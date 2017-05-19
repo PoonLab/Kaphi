@@ -38,10 +38,17 @@ test.parse.input.tree <- function() {
 }
 
 test.get.tip.heights <- function() {
-    result <- get.tip.heights(t2)
+    result <- .get.tip.heights(t2)
     # ((A:0.1,B:0.2):0.1,C:0.3):0;
     expected <- c(0.1, 0, 0)
     checkEquals(expected, result)
+}
+
+test.get.node.heights <- function() {
+  result <- .get.node.heights(t2)
+  # ((A:0.1,B:0.2):0.1,C:0.3):0;
+  expected <- c(0.3, 0.2)
+  checkEquals(expected, result)
 }
 
 test.parse.labels <- function() {

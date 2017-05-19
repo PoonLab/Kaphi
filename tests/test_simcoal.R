@@ -4,7 +4,7 @@ source('tests/fixtures/SI-matrices.R')
 source('tests/fixtures/kingman.R')
 
 test.init.fgy <- function() {
-    result <- init.fgy(sol, max.sample.time=90)
+    result <- .init.fgy(sol, max.sample.time=90)
     checkEquals('list', typeof(result))
 
     fgy.parms <- result$parms
@@ -27,10 +27,10 @@ test.init.fgy <- function() {
 
 test.solve.A.mx <- function() {
     # note fgy.resolution=100
-    fgy <- init.fgy(sol, max.sample.time=90)
+    fgy <- .init.fgy(sol, max.sample.time=90)
     sample.states <- matrix(1, nrow=10, ncol=1)
     sample.heights <- rep(0, times=10)
-    result <- solve.A.mx(fgy, sample.states, sample.heights)
+    result <- .solve.A.mx(fgy, sample.states, sample.heights)
 
     checkEquals(100, nrow(result$mat))
     checkEquals(seq(0, 90, length.out=100), result$haxis)
@@ -42,10 +42,10 @@ test.solve.A.mx <- function() {
 
 
 test.init.QAL.solver <- function() {
-    fgy <- init.fgy(sol, max.sample.time=90)
+    fgy <- .init.fgy(sol, max.sample.time=90)
     sample.states <- matrix(1, nrow=10, ncol=1)
     sample.heights <- rep(0, times=10)  # all lineages sampled at same time
-    result.func <- init.QAL.solver(fgy, sample.states, sample.heights)
+    result.func <- .init.QAL.solver(fgy, sample.states, sample.heights)
 
     A0 <- 10
     L0 <- 0.1
@@ -75,6 +75,6 @@ test.simulate.ode.tree <- function() {
     checkEquals('phylo', class(result))
     checkEquals(100, Ntip(result))
 
-    node.heights <- get.node.heights(result)
+    node.heights <- .get.node.heights(result)
 
 }

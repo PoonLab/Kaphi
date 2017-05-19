@@ -34,7 +34,7 @@ test.parse.ode <- function() {
 }
 
 test.get.times <- function() {
-    result <- get.times(0, 5, 9)
+    result <- .get.times(0, 5, 9)
     expected <- c(0, 0.625, 1.25, 1.875, 2.5, 3.125, 3.75, 4.375, 5)
     checkEquals(expected, result)
 }

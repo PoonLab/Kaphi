@@ -34,19 +34,19 @@ parse.input.tree <- function(obs.tree, config) {
 		}
 	}
 	# ladderize, rescale, and compute self-kernel for the observed tree
-    obs.tree <- preprocess.tree(obs.tree, config)
+    obs.tree <- .preprocess.tree(obs.tree, config)
     return (obs.tree)
 }
 
 
 # ape:node.height() does not have the expected function
 # ape:branching.times() requires an ultrametric tree
-get.tip.heights <- function(phy) {
+.get.tip.heights <- function(phy) {
 	n.tips <- Ntip(phy)
 	tip.dists <- node.depth.edgelength(phy)[1:n.tips]
 	return(max(tip.dists)-tip.dists)
 }
-get.node.heights <- function(phy) {
+.get.node.heights <- function(phy) {
     n.tips <- Ntip(phy)
     n.nodes <- Nnode(phy)
     tip.dists <- node.depth.edgelength(phy)[1:n.tips]
@@ -78,7 +78,7 @@ init.workspace <- function(obs.tree, config, regex=NA) {
 
         # store some useful info
         n.tips=Ntip(obs.tree),
-        tip.heights=get.tip.heights(obs.tree),
+        tip.heights=.get.tip.heights(obs.tree),
         tip.labels=ifelse(is.na(regex), NA, parse.labels(obs.tree$tip.label, regex)),
 
         # this will hold multiPhylo objects from particles

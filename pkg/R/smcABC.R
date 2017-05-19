@@ -41,7 +41,7 @@ simulate.trees <- function(workspace, theta, seed=NA, ...) {
 
     # annotate each trees with its self-kernel score
     for (i in 1:config$nsample) {
-        result[[i]] <- preprocess.tree(result[[i]], config)
+        result[[i]] <- .preprocess.tree(result[[i]], config)
     }
 
     return(result)
@@ -108,12 +108,12 @@ initialize.smc <- function(ws, ...) {
 
 
 
-ess <- function(w) {
+.ess <- function(w) {
     # effective sample size
     return(1/sum(w^2))
 }
 
-epsilon.obj.func <- function(ws, epsilon) {
+.epsilon.obj.func <- function(ws, epsilon) {
     # unpack some things
     config <- ws$config
     prev.epsilon <- ws$epsilon
@@ -140,11 +140,11 @@ epsilon.obj.func <- function(ws, epsilon) {
     if (epsilon==0 || wsum==0) {
         return (-1)  # undefined -- range limited to (0, prev.epsilon)
     }
-    return (ess(ws$new.weights) - config$quality * ess(ws$weights))
+    return (.ess(ws$new.weights) - config$quality * .ess(ws$weights))
 }
 
 
-next.epsilon <- function(ws) {
+.next.epsilon <- function(ws) {
     # Let W_n^i be the weight of the i-th particle at n-th iteration
     #
     # The effective sample size is
@@ -159,7 +159,7 @@ next.epsilon <- function(ws) {
     config <- ws$config
 
     # solve for new epsilon
-    res <- uniroot(function(x) epsilon.obj.func(ws, x), lower=0,
+    res <- uniroot(function(x) .epsilon.obj.func(ws, x), lower=0,
         upper=ws$epsilon, tol=config$step.tolerance, maxiter=1E6)
     root <- res$root
     if (root < config$final.epsilon) {
@@ -182,7 +182,7 @@ next.epsilon <- function(ws) {
 }
 
 
-resample.particles <- function(ws) {
+.resample.particles <- function(ws) {
     nparticle <- ws$config$nparticle
     # sample from current population of particles with replacement
     indices <- sample(1:nparticle, nparticle, replace=TRUE, prob=ws$weights)
@@ -199,7 +199,7 @@ resample.particles <- function(ws) {
 }
 
 
-perturb.particles <- function(ws) {
+.perturb.particles <- function(ws) {
     ##  This implements the Metropolis-Hastings acceptance/rejection step
     config <- ws$config
     nparticle <- config$nparticle
@@ -295,23 +295,23 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
         if (verbose) { cat("ws$dists:\n", show(ws$dists), "\n\n") }
 
         # update epsilon
-        ws <- next.epsilon(ws)
+        ws <- .next.epsilon(ws)
 
         # provide some feedback
         lap <- proc.time() - ptm
-        cat ("Step ", niter, " epsilon:", ws$epsilon, " ESS:", ess(ws$weights),
+        cat ("Step ", niter, " epsilon:", ws$epsilon, " ESS:", .ess(ws$weights),
              "accept:", result$accept.rate[length(result$accept.rate)],
              "elapsed:", round(lap[['elapsed']],1), "s\n")
 
         # resample particles according to their weights
-        if (ess(ws$weights) < config$ess.tolerance) {
-            ws <- resample.particles(ws)
+        if (.ess(ws$weights) < config$ess.tolerance) {
+            ws <- .resample.particles(ws)
         }
 
         # perturb particles
         ws$accept <- 0
         ws$alive <- 0
-        ws <- perturb.particles(ws)  # Metropolis-Hastings sampling
+        ws <- .perturb.particles(ws)  # Metropolis-Hastings sampling
 
         # record everything
         result$theta[[niter]] <- ws$particles
@@ -348,7 +348,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     }
 
     # finally sample from the estimated posterior distribution
-    ws <- resample.particles(ws)
+    ws <- .resample.particles(ws)
     result$theta[[niter]] <- ws$particles
     result$weights[[niter]] <- ws$weights
     result$niter <- niter
