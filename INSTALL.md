@@ -1,46 +1,46 @@
 ## Installation Requirements:
 
-* R Programming language
-* R Pakages: yaml, deSolve, ape, ECcmtc, RUnit
-* Linux Tools: bison, flex, libgsl-dev, libjudy-dev
+* [R software environment](https://cran.r-project.org/)
+* R packages
+  * [yaml](https://cran.r-project.org/web/packages/yaml/index.html)
+  * [deSolve](http://desolve.r-forge.r-project.org/)
+  * [ape](http://ape-package.ird.fr/)
+  * [ECcmtc](https://cran.r-project.org/web/packages/ECctmc/index.html)
+  * [RUnit](https://cran.r-project.org/web/packages/RUnit/index.html)
+* GNU tools: 
+  * [bison](https://www.gnu.org/software/bison/)
+  * [flex](https://github.com/westes/flex)
+* C libraries:
+  * [GNU Scientific Library](https://www.gnu.org/software/gsl/) 
+  * [Judy C library](http://judy.sourceforge.net/) 
 
 
 ## Requirements Installation Procedure (Ubuntu):
 
 * The commands for each step are to be written/coppied one by one to the terminal.
 
-* Updating and Upgrading The System  
+1. Updating and Upgrading The System  
     ```
-       cd
        sudo apt-get update
        sudo apt-get upgrade
     ```
-* Installing R
+2. Installing R
     ```
-	   cd
 	   sudo apt-get install r-base
 	   sudo apt-get install r-base-dev
     ```
-* Installing R Packages
+3. Installing R Packages
     ```
-	   cd
 	   R
-    ```
-    * In CRAN run the following:    
-    ```
 	   install.packages("yaml")
 	   install.packages("deSolve")
 	   install.packages("ape")
 	   install.packages("ECcmtc")
 	   install.packages("RUnit")
-    ```
-    * Exit CRAN by running:
-    ```
 	   quit() 
     ```
-* Installing Linux Tools
+4. Installing GNU tools and C libraries
     ```
-	   cd
 	   sudo apt-get install bison
 	   sudo apt-get install flex  
 	   sudo apt-get install libgsl-dev
@@ -49,9 +49,8 @@
     
 ## Kaphi Installation Procedure (Ubuntu):
 
-* Clone Kaphi In Your Desired Git Directory (for this example said directory will be home)
+* Navigate to your preferred location in the filesystem and clone Kaphi from the GitHhub repository
     ```
-	   cd	   
 	   git clone --recursive https://github.com/PoonLab/Kaphi.git
     ```
     
@@ -63,8 +62,8 @@
 	   make
 	   sudo make install
     ```
-* Install Kaphi
+* Compile and install Kaphi
     ```
-	   cd ~/Kaphi
+	   cd ../../../  # navigate back to package root
 	   R CMD INSTALL pkg
     ```
