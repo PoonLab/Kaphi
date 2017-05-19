@@ -105,7 +105,8 @@ tree.kernel <- function(tree1, tree2,
     normalize=0,   # normalize kernel score by sqrt(k(t1,t1) * k(t2,t2))
     label1=NA,     # arguments for labeled tree kernel
     label2=NA,
-    gamma=0) {
+    gamma=0        # label factor
+) {
     # make labels
     use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
         FALSE

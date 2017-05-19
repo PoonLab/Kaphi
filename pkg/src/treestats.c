@@ -163,13 +163,27 @@ double kernel(
     return K;
 }
 
+
+/*
+  nLTT - normalized lineages through time measure
+
+  Toni, T., Welch, D., Strelkowa, N., Ipsen, A., & Stumpf, M.P.H. (2009). Approximate Bayesian
+  computation scheme for parameter inference and model selection in dynamical systems. Journal of
+  the Royal Society Interface, 6(31), 187-202.
+
+  We have modified this measure from the original so that it should be able to handle trees
+  that are not ultrametric.
+ */
 double nLTT(const igraph_t *t1, const igraph_t *t2)
 {
+    // TODO: this needs more documentation!
     int itree, i, cur;
     double h, k, prev;
     const igraph_t *trees[2] = {t1, t2};
 
+    // number of tips
     int n[2] = {(igraph_vcount(t1) + 1) / 2, (igraph_vcount(t2) + 1) / 2};
+
     double *x[2] = {calloc(n[0], sizeof(double)), calloc(n[1], sizeof(double))};
     double *y[2] = {calloc(n[0], sizeof(double)), calloc(n[1], sizeof(double))};
     double *buf = malloc(fmax(igraph_vcount(t1), igraph_vcount(t2)) * sizeof(double));

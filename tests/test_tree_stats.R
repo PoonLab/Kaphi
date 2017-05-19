@@ -3,8 +3,8 @@ require(RUnit, quietly=TRUE)
 source('tests/fixtures/simple-trees.R')
 
 test.nLTT <- function() {
-    result <- nLTT(t1, t2)
-    expected <- 0.5 + 0.5
+    result <- nLTT(t4, t5)
+    expected <- 1/3. * 1/6.
     checkEquals(expected, result)
 }
 
