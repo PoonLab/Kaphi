@@ -55,12 +55,16 @@ bisse <- function(theta, nsim, n.tips, parms, labels=NA, seed=NA) {
   #      n.tips <- as.integer(tips)
   #}
   
-  result <- lapply(1:nsim, function(x) {
-    tree <- tree.bisse(parms, max.taxa=n.tips, max.t=Inf, 
+  result <- lapply(1:3, function(x) {
+    tree.bisse(parms, max.taxa=100)
+  })
+  #result <- lapply(1:nsim, function(x) {
+    #tree <- tree.bisse(parms, max.taxa=n.tips, max.t=Inf, 
                        include.extinct=FALSE, x0=NA)
-    tree$edge.length <- tree$edge.length * theta['Ne.tau'] # rescale
-    if (!is.na(labels)) {
-      tree$tip.label <- labels
+    #tree$edge.length <- tree$edge.length * theta['Ne.tau'] # rescale
+    #tree
+    #if (!is.na(labels)) {
+     # tree$tip.label <- labels
     }
   })
   return(result)  
