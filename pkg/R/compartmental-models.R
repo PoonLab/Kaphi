@@ -1,91 +1,160 @@
-library(deSolve)
-
-## SIR model w/out vital dynamics
-SIR.nondynamic <- function(time, state, parameters) {
-  with(as.list(c(state, parameters)), {
-    dS <- -beta * S * I / (S +I)
-    dI <- beta * S * I / (S + I) - gamma * I
-    dR <- gamma * I
-    
-    return(list(c(dS, dI, dR)))
-  })
-}
-
-# testing SIR.nondynamic
-init <- c(S=(1 - 1e-6), I=1e-6, 0.0)
-parameters <- c(beta = 1.4247, gamma = 0.14286)
-times <- seq(0, 70, by = 1)
-out <- as.data.frame(ode(y=init, times = times, func = SIR.nondynamic, parms = parameters))
-out$time <- NULL
-
-matplot(times, out, type = "l", xlab = "Time", ylab = "Susceptibles and Recovereds", main = "SIR Model", lwd = 1, lty = 1, bty = "l", col = 2:4)
-legend(40, 0.7, c("Susceptibles", "Infecteds", "Recovereds"), pch = 1, col = 2:4)
-
-
-######################################################################################################################
-## SIR model w/ vital dynamics and constant population
-SIR.dynamic <- function(time, state, parameters) {
-  with(as.list(c(state, parameters)), {
-    dS <- delta - mu * S - beta * S * I
-    dI <- beta * S * I - (gamma + mu) * I
-    dR <- gamma * I - mu * R
-    
-    return(list(c(dS, dI, dR)))
-  })
-}
-
-# testing SIR.dynamic
-init <- c(S=(1 - 1e-6), I=1e-6, R=0.0)
-parameters <- c(beta = 1.4247, gamma = 0.14286, delta = 0.08, mu = 0.06)
-times <- seq(0, 70, by = 1)
-out <- as.data.frame(ode(y=init, times = times, func = SIR.dynamic, parms = parameters))
-out$time <- NULL
-
-matplot(times, out, type = "l", xlab = "Time", ylab = "Susceptibles and Recovereds", main = "SIR Model", lwd = 1, lty = 1, bty = "l", col = 2:4)
-legend(40, 0.7, c("Susceptibles", "Infecteds", "Recovereds"), pch = 1, col = 2:4)
+## SIR model w/out vital dynamics, constant population
+SIR.nondynamic <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+  
+  t0 <- 0
+  
+  # initial population frequencies
+  S <- N - 1    # where does the N population parameter come from?
+  I <- 1
+  R <- 0
+  x0 <- c(I=I, S=S, R=R)
+  if (any(x0 < 0)) {
+    stop("Population sizes cannot be less than 0.")
+  }
+  
+  # parsing R expressions representing ODE system
+  parms <- list(beta=beta, gamma=gamma)  # where do the beta and gamma instances come from?
+  if (any(parms < 0)) {
+    stop("No negative values permitted for model rate parameters.")
+  }
+  
+  # define ODE system
+  
+  # demes are subpopulations from which we can sample virus
+  demes <- c("I")
+  nonDemes <- c("S")
+  
+  #birth is the rate of lineage splitting - in this case, infection of a susceptible
+  births <- rbind(c("parms$beta * S * I / (S+I) - parms$gamma * I"))
+  rownames(births) <- colnames(births) <- demes
+  
+  # migration is the state transition of a lineage without splitting
+  migrations <- rbind(c("parms$gamma * I"))
+  rownames(migrations) <- colnames(migrations) <- demes   # demes or a separate one for recovered?
+  
+  # non-deme dynamics is describing the subpopulation
+  nonDemeDynamics <- rbind(c("-parms$beta * S * I / (S+I)"))
+  names(nonDemeDynamics) <- nonDemes
+  
+  return(list(c(births, migrations, nonDemeDynamics)))
+}  
 
 
 ######################################################################################################################
-## SIS model
-SIS <- function(time,state, parameters) {
-  with(as.list(c(state, parameters)), {
-    dS <- -beta * S * I / (S + I) + gamma * I
-    dI <- (beta * (S + I) - gamma) * I - beta * I^2
-    
-    return(list(c(dS, dI)))
-  })
-}
+## SIR model w/ births and deaths
+SIR.dynamic <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+  
+  t0 <- 0
+  
+  # initial population frequencies
+  S <- N - 1    
+  I <- 1
+  R <- 0
+  x0 <- c(I=I, S=S, R=R)
+  if (any(x0 < 0)) {
+    stop("Population sizes cannot be less than 0.")
+  }
+  
+  # parsing R expressions representing ODE system
+  parms <- list(beta=beta, gamma=gamma, mu=mu)  
+  if (any(parms < 0)) {
+    stop("No negative values permitted for model rate parameters.")
+  }
+  
+  # define ODE system
+  
+  demes <- c("I")
+  nonDemes <- c("S")
+  
+  births <- rbind(c("parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I"))
+  rownames(births) <- colnames(births) <- demes
+  
+  migrations <- rbind(c("parms$gamma * I - parms$mu * R"))
+  rownames(migrations) <- colnames(migrations) <- demes 
 
-# testing SIS
-init <- c(S=(1 - 1e-6), I=1e-6)
-parameters <- c(beta = 1.4247, gamma = 0.14286, delta = 0.15)
-times <- seq(0, 70, by = 1)
-out <- as.data.frame(ode(y=init, times = times, func = SIS, parms = parameters))
-out$time <- NULL
+  nonDemeDynamics <- rbind(c("parms$mu * (I+R) - parms$beta * S * I / (S+I)"))
+  names(nonDemeDynamics) <- nonDemes
+  
+  return(list(c(births, migrations, nonDemeDynamics)))
+}  
 
-matplot(times, out, type = "l", xlab = "Time", ylab = "Susceptibles and Recovered-Susceptibles", main = "SIS Model", lwd = 1, lty = 1, bty = "l", col = 2:3)
-legend(40, 0.7, c("Susceptibles", "Infecteds"), pch = 1, col = 2:3)
+######################################################################################################################
+## SIS model with births and deaths
+SIS <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+  
+  t0 <- 0
+  
+  # initial population frequencies
+  S <- N - 1    
+  I <- 1
+  R <- 0
+  x0 <- c(I=I, S=S, R=R)
+  if (any(x0 < 0)) {
+    stop("Population sizes cannot be less than 0.")
+  }
+  
+  # parsing R expressions representing ODE system
+  parms <- list(beta=beta, gamma=gamma, mu=mu)  
+  if (any(parms < 0)) {
+    stop("No negative values permitted for model rate parameters.")
+  }
+  
+  # define ODE system
+  
+  demes <- c("I")
+  nonDemes <- c("S")
+  
+  births <- rbind(c("parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I"))
+  rownames(births) <- colnames(births) <- demes
+  
+  nonDemeDynamics <- rbind(c("-parms$beta * S * I / (S+I) + parms$mu * (I+R) + parms$gamma * I"))
+  names(nonDemeDynamics) <- nonDemes
+  
+  return(list(c(births, nonDemeDynamics)))
+}  
+
 
 
 ######################################################################################################################
 ## SEIR model, assuming presence of vital dynamics w/ birth rate equal to the death rate
-SEIR <- function(time, state, parameters){
-  with(as.list(c(state, parameters)), {
-    dS <- mu * (S + I) - mu * S - beta * S * I / (S + I)
-    dE <- beta * S * I / (S + I) - (mu + alpha) * E
-    dI <- alpha * E - (gamma + mu) * I 
-    dR <- gamma * I - mu * R
-    
-    return(list(c(dS, dE, dI, dR)))
-  })
-}
-
-# testing SEIR
-init <- c(S=(1 - 1e-6), E=0, I=1e-6, R=0.0)
-parameters <- c(beta = 1.4247, gamma = 0.14286, delta = 0.15, mu = 0.15, alpha = 5)
-times <- seq(0, 70, by = 1)
-out <- as.data.frame(ode(y=init, times = times, func = SEIR, parms = parameters))
-out$time <- NULL
-
-matplot(times, out, type = "l", xlab = "Time", ylab = "Susceptibles and Recovereds", main = "SEIR Model", lwd = 1, lty = 1, bty = "l", col = 2:5)
-legend(40, 0.7, c("Susceptibles", "Infecteds", "Recovereds", "Exposed"), pch = 1, col = 2:5)
+SEIR <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+  
+  t0 <- 0
+  
+  # initial population frequencies
+  S <- N - 1    
+  I <- 1
+  R <- 0
+  E <- 0
+  x0 <- c(I=I, S=S, R=R, E=E)
+  if (any(x0 < 0)) {
+    stop("Population sizes cannot be less than 0.")
+  }
+  
+  # parsing R expressions representing ODE system
+  parms <- list(beta=beta, gamma=gamma, mu=mu, epsilon=epsilon)   # epsilon is the incubation period 
+  if (any(parms < 0)) {
+    stop("No negative values permitted for model rate parameters.")
+  }
+  
+  # define ODE system
+  
+  demes <- c("I")
+  nonDemes <- c("S")
+  exp <- c("E")
+  
+  births <- rbind(c("parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I"))
+  rownames(births) <- colnames(births) <- demes
+  
+  migrations <- rbind(c("parms$gamma * I - parms$mu * R"))
+  rownames(migrations) <- colnames(migrations) <- demes
+  
+  nonDemeDynamics <- rbind(c("-parms$beta * S * I / (S+I) + parms$mu * (I+R) + parms$gamma * I"))
+  names(nonDemeDynamics) <- nonDemes
+  
+  # exposed individuals in incubation period
+  exposed <- rbind(c("parms$beta * S * I / (S+I) - (parms$episilon + parms$mu) * E"))
+  rownames(exposed) <- colnames(exposed) <- exp
+  
+  return(list(c(births, migrations, nonDemeDynamics, exposed)))
+}  
