@@ -60,13 +60,13 @@ bisse <- function(theta, nsim, n.tips, parms, labels=NA, seed=NA) {
   })
   #result <- lapply(1:nsim, function(x) {
     #tree <- tree.bisse(parms, max.taxa=n.tips, max.t=Inf, 
-                       include.extinct=FALSE, x0=NA)
+                       #include.extinct=FALSE, x0=NA)
     #tree$edge.length <- tree$edge.length * theta['Ne.tau'] # rescale
     #tree
     #if (!is.na(labels)) {
      # tree$tip.label <- labels
-    }
-  })
+    #}
+  #})
   return(result)  
 }
 attr(bisse, 'name') <- "bisse"
