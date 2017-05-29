@@ -13,14 +13,14 @@ config$nsample <- 5
 # simulate target tree
 theta <- c(Ne.tau=1000)  # this is the true value
 set.seed(50)
-obs.tree <- const.coalescent(theta, nsim=1, n.tips=100)[[1]]
+obs.tree <- const.coalescent(theta, nsim=1, tips=100)[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
 # calculate kernel distances for varying Ne.tau
 x <- seq(100, 2000, 100)
 res <- sapply(x, function(val) {
     theta <- c(Ne.tau=val)
-    sim.trees <- const.coalescent(theta, nsim=50, n.tips=100)
+    sim.trees <- const.coalescent(theta, nsim=50, tips=100)
     dists <- sapply(sim.trees, function(st) {
         pt <- .preprocess.tree(st, config)
         distance(obs.tree, pt, config)

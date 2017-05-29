@@ -1,18 +1,61 @@
-bisse:
-  l0: 0.1
-  l1: 0.2
-  m0: 0.03
-  m1: 0.03
-  q01: 0.01
-  q10: 0.01
 priors:
-  Ne.tau:
+  lambda0:
     dist: 'lnorm'
     hyperparameters:
-    - meanlog: 5
-    - sdlog: 2
+    - mean: 5
+    - sd: 2
+  lambda1:
+    dist: 'lnorm'
+    hyperparameters:
+    - mean: 5
+    - sd: 2
+  mu0:
+    dist: 'lnorm'
+    hyperparameters:
+    - mean: 5
+    - sd: 2
+  mu1:
+    dist: 'lnorm'
+    hyperparameters:
+    - mean: 5
+    - sd: 2
+  q01:
+    dist: 'lnorm'
+    hyperparameters:
+    - mean: 5
+    - sd: 2
+  q10:
+    dist: 'lnorm'
+    hyperparameters:
+    - mean: 5
+    - sd: 2
 proposals:
-  Ne.tau:
+  lambda0:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 50
+  lambda1:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 50
+  mu0:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 50
+  mu1:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 50
+  q01:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 50
+  q10:
     dist: 'norm'
     parameters:
     - mean: 0

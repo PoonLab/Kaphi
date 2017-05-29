@@ -106,9 +106,9 @@ set.model <- function(config, generator) {
 	# check that function takes the three required arguments
     # 1. theta = a named vector of parameter values (particle)
     # 2. nsim = number of simulations to generate per particle
-    # 3. n.tips = size of tree to simulate
+    # 3. tips = if Int, the number of tips; if vector, the tip heights
 	g.args <- names(formals(generator))
-	if (length(g.args)<3 || any(!is.element(c('theta', 'nsim', 'n.tips'), g.args))) {
+	if (length(g.args)<3 || any(!is.element(c('theta', 'nsim', 'tips'), g.args))) {
 		stop("generator is not a Kaphi-compatible model")
 	}
     # check that function has name attribute

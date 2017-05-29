@@ -15,7 +15,7 @@
 
 require(ape)
 
-const.coalescent <- function(theta, nsim, n.tips, labels=NA, seed=NA) {
+const.coalescent <- function(theta, nsim, tips, labels=NA, seed=NA) {
 	"
 	This function exists only as a prototype.
 	It generates a tree under Kingman's coalescent where branch lengths are in
@@ -29,6 +29,14 @@ const.coalescent <- function(theta, nsim, n.tips, labels=NA, seed=NA) {
 	if (!is.na(seed)) {
 		set.seed(seed)
 	}
+  if(length(tips) < 1) {
+    stop('tips must have at least one value')
+  } else if(length(tips) > 1) {
+    n.tips <- as.integer(length(tips))
+    tip.heights <- tips
+  } else {
+    n.tips <- as.integer(tips)
+  }
     if (all(is.na(labels))) {
         result <- lapply(1:nsim, function(x) {
             tree <- rcoal(n=n.tips, br='coalescent')
