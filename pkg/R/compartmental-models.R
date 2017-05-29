@@ -1,6 +1,15 @@
 ## SIR model w/out vital dynamics, constant population
-SIR.nondynamic <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
-  
+SIR.nondynamic <- function(theta, nsim, tips, seed=NA, fgyResolution=500, integrationMethod='adams') {
+  "
+  Use rcolgem to simulate coalescent trees under susceptible-infected (SI)
+  model.
+  @param theta : parameter list
+  @param nsim : number of replicate trees to simulate
+  @param tips : number of tips of zero height (integer) OR vector of tip heights (vector)
+  @param seed : set seed for pseudorandom generator
+  @param fgyResolution : time resolution of ODE solution
+  @param integrationMethod : method for numerical solution of ODE
+  "
   if(length(tips) < 1) {
     stop('tips must have at least one value')
   } else if(length(tips) > 1) {
@@ -9,11 +18,13 @@ SIR.nondynamic <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=
   } else {
     n.tips <- as.integer(tips)
   }
-  
-  t0 <- 0
+
+  # TODO: check contents of theta list
+
+  t0 <- 0  # initial time
   
   # initial population frequencies
-  S <- N - 1    # where does the N population parameter come from?
+  S <- theta$N - 1
   I <- 1
   R <- 0
   x0 <- c(I=I, S=S, R=R)
@@ -22,12 +33,15 @@ SIR.nondynamic <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=
   }
   
   # parsing R expressions representing ODE system
-  parms <- list(beta=beta, gamma=gamma)  # where do the beta and gamma instances come from?
+  parms <- list(
+    beta=theta$beta,
+    gamma=theta$gamma
+  )
   if (any(parms < 0)) {
     stop("No negative values permitted for model rate parameters.")
   }
   
-  # define ODE system
+  ## define ODE system
   
   # demes are subpopulations from which we can sample virus
   demes <- c("I")
@@ -44,9 +58,9 @@ SIR.nondynamic <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=
   # non-deme dynamics is describing the subpopulation
   nonDemeDynamics <- rbind(c("-parms$beta * S * I / (S+I)"))
   names(nonDemeDynamics) <- nonDemes
+
   
-  return(list(c(births, migrations, nonDemeDynamics)))
-}  
+}
 
 
 ######################################################################################################################

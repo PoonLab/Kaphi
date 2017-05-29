@@ -184,27 +184,39 @@ double nLTT(const igraph_t *t1, const igraph_t *t2)
     // number of tips
     int n[2] = {(igraph_vcount(t1) + 1) / 2, (igraph_vcount(t2) + 1) / 2};
 
+    // x-axis of LTT plot is node depth (distance from root in branch length units)
     double *x[2] = {calloc(n[0], sizeof(double)), calloc(n[1], sizeof(double))};
+
+    // y-axis of LTT plot is number of lineages
     double *y[2] = {calloc(n[0], sizeof(double)), calloc(n[1], sizeof(double))};
+
+    // array to store node depths
     double *buf = malloc(fmax(igraph_vcount(t1), igraph_vcount(t2)) * sizeof(double));
+
+    // to store index permutation that sorts nodes by depth
     int *node_order = malloc(fmax(igraph_vcount(t1), igraph_vcount(t2)) * sizeof(int));
 
     igraph_vector_t vec;
-    igraph_vector_init(&vec, igraph_vcount(t1));
+    igraph_vector_init(&vec, igraph_vcount(t1));  // what about t2?
 
     for (itree = 0; itree < 2; ++itree)
     {
-        depths(trees[itree], 1, buf);
+        depths(trees[itree], 1, buf);  // node distances from root in units of branch length
         order(buf, node_order, sizeof(double), igraph_vcount(trees[itree]),
                 compare_doubles);
+        // store the outdegree of the node
         igraph_degree(trees[itree], &vec, igraph_vss_all(), IGRAPH_OUT, 0);
 
         prev = 0; cur = 0; h = 0;
-        y[itree][0] = -1.0 / (n[itree] - 2);
+        y[itree][0] = -1.0 / (n[itree] - 2);  // anticipates increment below (root y=0)
+
+        // iterate over every node in tree
         for (i = 0; i < igraph_vcount(trees[itree]); ++i)
         {
+            // evaluate only internal nodes (outdegree > 0)
             if (VECTOR(vec)[node_order[i]] > 0) {
                 if (buf[node_order[i]] == prev) {
+                    // current node has same depth as previous, don't update x
                     y[itree][cur] += 1.0 / (n[itree] - 2);
                 }
                 else {
@@ -216,8 +228,14 @@ double nLTT(const igraph_t *t1, const igraph_t *t2)
             }
         }
 
-        for (i = 0; i < n[itree]; ++i) {
+        // normalize x-axis by maximum node depth/height
+        for (i = 0; i < n[itree]; ++i) {  // shouldn't this be igraph_vcount, not [n]?
             x[itree][i] /= h;
+        }
+
+        // debugging
+        for (i = 0; i < igraph_vcount(trees[itree]); i++) {
+            fprintf(stdout, "%d\t%d\t%f\t%f\n", itree, i, x[itree][i], y[itree][i]);
         }
     }
 
