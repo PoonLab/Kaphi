@@ -5,10 +5,11 @@
   * [yaml](https://cran.r-project.org/web/packages/yaml/index.html)
   * [deSolve](http://desolve.r-forge.r-project.org/)
   * [ape](http://ape-package.ird.fr/)
+  * [diversitree](https://CRAN.R-project.org/package=diversitree)
   * [ECcmtc](https://cran.r-project.org/web/packages/ECctmc/index.html)
   * [RUnit](https://cran.r-project.org/web/packages/RUnit/index.html)
-  * [Inline](https://cran.r-project.org/web/packages/inline/index.html)
-  * [Rcolgem](http://colgem.r-forge.r-project.org/)
+  * [inline](https://cran.r-project.org/web/packages/inline/index.html)
+  * [rcolgem](http://colgem.r-forge.r-project.org/)
 * GNU tools: 
   * [bison](https://www.gnu.org/software/bison/)
   * [flex](https://github.com/westes/flex)
