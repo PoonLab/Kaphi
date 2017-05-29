@@ -7,6 +7,8 @@
   * [ape](http://ape-package.ird.fr/)
   * [ECcmtc](https://cran.r-project.org/web/packages/ECctmc/index.html)
   * [RUnit](https://cran.r-project.org/web/packages/RUnit/index.html)
+  * [Inline](https://cran.r-project.org/web/packages/inline/index.html)
+  * [Rcolgem](http://colgem.r-forge.r-project.org/)
 * GNU tools: 
   * [bison](https://www.gnu.org/software/bison/)
   * [flex](https://github.com/westes/flex)
@@ -37,6 +39,8 @@
 	   install.packages("ape")
 	   install.packages("ECcmtc")
 	   install.packages("RUnit")
+	   install.packages("inline")
+	   install.packages("rcolgem", repos="http://R-Forge.R-project.org") 
 	   quit() 
     ```
 4. Installing GNU tools and C libraries
