@@ -16,36 +16,33 @@
 require(diversitree)
 
 ## Binary State Speciation and Extinction (BiSSE) Model
-bisse <- function(theta, nsim, tips, parms, labels=NA, seed=NA) {
+bisse <- function(theta, nsim, tips, labels=NA, seed=NA) {
     "
-    parms : a vector containing the BiSSE parameters
-      @param lambda0 : Rate of speciation in state 0
-      @param lambda1 : Rate of speciation in state 1
-      @param mu0 : Rate of extinction in state 0
-      @param mu1 : Rate of extinction in state 1
-      @param q01 : Rate of change from state 0 to 1
-      @param q10 : Rate of change from state 1 to 0
     theta : a vector containing the parameter values for the model
+        @param lambda0 : Rate of speciation in state 0
+        @param lambda1 : Rate of speciation in state 1
+        @param mu0 : Rate of extinction in state 0
+        @param mu1 : Rate of extinction in state 1
+        @param q01 : Rate of change from state 0 to 1
+        @param q10 : Rate of change from state 1 to 0
     nsim : number of simulations
-    tips : either an integer (number of contemporaneous tips) or a
-           vector where the length of the vector is number of tips
-           and the values correspond to tip heights
-              **For BiSSE, ultrametric tree is required**
+    tips : if integer, the number of tips; if vector, the height of
+           each tip
 
-    Use diversitree to simulate trees under binary state
-    speciation and extinction (BiSSE) model.
+    Use diversitree to simulate trees under binary state speciation 
+    and extinction (BiSSE) model. BiSSE trees are simulated based on
+    the rates of speciation and extinction for two character states and
+    the rates of changing between these states.
     "
-  if(!is.element('Ne.tau', names(theta))) {
-    stop('theta does not contain required parameter "Ne.tau"')
+  ## Validate arguments
+  if(all(!is.element(c('lambda0', 'lambda1', 'mu0', 'mu1', 'q01', 'q10'), names(theta)))) {
+    stop('theta does not contain required parameters')
   }
-  if(length(parms) != 6) {
-   stop('parms requires 6 parameters')
-  }
+  ## Set seed
   if(!is.na(seed)) {
         set.seed(seed)
   }
-  
-  # Parse n.tips and tip.heights from tips
+  ## Parse n.tips and tip.heights from tips --> remove/adjust w/ issue #57 resolution
   if(length(tips) < 1) {
         stop('tips must have at least one value')
   } else if(length(tips) > 1) {
@@ -54,19 +51,11 @@ bisse <- function(theta, nsim, tips, parms, labels=NA, seed=NA) {
   } else {
         n.tips <- as.integer(tips)
   }
-  
-  result <- lapply(1:3, function(x) {
-    tree.bisse(parms, max.taxa=100)
-  })
-  #result <- lapply(1:nsim, function(x) {
-    #tree <- tree.bisse(parms, max.taxa=n.tips, max.t=Inf, 
-                       #include.extinct=FALSE, x0=NA)
-    #tree$edge.length <- tree$edge.length * theta['Ne.tau'] # rescale
-    #tree
-    #if (!is.na(labels)) {
-     # tree$tip.label <- labels
-    #}
-  #})
+  ## BiSSE parameter vector
+  parms <- unname(theta)
+  ## Simulate tree(s)
+  result <- trees(parms, type="bisse", n=nsim, max.taxa=n.tips, 
+                  max.t=Inf, include.extinct=FALSE)
   return(result)  
 }
 attr(bisse, 'name') <- "bisse"
