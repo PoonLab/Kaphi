@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Kaphi.  If not, see <http://www.gnu.org/licenses/>.
 
-rcolgem.SI <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+rcolgem.SI <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
 	"
 	Use rcolgem to simulate coalescent trees under susceptible-infected (SI)
 	model.
@@ -26,6 +26,15 @@ rcolgem.SI <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=50
 	@param gamma : additional mortality from infection
 	@param mu : baseline mortality rate
 	"
+  if(length(tips) < 1) {
+    stop('tips must have at least one value')
+  } else if(length(tips) > 1) {
+    n.tips <- as.integer(length(tips))
+    tip.heights <- tips
+  } else {
+    n.tips <- as.integer(tips)
+  }
+
 	t0=0
 	
 	## initial population frequencies

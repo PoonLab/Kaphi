@@ -16,7 +16,7 @@
 require(diversitree)
 
 ## Binary State Speciation and Extinction (BiSSE) Model
-bisse <- function(theta, nsim, n.tips, parms, labels=NA, seed=NA) {
+bisse <- function(theta, nsim, tips, parms, labels=NA, seed=NA) {
     "
     parms : a vector containing the BiSSE parameters
       @param lambda0 : Rate of speciation in state 0
@@ -45,15 +45,15 @@ bisse <- function(theta, nsim, n.tips, parms, labels=NA, seed=NA) {
         set.seed(seed)
   }
   
-  ## For when n.tips is changed to tips (issue #51):
-  ## Parse n.tips from tips
-  #if(length(tips) < 1) {
-  #      stop('tips must have at least one value')
-  #} else if(length(tips) > 1) {
-  #      n.tips <- as.integer(length(tips))
-  #} else {
-  #      n.tips <- as.integer(tips)
-  #}
+  # Parse n.tips and tip.heights from tips
+  if(length(tips) < 1) {
+        stop('tips must have at least one value')
+  } else if(length(tips) > 1) {
+        n.tips <- as.integer(length(tips))
+        tip.heights <- tips
+  } else {
+        n.tips <- as.integer(tips)
+  }
   
   result <- lapply(1:3, function(x) {
     tree.bisse(parms, max.taxa=100)

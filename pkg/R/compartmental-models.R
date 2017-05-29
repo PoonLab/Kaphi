@@ -1,5 +1,14 @@
 ## SIR model w/out vital dynamics, constant population
-SIR.nondynamic <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+SIR.nondynamic <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+  
+  if(length(tips) < 1) {
+    stop('tips must have at least one value')
+  } else if(length(tips) > 1) {
+    n.tips <- as.integer(length(tips))
+    tip.heights <- tips
+  } else {
+    n.tips <- as.integer(tips)
+  }
   
   t0 <- 0
   
@@ -42,7 +51,16 @@ SIR.nondynamic <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolutio
 
 ######################################################################################################################
 ## SIR model w/ births and deaths
-SIR.dynamic <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+SIR.dynamic <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+  
+  if(length(tips) < 1) {
+    stop('tips must have at least one value')
+  } else if(length(tips) > 1) {
+    n.tips <- as.integer(length(tips))
+    tip.heights <- tips
+  } else {
+    n.tips <- as.integer(tips)
+  }
   
   t0 <- 0
   
@@ -80,7 +98,16 @@ SIR.dynamic <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=5
 
 ######################################################################################################################
 ## SIS model with births and deaths
-SIS <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+SIS <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+  
+  if(length(tips) < 1) {
+    stop('tips must have at least one value')
+  } else if(length(tips) > 1) {
+    n.tips <- as.integer(length(tips))
+    tip.heights <- tips
+  } else {
+    n.tips <- as.integer(tips)
+  }
   
   t0 <- 0
   
@@ -117,7 +144,16 @@ SIS <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=500, inte
 
 ######################################################################################################################
 ## SEIR model, assuming presence of vital dynamics w/ birth rate equal to the death rate
-SEIR <- function(theta, nsim, n.tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+SEIR <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+  
+  if(length(tips) < 1) {
+    stop('tips must have at least one value')
+  } else if(length(tips) > 1) {
+    n.tips <- as.integer(length(tips))
+    tip.heights <- tips
+  } else {
+    n.tips <- as.integer(tips)
+  }
   
   t0 <- 0
   

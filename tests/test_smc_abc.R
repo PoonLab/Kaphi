@@ -212,7 +212,7 @@ test.perturb.particles <- function() {
     nparticle <- config$nparticle
     theta <- c(Ne.tau=100)
     set.seed(100)
-    obs.tree <- const.coalescent(theta, nsim=1, n.tips=20)[[1]]
+    obs.tree <- const.coalescent(theta, nsim=1, tips=20)[[1]]
     obs.tree <- parse.input.tree(obs.tree, config)
 
     ws <- init.workspace(obs.tree, config)
@@ -259,7 +259,7 @@ test.run.smc <- function() {
     nparticle <- config$nparticle
     theta <- c(Ne.tau=1000)
     set.seed(100)
-    obs.tree <- const.coalescent(theta, nsim=1, n.tips=20)[[1]]
+    obs.tree <- const.coalescent(theta, nsim=1, tips=20)[[1]]
 
     ws <- init.workspace(obs.tree, config)
     result <- run.smc(ws, verbose=TRUE)
