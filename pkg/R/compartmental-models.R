@@ -1,6 +1,6 @@
 require(rcolgem, quietly=TRUE)
 
-
+##########################################################################################################################
 call.rcolgem <- function(nreps, x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, ndd, parms, fgyResolution, integrationMethod) {
   # get numerical solution of ODE system
   fgy <- make.fgy(
@@ -16,8 +16,8 @@ call.rcolgem <- function(nreps, x0, t0, t.end, sampleTimes, sampleStates, births
           integrationMethod=integrationMethod
   )
   
-  # simulate trees
-  trees <- simulate.binary.dated.tree(
+  # simulate trees...but which function in rcolgem is it? .fgy or not?
+  trees <- simulate.binary.dated.tree.fgy(
     fgy[[1]],  # time axis of ODE solution
     fgy[[2]],  # births
     fgy[[3]],  # migrations
@@ -25,7 +25,7 @@ call.rcolgem <- function(nreps, x0, t0, t.end, sampleTimes, sampleStates, births
     sampleTimes, 
     sampleStates, 
     integrationMethod=integrationMethod, 
-    n.reps=nreps
+    n.reps=nreps   #this isn't a parameter in rcolgem's simulate.binary.dated.tree.fgy
   )
   
   # cast result as a multiPhylo object
@@ -34,6 +34,7 @@ call.rcolgem <- function(nreps, x0, t0, t.end, sampleTimes, sampleStates, births
 }
 
 
+#######################################################################################################################
 ## SIR model w/out vital dynamics, constant population
 SIR.nondynamic <- function(theta, nsim, tips, seed=NA, fgyResolution=500, integrationMethod='adams') {
   "
@@ -47,26 +48,30 @@ SIR.nondynamic <- function(theta, nsim, tips, seed=NA, fgyResolution=500, integr
   @param integrationMethod : method for numerical solution of ODE
   "
   # TODO: check contents of theta list
+  th.args <- names(theta)
+  if (length(th.args) < 4 || any(!is.element(c("t.end", "N", "beta", "gamma"), th.args))) {
+    stop("theta does not hold Kaphi-compatible parameters")
+  }
 
   t0 <- 0  # initial time
   t.end <- theta$t.end
   
+  
   # initial population frequencies
   S <- theta$N - 1
-
   I <- 1  # assume epidemic starts with single infected individual
   R <- 0
-  x0 <- c(I=I, R=R, S=S)
+  x0 <- c(I=I, R=R, S=S)  #sample vector
   
   if (any(x0 < 0)) {
     stop("Population sizes cannot be less than 0.")
   }
-  
   if (!is.na(seed)) {
     set.seed(seed)
   }
   
   # parsing R expressions representing ODE system
+  # can eliminate this and just use theta$ calls
   parms <- list(
     beta=theta$beta,  # transmission rate
     gamma=theta$gamma  # mortality from infection
@@ -74,6 +79,7 @@ SIR.nondynamic <- function(theta, nsim, tips, seed=NA, fgyResolution=500, integr
   if (any(parms < 0)) {
     stop("No negative values permitted for model rate parameters.")
   }
+  
   
   ## define ODE system
   
@@ -97,15 +103,16 @@ SIR.nondynamic <- function(theta, nsim, tips, seed=NA, fgyResolution=500, integr
   nonDemeDynamics <- rbind(c("-parms$beta * S * I / (S+I) + parms$gamma * I"))
   names(nonDemeDynamics) <- nonDemes
 
+  
   # sample times
   sampleTimes <- t.end - tip.heights
 
-    # sample states
+  # sample states
   sampleStates <- matrix(1, nrow=n.tips, ncol=length(demes))
   colnames(sampleStates) <- demes
   rownames(sampleStates) <- 1:n.tips
-  #maximum t1 (end time)
-  max.t.end <- max(sampleTimes)
+
+  
   
   trees <- call.rcolgem(nsim, x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, ndd, parms, fgyResolution, integrationMethod)
   
@@ -118,27 +125,6 @@ SIR.nondynamic <- function(theta, nsim, tips, seed=NA, fgyResolution=500, integr
 ## SIR model w/ births and deaths
 SIR.dynamic <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
 
-  t0 <- 0
-  
-  # initial population frequencies
-  S <- N - 1    
-  I <- 1
-  R <- 0
-  x0 <- c(I=I, S=S, R=R)
-  if (any(x0 < 0)) {
-    stop("Population sizes cannot be less than 0.")
-  }
-  
-  # parsing R expressions representing ODE system
-  parms <- list(beta=beta, gamma=gamma, mu=mu)  
-  if (any(parms < 0)) {
-    stop("No negative values permitted for model rate parameters.")
-  }
-  
-  # define ODE system
-  
-  demes <- c("I")
-  nonDemes <- c("S")
   
   births <- rbind(c("parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I"))
   rownames(births) <- colnames(births) <- demes
@@ -151,35 +137,14 @@ SIR.dynamic <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500
   
   attr(SIR.dynamic. "name") <- "SIR.dynamic"
   
-  return(list(c(births, migrations, nonDemeDynamics)))
+
 }  
 
 ######################################################################################################################
 ## SIS model with births and deaths
 SIS <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
 
-  t0 <- 0
-  
-  # initial population frequencies
-  S <- N - 1    
-  I <- 1
-  R <- 0
-  x0 <- c(I=I, S=S, R=R)
-  if (any(x0 < 0)) {
-    stop("Population sizes cannot be less than 0.")
-  }
-  
-  # parsing R expressions representing ODE system
-  parms <- list(beta=beta, gamma=gamma, mu=mu)  
-  if (any(parms < 0)) {
-    stop("No negative values permitted for model rate parameters.")
-  }
-  
-  # define ODE system
-  
-  demes <- c("I")
-  nonDemes <- c("S")
-  
+
   births <- rbind(c("parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I"))
   rownames(births) <- colnames(births) <- demes
   
@@ -187,8 +152,7 @@ SIS <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500, integr
   names(nonDemeDynamics) <- nonDemes
   
   attr(SIS, "name") <- "SIS"
-  
-  return(list(c(births, nonDemeDynamics)))
+
 }  
 
 
@@ -197,28 +161,7 @@ SIS <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500, integr
 ## SEIR model, assuming presence of vital dynamics w/ birth rate equal to the death rate
 SEIR <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
 
-  t0 <- 0
-  
-  # initial population frequencies
-  S <- N - 1    
-  I <- 1
-  R <- 0
-  E <- 0
-  x0 <- c(I=I, S=S, R=R, E=E)
-  if (any(x0 < 0)) {
-    stop("Population sizes cannot be less than 0.")
-  }
-  
-  # parsing R expressions representing ODE system
-  parms <- list(beta=beta, gamma=gamma, mu=mu, epsilon=epsilon)   # epsilon is the incubation period 
-  if (any(parms < 0)) {
-    stop("No negative values permitted for model rate parameters.")
-  }
-  
-  # define ODE system
-  
-  demes <- c("I")
-  nonDemes <- c("S")
+
   exp <- c("E")
   
   births <- rbind(c("parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I"))
@@ -235,6 +178,5 @@ SEIR <- function(theta, nsim, tips, labels=NA, seed=NA, fgyResolution=500, integ
   rownames(exposed) <- colnames(exposed) <- exp
   
   attr(SEIR, "name") <- "SEIR"
-  
-  return(list(c(births, migrations, nonDemeDynamics, exposed)))
+
 }

@@ -101,14 +101,23 @@ load.config <- function(file) {
 set.model <- function(config, generator) {
     # generator argument can either be function name or object
     if (is.character(generator)) {
-		generator <- get(generator, mode='function', envir=parent.frame())
+      if (any(is.element(c('bisse', 'bisseness', 'bd', 'classe', 'geosse', 'musse', 'quasse', 'yule'), tolower(generator)))) {
+        generator <- get('speciation.model', mode='function', envir=parent.frame())
+      }
+      else if (any(is.element(c('si', 'sir.nondynamic', 'sir.dynamic', 'sis', 'seir'), tolower(generator)))) {
+        generator <- get('compartmental.model', mode='function', envir=parent.frame())
+      }
+      else {
+        generator <- get(generator, mode='function', envir=parent.frame())
+      }
+		
 	}
 	# check that function takes the three required arguments
     # 1. theta = a named vector of parameter values (particle)
     # 2. nsim = number of simulations to generate per particle
-    # 3. tips = if Int, the number of tips; if vector, the tip heights
+    # 3. n.tips = size of tree to simulate
 	g.args <- names(formals(generator))
-	if (length(g.args)<3 || any(!is.element(c('theta', 'nsim', 'tips'), g.args))) {
+	if (length(g.args)<3 || any(!is.element(c('theta', 'nsim', 'n.tips'), g.args))) {
 		stop("generator is not a Kaphi-compatible model")
 	}
     # check that function has name attribute
@@ -224,32 +233,17 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
     # numr = number of rows of plots to be displayed at one time
     # numc = number of columns of plots to be displayed at one time
     # display prior distributions
-
-    # generate M x N-matrix where M is nreps and N is number of parameters
-    #  containing samples from prior distributions
     y <- sapply(1:nreps, function(x) sample.priors(config))
     h <- apply(y, 1, hist)
     s <- 1        # counter
     # x11()
     par(ask=T)    # prompts user to 'Hit <Return> to see next plot'
-    n.slides <- ceiling(length(y) / (numr*numc))  #determine number of plot slides required according to specified dimensions
-  
-    for (i in 1:n.slides) {
+    
+    for (i in 1:(numr * numc)){
       par(mfrow = c(numr, numc))     # multiple plot display option
       for (slot in 1:(numr * numc)){
-        if (s <= length(y)) {
-        q <- quantile(y[,s], c(0.05, 0.95))  # 90% of the sample distribution from prior of s-th parameter
-        plot(
-          h[[s]],
-          xlab=names(h)[1],
-          main='Sample from prior distribution',
-          xlim=q
-        ) 
+        plot(h[[s]], xlab=names(h)[1], main='Sample from prior distribution')  # TODO: Adjust x-axis for each plot
         s <- s + 1
-        }
-        else {
-          break
-        }
       }
     }
 }
