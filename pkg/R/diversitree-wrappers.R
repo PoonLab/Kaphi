@@ -15,8 +15,8 @@
 
 require(diversitree)
 
-## Binary State Speciation and Extinction (BiSSE) Model
-bisse <- function(theta, nsim, tips, labels=NA, seed=NA) {
+## Standard Speciation Models
+speciation.model <- function(theta, nsim, tips, model='bisse', seed=NA) {
     "
     theta : a vector containing the parameter values for the model
         @param lambda0 : Rate of speciation in state 0
@@ -25,41 +25,43 @@ bisse <- function(theta, nsim, tips, labels=NA, seed=NA) {
         @param mu1 : Rate of extinction in state 1
         @param q01 : Rate of change from state 0 to 1
         @param q10 : Rate of change from state 1 to 0
-    nsim : number of simulations
-    tips : if integer, the number of tips; if vector, the height of
-           each tip
+    nsim : number of trees to simulate
+    tips : if integer, the number of tips; if vector, the heights of the tips
+    model: model under which trees are evolved. One of:
+              - bisse       -- Binary State Speciation and Extinction
+              - bisseness   -- BiSSE-Node Enhanced State Shift
+              - bd          -- Birth-Death
+              - classe      -- Cladogenetic State change Speciation and Extinction
+              - geosse      -- Geographic State Speciation and Extinction
+              - musse       -- Multi-state Speciation and Extinction
+              - quasse      -- Quantitative state Specatiation and Extinction
+              - yule        -- Yule model
 
-    Use diversitree to simulate trees under binary state speciation 
-    and extinction (BiSSE) model. BiSSE trees are simulated based on
-    the rates of speciation and extinction for two character states and
-    the rates of changing between these states.
+
+    Use diversitree to simulate trees under one of the 'SSE' models or a simple
+    character indepdenent birth-death model.
     "
   ## Validate arguments
   if(all(!is.element(c('lambda0', 'lambda1', 'mu0', 'mu1', 'q01', 'q10'), names(theta)))) {
     stop('theta does not contain required parameters')
   }
+  if(!is.element(model, c('bisse', 'bisseness', 'bd', 'classe', 'geosse', 'musse', 'quasse', 'yule'))) {
+    stop('model must be set to one of: bisse, bisseness, bd, classe, geosse, musse, quasse, yule')
+  }
   ## Set seed
   if(!is.na(seed)) {
         set.seed(seed)
   }
-  ## Parse n.tips and tip.heights from tips --> remove/adjust w/ issue #57 resolution
-  if(length(tips) < 1) {
-        stop('tips must have at least one value')
-  } else if(length(tips) > 1) {
-        n.tips <- as.integer(length(tips))
-        tip.heights <- tips
-  } else {
-        n.tips <- as.integer(tips)
-  }
   ## BiSSE parameter vector
   parms <- unname(theta)
   ## Simulate tree(s)
-  result <- trees(parms, type="bisse", n=nsim, max.taxa=n.tips, 
+  result <- trees(parms, type=model, n=nsim, max.taxa=n.tips, 
                   max.t=Inf, include.extinct=FALSE)
   return(result)  
 }
-attr(bisse, 'name') <- "bisse"
 
-## Multiple State Specitation and Extinction (MuSSE) Model
-## Quantitative State Speciation and Extinction (QuaSSE) Model
-## GeoSSE?
+## Figure out how to handle these:
+attr(bisse, 'name') <- "bisse"
+attr(bisseness, 'name') <- "bisseness"
+## ...
+

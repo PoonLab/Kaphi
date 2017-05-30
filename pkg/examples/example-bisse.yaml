@@ -1,65 +1,53 @@
 priors:
   lambda0:
-    dist: 'lnorm'
+    dist: 'exp'
     hyperparameters:
-    - mean: 5
-    - sd: 2
+    - rate: 1
   lambda1:
-    dist: 'lnorm'
+    dist: 'exp'
     hyperparameters:
-    - mean: 5
-    - sd: 2
+    - rate: 1
   mu0:
-    dist: 'lnorm'
+    dist: 'exp'
     hyperparameters:
-    - mean: 5
-    - sd: 2
+    - rate: 1
   mu1:
-    dist: 'lnorm'
+    dist: 'exp'
     hyperparameters:
-    - mean: 5
-    - sd: 2
+    - rate: 1
   q01:
-    dist: 'lnorm'
+    dist: 'exp'
     hyperparameters:
-    - mean: 5
-    - sd: 2
+    - rate: 1
   q10:
-    dist: 'lnorm'
+    dist: 'exp'
     hyperparameters:
-    - mean: 5
-    - sd: 2
+    - rate: 1
 proposals:
   lambda0:
-    dist: 'norm'
+    dist: 'exp'
     parameters:
-    - mean: 0
-    - sd: 50
+    - rate: 1
   lambda1:
-    dist: 'norm'
+    dist: 'exp'
     parameters:
-    - mean: 0
-    - sd: 50
+    - rate: 1
   mu0:
-    dist: 'norm'
+    dist: 'exp'
     parameters:
-    - mean: 0
-    - sd: 50
+    - rate: 1
   mu1:
-    dist: 'norm'
+    dist: 'exp'
     parameters:
-    - mean: 0
-    - sd: 50
+    - rate: 1
   q01:
-    dist: 'norm'
+    dist: 'exp'
     parameters:
-    - mean: 0
-    - sd: 50
+    - rate: 1
   q10:
-    dist: 'norm'
+    dist: 'exp'
     parameters:
-    - mean: 0
-    - sd: 50
+    - rate: 1
 smc:
   nparticle: 100
   nsample: 10
