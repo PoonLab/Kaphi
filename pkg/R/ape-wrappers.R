@@ -29,23 +29,15 @@ const.coalescent <- function(theta, nsim, tips, labels=NA, seed=NA) {
 	if (!is.na(seed)) {
 		set.seed(seed)
 	}
-  if(length(tips) < 1) {
-    stop('tips must have at least one value')
-  } else if(length(tips) > 1) {
-    n.tips <- as.integer(length(tips))
-    tip.heights <- tips
-  } else {
-    n.tips <- as.integer(tips)
-  }
     if (all(is.na(labels))) {
         result <- lapply(1:nsim, function(x) {
-            tree <- rcoal(n=n.tips, br='coalescent')
+            tree <- rcoal(n=tips, br='coalescent')
             tree$edge.length <- tree$edge.length * theta['Ne.tau']  # rescale
             tree
         })
     } else {
         result <- lapply(1:nsim, function(x) {
-            tree <- rcoal(n=n.tips, tip.label=labels, br='coalescent')
+            tree <- rcoal(n=tips, tip.label=labels, br='coalescent')
             tree$edge.length <- tree$edge.length * theta['Ne.tau']  # rescale
             tree
         })
