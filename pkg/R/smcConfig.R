@@ -46,13 +46,13 @@ load.config <- function(file) {
 
     # parse prior settings
     config$params <- names(settings$priors)
-	      for (par.name in config$params) {
-		            sublist <- settings$priors[[par.name]]
+    for (par.name in config$params) {
+        sublist <- settings$priors[[par.name]]
 
         rng.call <- paste('r', sublist$dist, '(n=1,', sep='')
-		            arguments <- sapply(sublist[['hyperparameters']], function(x) paste(names(x), x, sep='='))
-		            rng.call <- paste(rng.call, paste(arguments, collapse=','), ')', sep='')
-		            config$priors[par.name] <- rng.call
+        arguments <- sapply(sublist[['hyperparameters']], function(x) paste(names(x), x, sep='='))
+        rng.call <- paste(rng.call, paste(arguments, collapse=','), ')', sep='')
+        config$priors[par.name] <- rng.call
 
         # need to set (arg.prior) to the desired value before calling this expression
         den.call <- paste0('d', sublist$dist, '(arg.prior,', paste(arguments, collapse=','), ')')
@@ -107,8 +107,11 @@ set.model <- function(config, generator) {
       else if (any(is.element(c('sir.nondynamic', 'sir.dynamic', 'sis', 'seir'), tolower(generator)))) {
         generator <- get('compartmental.model', mode='function', envir=parent.frame())
       }
-      else {
+      else if {
         generator <- get(generator, mode='function', envir=parent.frame())
+      }
+      else {
+        stop("Not a Kaphi-compatible model.")
       }
 		
 	  }

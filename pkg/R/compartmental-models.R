@@ -64,7 +64,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   "
   # check contents of theta list
   # params like mu and epsilon are only used in certain models
-  th.args <- names(theta)
+  th.args <- as.list(names(theta))
   if (length(th.args) < 6 || any(!is.element(c('t.end', 'N', 'beta', 'gamma', 'mu', 'epsilon'), th.args))) {
     stop("'theta' does not hold Kaphi-compatible parameters")
   }
