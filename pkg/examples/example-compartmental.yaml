@@ -1,0 +1,75 @@
+priors:
+  't.end':
+    dist: 'rnorm'
+    hyperparameters:
+    - mean: 5
+    - sd: 2
+  'N':                # population size
+    dist: 'rlnorm'    # lognormal distribution
+    hyperparameters:
+    - mean: 9.21      # exp(9.21) = 1e4
+    - sd: 0.21        # 95% interval about 6700 to 14700
+  'beta':
+    dist: 'rgamma'
+    hyperparameters:
+    - shape: 0.5
+    - rate: 1
+  'gamma':
+    dist: 'rgamma'
+    hyperparameters:
+    - shape: 0.5
+    - rate: 1
+  'mu': 
+    dist: 'rgamma'
+    hyperparameters:
+    - shape: 0.5
+    - rate: 1
+  'epsilon':
+    dist: 'rgamma'
+    hyperparameters:
+    - shape: 0.5
+    - rate: 1
+proposals:
+  't.end':
+    dist: 'rnorm'
+    parameters:
+    - mean: 5
+    - sd: 2
+  'N':                # population size
+    dist: 'rlnorm'    # lognormal distribution
+    parameters:
+    - mean: 9.21      # exp(9.21) = 1e4
+    - sd: 0.21        # 95% interval about 6700 to 14700
+  'beta':
+    dist: 'rgamma'
+    parameters:
+    - shape: 0.5
+    - rate: 1
+  'gamma':
+    dist: 'rgamma'
+    parameters:
+    - shape: 0.5
+    - rate: 1
+  'mu':
+    dist: 'rgamma'
+    parameters:
+    - shape: 0.5
+    - rate: 1
+  'epsilon':
+    dist: 'rgamma'
+    parameters:
+    - shape: 0.5
+    - rate: 1
+smc:
+  nparticle: 100
+  nsample: 10
+  ess.tolerance: 50.0
+  final.accept.rate: 0.1
+  final.epsilon: 0.1
+  quality: 0.95
+  step.tolerance: 1.e-4
+kernel:
+  decay.factor: 0.2
+  rbf.variance: 100.0
+  sst.control: 1.0
+  norm.mode: 'NONE'
