@@ -88,10 +88,10 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   # parsing R expressions representing ODE system
   # can eliminate this and just use theta$ calls
   parms <- list(
-    beta=theta$beta,       # transmission rate
+    beta=theta$beta,        # transmission rate
     gamma=theta$gamma,      # mortality from infection
     mu=theta$mu,            # baseline death rate
-    epsilon=theta$epsilon  # incubation period
+    epsilon=theta$epsilon   # incubation period
   )
   if (any(parms < 0)) {
     stop('No negative values permitted for model rate parameters.')

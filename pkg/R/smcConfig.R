@@ -107,7 +107,7 @@ set.model <- function(config, generator) {
       else if (any(is.element(c('sir.nondynamic', 'sir.dynamic', 'sis', 'seir'), tolower(generator)))) {
         generator <- get('compartmental.model', mode='function', envir=parent.frame())
       }
-      else if {
+      else if (is.element('const.coalescent', tolower(generator))) {
         generator <- get(generator, mode='function', envir=parent.frame())
       }
       else {
