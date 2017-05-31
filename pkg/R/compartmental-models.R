@@ -89,8 +89,8 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   # can eliminate this and just use theta$ calls
   parms <- list(
     beta=theta$beta,       # transmission rate
-    gamma=theta$gamma      # mortality from infection
-    mu=theta$mu            # baseline death rate
+    gamma=theta$gamma,      # mortality from infection
+    mu=theta$mu,            # baseline death rate
     epsilon=theta$epsilon  # incubation period
   )
   if (any(parms < 0)) {
