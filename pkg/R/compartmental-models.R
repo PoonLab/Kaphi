@@ -1,7 +1,23 @@
+# This file is part of Kaphi.
+
+# Kaphi is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Kaphi is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with Kaphi.  If not, see <http://www.gnu.org/licenses/>.
+
+
 require(rcolgem, quietly=TRUE)
 
-##########################################################################################################################
-call.rcolgem <- function(nreps, x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, ndd, parms, fgyResolution, integrationMethod) {
+
+.call.rcolgem <- function(nreps, x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, ndd, parms, fgyResolution, integrationMethod) {
   # get numerical solution of ODE system
   fgy <- make.fgy(
           t0,       # start time
@@ -34,29 +50,27 @@ call.rcolgem <- function(nreps, x0, t0, t.end, sampleTimes, sampleStates, births
 }
 
 
-#######################################################################################################################
-## SIR model w/out vital dynamics, constant population
-compartmental.model <- function(theta, nsim, tips, model='si', seed=NA, fgyResolution=500, integrationMethod='adams') {
-  '
+compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=NA, fgyResolution=500, integrationMethod='adams') {
+  "
   Use rcolgem to simulate coalescent trees under susceptible-infected (SI)
   model.
-  @param theta : parameter list
+  @param theta : vector containing parameter values for the model
   @param nsim : number of replicate trees to simulate
   @param tips : number of tips of zero height (integer) OR vector of tip heights (vector)
-  @param model : specified compartmental model ('si', 'sir.nondynamic', 'sir.dynamic', 'sis', 'seir')
+  @param model : specified compartmental model ('sir.nondynamic', 'sir.dynamic', 'sis', 'seir')
   @param seed : set seed for pseudorandom generator
   @param fgyResolution : time resolution of ODE solution
   @param integrationMethod : method for numerical solution of ODE
-  '
-  # TODO: check contents of theta list
+  "
+  # check contents of theta list
+  # params like mu and epsilon are only used in certain models
   th.args <- names(theta)
-  if (length(th.args) < 4 || any(!is.element(c('t.end', 'N', 'beta', 'gamma', 'mu'), th.args))) {
+  if (length(th.args) < 6 || any(!is.element(c('t.end', 'N', 'beta', 'gamma', 'mu', 'epsilon'), th.args))) {
     stop("'theta' does not hold Kaphi-compatible parameters")
   }
 
   t0 <- 0  # initial time
   t.end <- theta$t.end  # upper time boundary
-  
   
   # initial population frequencies
   S <- theta$N - 1
@@ -74,9 +88,10 @@ compartmental.model <- function(theta, nsim, tips, model='si', seed=NA, fgyResol
   # parsing R expressions representing ODE system
   # can eliminate this and just use theta$ calls
   parms <- list(
-    beta=theta$beta,   # transmission rate
-    gamma=theta$gamma  # mortality from infection
-    mu=theta$mu        # baseline death rate
+    beta=theta$beta,       # transmission rate
+    gamma=theta$gamma      # mortality from infection
+    mu=theta$mu            # baseline death rate
+    epsilon=theta$epsilon  # incubation period
   )
   if (any(parms < 0)) {
     stop('No negative values permitted for model rate parameters.')
@@ -89,8 +104,7 @@ compartmental.model <- function(theta, nsim, tips, model='si', seed=NA, fgyResol
   demes <- c('I')
   nonDemes <- c('S')
   
-  
-  # SIR model w/ no vital dynamics
+  # SIR model w/ no vital dynamics (births and deaths)
   if (identical(tolower(model), 'sir.nondynamic')) {
     # birth is the rate of lineage splitting - in this case, infection of a susceptible
     # migration is the state transition of a lineage without splitting
@@ -102,18 +116,14 @@ compartmental.model <- function(theta, nsim, tips, model='si', seed=NA, fgyResol
     migrations <- rbind(c('0'))
     deaths <- rbind(c('parms$gamma * I'))
     nonDemeDynamics <- rbind(c('-parms$beta * S * I / (S+I) + parms$gamma * I'))
-    
-    attr(SIR.nondynamic, 'name') <- 'SIR.nondynamic'  # satisfies requirement in smcConfig.R set.model()
   }
   
-  # SIR model w/ births and deaths
+  # SIR model w/ vital dynamics and constant population
   else if (identical(tolower(model), 'sir.dynamic')) {
     births <- rbind(c('parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I'))
     migrations <- rbind(c('0'))
     deaths <- rbind(c('parms$gamma * I - parms$mu * R'))
     nonDemeDynamics <- rbind(c('parms$mu * (I+R) - parms$beta * S * I / (S+I)'))
-    
-    attr(SIR.dynamic. 'name') <- 'SIR.dynamic'
   }
   
   # SIS model w/ births and deaths
@@ -121,9 +131,7 @@ compartmental.model <- function(theta, nsim, tips, model='si', seed=NA, fgyResol
     births <- rbind(c('parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I'))
     migrations <- rbind(c('0'))
     deaths <- rbind(c('parms$gamma * I - parms$mu * R'))
-    nonDemeDynamics <- rbind(c('-parms$beta * S * I / (S+I) + parms$mu * (I+R) + parms$gamma * I'))
-    
-    attr(SIS, 'name') <- 'SIS'
+    nonDemeDynamics <- rbind(c('-parms$beta * S * I / (S+I)'))
   }
   
   # SEIR model, assuming presence of vital dynamics w/ birth rate equal to death rate
@@ -134,19 +142,18 @@ compartmental.model <- function(theta, nsim, tips, model='si', seed=NA, fgyResol
     I <- 0
     x0 <- c(I=I, R=R, S=S, E=E)
     
-    births <- rbind(c('parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I'))
-    migrations <- rbind(c('parms$gamma * I - parms$mu * R'))
-    nonDemeDynamics <- rbind(c('-parms$beta * S * I / (S+I) + parms$mu * (I+R) + parms$gamma * I'))
+    births <- rbind(c('parms$epsilon * E - (parms$gamma + parms$mu) * I'))
+    migrations <- rbind(c('0'))
+    deaths <- rbind(c('parms$gamma * I - parms$mu * R'))
+    nonDemeDynamics <- rbind(c('-parms$beta * S * I / (S+I) + parms$mu * (I+R) - parms$mu * E'))
     
     # exposed individuals in incubation period
-    exposed <- rbind(c('parms$beta * S * I / (S+I) - (parms$episilon + parms$mu) * E'))
+    exposed <- rbind(c('parms$beta * S * I / (S+I) - (parms$epsilon + parms$mu) * E'))
     rownames(exposed) <- colnames(exposed) <- demes  # assigned deme state to exposed b/c strictly seir case at the moment
-    
-    attr(SEIR, 'name') <- 'SEIR'
   }
   
   else {
-    stop ("Model is not Kaphi-compatible. Must be a character string of one of the following: 'sir.nondynamic', 'sir.dynamic', 'sis', 'seir' ")
+    stop ("Model is not Kaphi-compatible. Must be a character string of one of the following: 'sir.nondynamic', 'sir.dynamic', 'sis', 'seir'.")
   }
   
   # assigning deme and nondeme states
@@ -166,10 +173,12 @@ compartmental.model <- function(theta, nsim, tips, model='si', seed=NA, fgyResol
 
   
   # calculates numerical solution of ODE system and returns simulated trees
-  trees <- call.rcolgem(nsim, x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, ndd, parms, fgyResolution, integrationMethod)
+  trees <- .call.rcolgem(nsim, x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, ndd, parms, fgyResolution, integrationMethod)
+  # for seir model, have to incorporate the Exposed compartment into tree simulations
   
-  
+
   return(trees)  # returning an ape phylo object
-}  
+} 
+attr(compartmental.model, 'name') <- "compartmental.model"  # satisfies requirement in smcConfig.R set.model() function
 
 

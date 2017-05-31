@@ -43,6 +43,8 @@ export(.perturb.particles)
 export(run.smc)
 
 export(const.coalescent)
+export(compartmental.model)
+export(speciation.model)
 
 export(parse.ode)
 export(.get.times)

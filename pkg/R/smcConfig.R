@@ -46,13 +46,13 @@ load.config <- function(file) {
 
     # parse prior settings
     config$params <- names(settings$priors)
-	for (par.name in config$params) {
-		sublist <- settings$priors[[par.name]]
+	      for (par.name in config$params) {
+		            sublist <- settings$priors[[par.name]]
 
         rng.call <- paste('r', sublist$dist, '(n=1,', sep='')
-		arguments <- sapply(sublist[['hyperparameters']], function(x) paste(names(x), x, sep='='))
-		rng.call <- paste(rng.call, paste(arguments, collapse=','), ')', sep='')
-		config$priors[par.name] <- rng.call
+		            arguments <- sapply(sublist[['hyperparameters']], function(x) paste(names(x), x, sep='='))
+		            rng.call <- paste(rng.call, paste(arguments, collapse=','), ')', sep='')
+		            config$priors[par.name] <- rng.call
 
         # need to set (arg.prior) to the desired value before calling this expression
         den.call <- paste0('d', sublist$dist, '(arg.prior,', paste(arguments, collapse=','), ')')
@@ -104,22 +104,22 @@ set.model <- function(config, generator) {
       if (any(is.element(c('bisse', 'bisseness', 'bd', 'classe', 'geosse', 'musse', 'quasse', 'yule'), tolower(generator)))) {
         generator <- get('speciation.model', mode='function', envir=parent.frame())
       }
-      else if (any(is.element(c('si', 'sir.nondynamic', 'sir.dynamic', 'sis', 'seir'), tolower(generator)))) {
+      else if (any(is.element(c('sir.nondynamic', 'sir.dynamic', 'sis', 'seir'), tolower(generator)))) {
         generator <- get('compartmental.model', mode='function', envir=parent.frame())
       }
       else {
         generator <- get(generator, mode='function', envir=parent.frame())
       }
 		
-	}
-	# check that function takes the three required arguments
-    # 1. theta = a named vector of parameter values (particle)
-    # 2. nsim = number of simulations to generate per particle
-    # 3. n.tips = size of tree to simulate
-	g.args <- names(formals(generator))
-	if (length(g.args)<3 || any(!is.element(c('theta', 'nsim', 'n.tips'), g.args))) {
-		stop("generator is not a Kaphi-compatible model")
-	}
+	  }
+  	# check that function takes the three required arguments
+      # 1. theta = a named vector of parameter values (particle)
+      # 2. nsim = number of simulations to generate per particle
+      # 3. n.tips = size of tree to simulate
+  	g.args <- names(formals(generator))
+  	if (length(g.args)<3 || any(!is.element(c('theta', 'nsim', 'n.tips'), g.args))) {
+  		stop("generator is not a Kaphi-compatible model")
+  	}
     # check that function has name attribute
     if (is.null(attr(generator, 'name'))) {
         stop("generator is not a Kaphi-compatible model")
