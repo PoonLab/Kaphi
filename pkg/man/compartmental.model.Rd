@@ -22,7 +22,6 @@ compartmental.model(theta, nsim, tips, model='sir.nondynamic', seed=NA, fgyResol
   }
   \item{model}{
     Specified compartmental model. \code{'sir.nondynamic'} is a susceptible-infectious-recovered model without vital dynamics (births and deaths). \code{'sir.dynamic'} is a susceptible-infectious-recovered model with vital dynamics and constant population. \code{'sis'} is a susceptible-infectious-susceptible model with vital dynamics. \code{'seir'} is a susceptible-exposed-infectious-recovered model with vital dynamics where birth rate is equal to death rate. Default is \code{'sir.nondynamic'}.
-    }
   }
   \item{seed}{
     Setting seed for pseudorandom generator. Default is NA.
