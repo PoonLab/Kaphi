@@ -20,7 +20,7 @@
 
 ## Requirements Installation Procedure (Ubuntu):
 
-* The commands for each step are to be written/coppied one by one to the terminal.
+* The commands for each step are to be written/copied line by line to the terminal.
 
 1. Updating and Upgrading The System  
     ```
