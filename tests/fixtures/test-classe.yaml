@@ -1,0 +1,115 @@
+priors:
+  lambda111:
+    dist: 'unif'
+    hyperparameters:
+    - min: 2.5
+    - max: 2.5
+  lambda112:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0.5
+    - max: 0.5
+  lambda122:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0
+    - max: 0
+  lambda211:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0
+    - max: 0
+  lambda212:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0
+    - max: 0
+  lambda222:
+    dist: 'unif'
+    hyperparameters:
+    - min: 5
+    - max: 5
+  mu1:
+    dist: 'unif'
+    hyperparameters:
+    - min: 2.41
+    - max: 2.41
+  mu2:
+    dist: 'unif'
+    hyperparameters:
+    - min: 5.24
+    - max: 5.24
+  q12:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0.5
+    - max: 0.5
+  q21:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0
+    - max: 0
+proposals:
+  lambda111:
+    dist: 'unif'
+    hyperparameters:
+    - min: 2.5
+    - max: 2.5
+  lambda112:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0.5
+    - max: 0.5
+  lambda122:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0
+    - max: 0
+  lambda211:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0
+    - max: 0
+  lambda212:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0
+    - max: 0
+  lambda222:
+    dist: 'unif'
+    hyperparameters:
+    - min: 5
+    - max: 5
+  mu1:
+    dist: 'unif'
+    hyperparameters:
+    - min: 2.41
+    - max: 2.41
+  mu2:
+    dist: 'unif'
+    hyperparameters:
+    - min: 5.24
+    - max: 5.24
+  q12:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0.5
+    - max: 0.5
+  q21:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0
+    - max: 0
+smc:
+  nparticle: 100
+  nsample: 10
+  ess.tolerance: 50.0
+  final.accept.rate: 0.1
+  final.epsilon: 0.1
+  quality: 0.95
+  step.tolerance: 1.e-4
+kernel:
+  decay.factor: 0.2
+  rbf.variance: 100.0
+  sst.control: 1.0
+  norm.mode: 'NONE'
