@@ -49,7 +49,7 @@ An ape \code{'multiPhylo'} object of simulated trees.
 %%  ~~further notes~~
 }
 \seealso{
-\code{\link{speciation.model}}
+\code{\link{speciation.model}} , \code{\link{const.coalescent}}
 }
 \examples{
 ##---- Should be DIRECTLY executable !! ----
