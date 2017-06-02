@@ -31,7 +31,7 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA) {
         @param sA : Rate of speciation within region A
         @param xA : Rate of extinction/extirpation from region A.
         @param dA : Rate of dispersal/range expansion from region A.
-        @param char : model of character evolution. 
+        @param char : model of character evolution.
     nsim : number of trees to simulate
     tips : if integer, the number of tips; if vector, the heights of the tips
     model : model under which trees are evolved. One of:
@@ -51,13 +51,13 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA) {
   if(model == 'bisse') {
     if(any(!is.element(c('lambda0', 'lambda1', 'mu0', 'mu1', 'q01', 'q10'),
                        names(theta)))) {
-      stop('theta does not contain all of the required parameters: 
+      stop('theta does not contain all of the required parameters:
            lambda0, lambda1, mu0, mu1, q01, q10')
     }
   } else if(model == 'bisseness') {
-      if(any(!is.element(c('lambda0', 'lambda1', 'mu0', 'mu1', 'q01', 'q10', 
+      if(any(!is.element(c('lambda0', 'lambda1', 'mu0', 'mu1', 'q01', 'q10',
                            'p0c', 'p0a', 'p1c', 'p1a'), names(theta)))) {
-        stop('theta does not contain all of the required parameters: 
+        stop('theta does not contain all of the required parameters:
               lambda0, lambda1, mu0, mu1, q01, q10, p0c, p0a, p1c, p1a')
     }
   } else if(model == 'bd') {
@@ -72,13 +72,13 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA) {
              more than one trait.')
       }
   } else if(model == 'geosse') {
-      if(any(!is.element(c('sA', 'sB', 'sAB', 'xA', 'xB', 'dA', 'dB'), 
+      if(any(!is.element(c('sA', 'sB', 'sAB', 'xA', 'xB', 'dA', 'dB'),
                          names(theta)))) {
         stop('theta does not contain all of the required parameters:
                sA, sB, sAB, xA, xB, dA, dB')
     }
   } else if(model == 'musse') { # model depends upon number given parameters
-      if(any(!is.element(c(''), names(theta)))) {
+      if(any(!is.element(c('lambda1, mu1'), names(theta)))) {
         stop('theta does not contain all of the required parameters:
              lambda1, mu1. Additional parameters are required for specifying
              more than one trait.')
@@ -86,7 +86,7 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA) {
   } else if(model == 'quasse') {
     if(any(!is.element(c('lambda', 'mu', 'char'), names(theta)))) {
       stop('theta does not contain all of the required parameters:
-           lambda, my, char.')
+           lambda, mu, char.')
     }
   } else if(model == 'yule') {
     if(!is.element('lambda', names(theta))) {
@@ -96,7 +96,6 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA) {
       stop('model must be set to one of: bisse, bisseness, bd,
            classe, geosse, musse, quasse, yule')
   }
-  
   ## Set seed
   if(!is.na(seed)) {
         set.seed(seed)
@@ -104,8 +103,8 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA) {
   ## BiSSE parameter vector
   parms <- unname(theta)
   ## Simulate tree(s)
-  result <- trees(parms, type=model, n=nsim, max.taxa=tips, 
+  result <- trees(parms, type=model, n=nsim, max.taxa=tips,
                   max.t=Inf, include.extinct=FALSE)
-  return(result)  
+  return(result)
 }
 attr(speciation.model, 'name') <- 'speciation.model'
