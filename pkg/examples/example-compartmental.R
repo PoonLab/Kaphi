@@ -1,4 +1,5 @@
 require(Kaphi)
+require(rcolgem)
 
 setwd('~/git/Kaphi')
 

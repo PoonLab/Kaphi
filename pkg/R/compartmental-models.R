@@ -77,7 +77,8 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', label
   S <- theta$N - 1
   I <- 1  # assume epidemic starts with single infected individual
   R <- 0
-  x0 <- c(I=I, R=R, S=S)  #sample vector
+  # x0 <- c(I=I, R=R, S=S)  #sample vector, removed R=R b/c rcolgem allows only births and ndd 1x1 matrices (checks that length(x0) == m + mm)
+  x0 <- c(I=I, S=S)
   
   if (any(x0 < 0)) {
     stop('Population sizes cannot be less than 0.')
@@ -141,7 +142,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', label
     # update sample vector to include Exposed compartment
     E <- 1
     I <- 0
-    x0 <- c(I=I, R=R, S=S, E=E)
+    #x0 <- c(I=I, R=R, S=S, E=E)
     
     births <- rbind(c('parms$epsilon * E - (parms$gamma + parms$mu) * I'))
     migrations <- rbind(c('0'))
@@ -187,7 +188,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', label
 
   
   # calculates numerical solution of ODE system and returns simulated trees
-  trees <- .call.rcolgem(nsim, x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod)
+  trees <- .call.rcolgem(nsim, x0, t0, t.end, sampleTimes, sampleStates, births, deaths, nonDemeDynamics, migrations=migrations, parms=parms, fgyResolution=fgyResolution, integrationMethod=integrationMethod)
   # for seir model, have to incorporate the Exposed compartment into tree simulations
   
 

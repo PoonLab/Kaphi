@@ -24,3 +24,4 @@ test.compartmental.model <- function() {
   expected <-
   checkEquals(expected, result)
 }
+
