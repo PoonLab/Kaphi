@@ -187,7 +187,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', label
 
   
   # calculates numerical solution of ODE system and returns simulated trees
-  trees <- .call.rcolgem(nsim, x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, ndd, parms, fgyResolution, integrationMethod)
+  trees <- .call.rcolgem(nsim, x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod)
   # for seir model, have to incorporate the Exposed compartment into tree simulations
   
 
