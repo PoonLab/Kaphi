@@ -50,7 +50,7 @@ require(rcolgem, quietly=TRUE)
 }
 
 
-compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=NA, fgyResolution=500, integrationMethod='adams') {
+compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
   "
   Use rcolgem to simulate coalescent trees under susceptible-infected (SI)
   model.
@@ -163,6 +163,19 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   rownames(deaths) <- colnames(deaths) <- demes 
   names(nonDemeDynamics) <- nonDemes
 
+  
+  # check if there are tip labels (dates and states) to incorporate
+  if (!is.na(labels)) {
+    tip.heights <- names(labels)    # not sure what format the labels are in, could also just be one column for tip.heights
+    # check if population size is bigger than number of tips requested to include
+    n.tips <- nrow(tip.labels)
+    if (sum(x0) < n.tips) {
+      stop("Population size is smaller than requested number of tips")
+    }
+  }
+  else {
+    tip.heights <- 0
+  }
   
   # sample times
   sampleTimes <- t.end - tip.heights
