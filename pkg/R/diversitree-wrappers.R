@@ -96,6 +96,8 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA) {
       stop('model must be set to one of: bisse, bisseness, bd,
            classe, geosse, musse, quasse, yule')
   }
+  ## Parse tips information
+  tips <- parse.tips(tips)
   ## Set seed
   if(!is.na(seed)) {
         set.seed(seed)
@@ -103,7 +105,7 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA) {
   ## BiSSE parameter vector
   parms <- unname(theta)
   ## Simulate tree(s)
-  result <- trees(parms, type=model, n=nsim, max.taxa=tips,
+  result <- trees(parms, type=model, n=nsim, max.taxa=tips$n.tips,
                   max.t=Inf, include.extinct=FALSE)
   return(result)
 }

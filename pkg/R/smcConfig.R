@@ -108,12 +108,12 @@ set.model <- function(config, generator) {
         generator <- get('compartmental.model', mode='function', envir=parent.frame())
       }
       else if (is.element('const.coalescent', tolower(generator))) {
-        generator <- get('const.coalescent', mode='function', envir=parent.frame())
+        generator <- get(generator, mode='function', envir=parent.frame())
       }
       else {
         stop("Not a Kaphi-compatible model.")
       }
-		
+
 	  }
   	# check that function takes the three required arguments
       # 1. theta = a named vector of parameter values (particle)
@@ -241,7 +241,7 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
     s <- 1        # counter
     # x11()
     par(ask=T)    # prompts user to 'Hit <Return> to see next plot'
-    
+
     for (i in 1:(numr * numc)){
       par(mfrow = c(numr, numc))     # multiple plot display option
       for (slot in 1:(numr * numc)){
@@ -249,4 +249,18 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
         s <- s + 1
       }
     }
+}
+
+parse.tips <- function(tips) {
+  if(length(tips) < 1) {
+      stop('tips must have at least one value')
+  } else if(length(tips) > 1) {
+      n.tips <- as.integer(length(tips))
+      tip.heights <- tips
+  } else {
+      n.tips <- as.integer(tips)
+      tip.heights <- NA
+    }
+  tips <- list(n.tips, tip.heights)
+  return(tips)
 }

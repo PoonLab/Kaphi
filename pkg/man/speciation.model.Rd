@@ -127,15 +127,24 @@ Yule
 }
 
 \examples{
-## Example of BiSSE model tree simulation. Each model requires different 
-## parameters to be specified in theta.
+## Example use of function for BiSSE model tree simulation. Each model requires
+## differenet parameters to be set in the configuration YAML file (see details).
 
-## Set parameter values:
-theta <- (lambda0=0.1, lambda1=0.2, mu0=0.03, mu1=0.03, q01=0.01, q10=0.01)
+require(diversitree) # If not loaded already
+set.seed(1)
+
+## If running from R GUI:
+setwd('~/git/Kaphi')
+
+## Load configuration file:
+config <- load.config('pkg/examples/example-bisse.yaml')
+config <- set.model(config, 'bisse')
+
+## Sample Priors for parameter values
+theta <- sample.priors(config)
 
 ## Simulate trees:
 sim.trees <- speciation.model(theta, nsim=5, tips=20, 'bisse', seed=NA)
-
 }
 
 \keyword{bisse}
