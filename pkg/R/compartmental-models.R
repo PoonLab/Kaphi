@@ -181,9 +181,9 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', label
   sampleTimes <- t.end - tip.heights
 
   # sample states
-  sampleStates <- matrix(1, nrow=n.tips, ncol=length(demes))
+  sampleStates <- matrix(1, nrow=tips, ncol=length(demes))
   colnames(sampleStates) <- demes
-  rownames(sampleStates) <- 1:n.tips
+  rownames(sampleStates) <- 1:tips
 
   
   # calculates numerical solution of ODE system and returns simulated trees

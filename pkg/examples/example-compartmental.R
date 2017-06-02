@@ -17,7 +17,7 @@ obs.tree <- parse.input.tree(obs.tree, config)
 x <- seq(1000, 10000, 500)    # (from, to, step)
 result <- sapply(x, function(value) {
   theta <- c(t.end=value, N=1000, beta=0.01, gamma=1/520, mu=1/3640, epsilon=0)
-  sim.trees <- compartmental.model(theta, nsim=50, tips=100)
+  sim.trees <- compartmental.model(theta, nsim=50, tips=100, model='sir.dynamic')
   distances <- sapply(sim.trees, function(singletree) {
     processtree <- .preprocess.tree(singletree, config)
     distance(obs.tree, processtree, config)
