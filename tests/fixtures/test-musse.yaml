@@ -2,65 +2,124 @@ priors:
   lambda1:
     dist: 'unif'
     hyperparameters:
-    - min:
-    - max:
+    - min: 0.1
+    - max: 0.1
   lambda2:
     dist: 'unif'
     hyperparameters:
-    - min:
-    - max:
+    - min: 0.07
+    - max: 0.07
   lambda3:
     dist: 'unif'
     hyperparameters:
-    - min:
-    - max:
+    - min: 0.2
+    - max: 0.2
   mu1:
     dist: 'unif'
     hyperparameters:
-    - min:
-    - max:
+    - min: 0.03
+    - max: 0.03
   mu2:
     dist: 'unif'
     hyperparameters:
-    - min:
-    - max:
+    - min: 0.01
+    - max: 0.01
   mu3:
     dist: 'unif'
     hyperparameters:
-    - min:
-    - max:
+    - min: 0.06
+    - max: 0.06
   q12:
     dist: 'unif'
     hyperparameters:
-    - min:
-    - max:
+    - min: 0.01
+    - max: 0.01
   q13:
     dist: 'unif'
     hyperparameters:
-    - min:
-    - max:
+    - min: 0.03
+    - max: 0.03
   q21:
     dist: 'unif'
     hyperparameters:
-    - min:
-    - max:
+    - min: 0.04
+    - max: 0.04
   q23:
     dist: 'unif'
     hyperparameters:
-    - min:
-    - max:
+    - min: 0.08
+    - max: 0.08
   q31:
     dist: 'unif'
     hyperparameters:
-    - min:
-    - max:
+    - min: 0.1
+    - max: 0.1
   q32:
     dist: 'unif'
     hyperparameters:
-    - min:
-    - max:
+    - min: 0.01
+    - max: 0.01
 proposals:
-
+  lambda1:
+    dist: 'unif'
+    parameters:
+    - min: 0.1
+    - max: 0.1
+  lambda2:
+    dist: 'unif'
+    parameters:
+    - min: 0.07
+    - max: 0.07
+  lambda3:
+    dist: 'unif'
+    parameters:
+    - min: 0.2
+    - max: 0.2
+  mu1:
+    dist: 'unif'
+    parameters:
+    - min: 0.03
+    - max: 0.03
+  mu2:
+    dist: 'unif'
+    parameters:
+    - min: 0.01
+    - max: 0.01
+  mu3:
+    dist: 'unif'
+    parameters:
+    - min: 0.06
+    - max: 0.06
+  q12:
+    dist: 'unif'
+    parameters:
+    - min: 0.01
+    - max: 0.01
+  q13:
+    dist: 'unif'
+    parameters:
+    - min: 0.03
+    - max: 0.03
+  q21:
+    dist: 'unif'
+    parameters:
+    - min: 0.04
+    - max: 0.04
+  q23:
+    dist: 'unif'
+    parameters:
+    - min: 0.08
+    - max: 0.08
+  q31:
+    dist: 'unif'
+    parameters:
+    - min: 0.1
+    - max: 0.1
+  q32:
+    dist: 'unif'
+    parameters:
+    - min: 0.01
+    - max: 0.01
 smc:
   nparticle: 100
   nsample: 10
