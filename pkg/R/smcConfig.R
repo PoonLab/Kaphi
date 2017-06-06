@@ -259,7 +259,7 @@ parse.tips <- function(tips) {
       tip.heights <- tips
   } else {
       n.tips <- as.integer(tips)
-      tip.heights <- NA
+      tip.heights <- rep(0, n.tips)
     }
   tips <- list(n.tips=n.tips, tip.heights=tip.heights)
   return(tips)
