@@ -25,3 +25,38 @@ test.compartmental.model <- function() {
   checkEquals(expected, result)
 }
 
+
+
+trees <- simulate.binary.dated.tree(
+  births, 
+  deaths, 
+  ndd, 
+  t0,     # start time
+  x0,     # end time
+  sampleTimes, 
+  sampleStates, 
+  migrations=migrations, 
+  parms=parms, 
+  fgyResolution=fgyResolution, 
+  integrationMethod=integrationMethod
+)
+
+
+
+fgy <- make.fgy(
+  t0,       # start time
+  t.end,    # end time
+  births,
+  deaths,
+  nonDemeDynamics,
+  x0,
+  migrations=migrations,
+  parms=list(
+    beta=theta$beta,        # transmission rate
+    gamma=theta$gamma,      # mortality from infection
+    mu=theta$mu,            # baseline death rate
+    epsilon=theta$epsilon   # incubation period
+  ), 
+  fgyResolution=500, 
+  integrationMethod="adams"
+)

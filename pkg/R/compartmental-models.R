@@ -17,19 +17,20 @@
 require(rcolgem, quietly=TRUE)
 
 
-.call.rcolgem <- function(nreps, x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, ndd, parms, fgyResolution, integrationMethod) {
+.call.rcolgem <- function(x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, ndd, parms, fgyResolution, integrationMethod) {
+  
   # get numerical solution of ODE system
   fgy <- make.fgy(
-          t0,       # start time
-          t.end,    # end time
-          births,
-          deaths,
-          ndd,
-          x0,
-          migrations=migrations,
-          parms=parms, 
-          fgyResolution=fgyResolution, 
-          integrationMethod=integrationMethod
+    t0,       # start time
+    t.end,    # end time
+    births,
+    deaths,
+    ndd,
+    x0,
+    migrations=migrations,
+    parms=parms, 
+    fgyResolution=fgyResolution, 
+    integrationMethod=integrationMethod
   )
   
   # simulate trees...but which function in rcolgem is it? with '.fgy' or without?
@@ -38,12 +39,12 @@ require(rcolgem, quietly=TRUE)
     fgy[[2]],  # births
     fgy[[3]],  # migrations
     fgy[[4]],  # deme sizes
-    sampleTimes, 
-    sampleStates, 
-    integrationMethod=integrationMethod, 
-    n.reps=nreps   #this isn't a parameter in rcolgem's simulate.binary.dated.tree.fgy
+    sampleTimes,
+    sampleStates,
+    integrationMethod=integrationMethod  #  , n.reps=nreps   #this isn't a parameter in rcolgem's simulate.binary.dated.tree.fgy
   )
   
+
   # cast result as a multiPhylo object
   class(trees) <- 'multiPhylo'
   return(trees)
@@ -116,8 +117,8 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', label
     
     births <- rbind(c('parms$beta * S * I / (S+I)'))
     migrations <- rbind(c('0'))
-    deaths <- rbind(c('parms$gamma * I'))
-    nonDemeDynamics <- rbind(c('-parms$beta * S * I / (S+I) + parms$gamma * I'))
+    deaths <- c('parms$gamma * I')
+    nonDemeDynamics <- c('-parms$beta * S * I / (S+I) + parms$gamma * I')
   }
   
   # SIR model w/ vital dynamics and constant population
@@ -161,25 +162,29 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', label
   # assigning deme and nondeme states
   rownames(births) <- colnames(births) <- demes
   rownames(migrations) <- colnames(migrations) <- demes
-  rownames(deaths) <- colnames(deaths) <- demes 
-  names(nonDemeDynamics) <- nonDemes
+  names(deaths) <- demes 
+  names(nonDemeDynamics) <- 'S'
+  print("Got this far")
+  cat(names(nonDemeDynamics))
 
   
   # check if there are tip labels (dates and states) to incorporate
   if (!is.na(labels)) {
     tip.heights <- names(labels)    # not sure what format the labels are in, could also just be one column for tip.heights
     # check if population size is bigger than number of tips requested to include
-    n.tips <- nrow(tip.labels)
+    n.tips <- nrow(tip.heights)
     if (sum(x0) < n.tips) {
       stop("Population size is smaller than requested number of tips")
     }
   }
   else {
-    tip.heights <- 0
+    tip.heights <- rep.int(0, tips)  #may have to reverse this bc of backwards timescale for coalescent, and then take the absolute value
+    n.tips <- tips
   }
   
   # sample times
-  sampleTimes <- t.end - tip.heights
+  # a vector indicating when each tip was sampled
+  sampleTimes <- sapply(tip.heights, function(x) {t.end - x})
 
   # sample states
   sampleStates <- matrix(1, nrow=tips, ncol=length(demes))
@@ -188,7 +193,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', label
 
   
   # calculates numerical solution of ODE system and returns simulated trees
-  trees <- .call.rcolgem(nsim, x0, t0, t.end, sampleTimes, sampleStates, births, deaths, nonDemeDynamics, migrations=migrations, parms=parms, fgyResolution=fgyResolution, integrationMethod=integrationMethod)
+  trees <- .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, deaths, nonDemeDynamics, migrations, parms, fgyResolution, integrationMethod)
   # for seir model, have to incorporate the Exposed compartment into tree simulations
   
 
