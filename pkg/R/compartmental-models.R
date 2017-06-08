@@ -46,7 +46,7 @@ require(rcolgem, quietly=TRUE)
   
 
   # cast result as a multiPhylo object
-  class(trees) <- 'multiPhylo'
+  class(trees) <- c('multiPhylo', 'phylo')
   return(trees)
 }
 
@@ -164,8 +164,6 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', label
   rownames(migrations) <- colnames(migrations) <- demes
   names(deaths) <- demes 
   names(nonDemeDynamics) <- 'S'
-  print("Got this far")
-  cat(names(nonDemeDynamics))
 
   
   # check if there are tip labels (dates and states) to incorporate
@@ -193,11 +191,24 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', label
 
   
   # calculates numerical solution of ODE system and returns simulated trees
-  trees <- .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, deaths, nonDemeDynamics, migrations, parms, fgyResolution, integrationMethod)
+  trees <- .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod)
   # for seir model, have to incorporate the Exposed compartment into tree simulations
   
-
-  return(trees)  # returning an ape phylo object
+  
+  # https://github.com/cran/ape/blob/master/R/rtree.R attempt to convert trees result into a phylo object
+  phy <- list(edge=trees$edge, edge.length=trees$edge.length)
+  if (is.null(trees$tip.label))
+    trees$tip.label <- paste("t", 1:trees$n)     # n = number of tips
+  phy$tip.label <- sample(trees$tip.label)
+  phy$Nnode <- trees$n - 1L
+  class(phy) <- "phylo"
+  phy <- reorder(phy)
+  # to avoid crossings when converting with as.hclust
+  phy$edge[phy$edge[,2] <= n, 2] <- 1:n
+  phy
+  
+  
+  return(phy)  # returning an ape phylo object
 } 
 attr(compartmental.model, 'name') <- "compartmental.model"  # satisfies requirement in smcConfig.R set.model() function
 
