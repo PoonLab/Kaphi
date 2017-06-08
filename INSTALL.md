@@ -10,6 +10,7 @@
   * [RUnit](https://cran.r-project.org/web/packages/RUnit/index.html)
   * [inline](https://cran.r-project.org/web/packages/inline/index.html)
   * [rcolgem](http://colgem.r-forge.r-project.org/)
+  * [Shiny](https://shiny.rstudio.com/)
 * GNU tools: 
   * [bison](https://www.gnu.org/software/bison/)
   * [flex](https://github.com/westes/flex)
@@ -42,6 +43,7 @@
 	   install.packages("RUnit")
 	   install.packages("inline")
 	   install.packages("rcolgem", repos="http://R-Forge.R-project.org") 
+	   install.packages("shiny")
 	   quit() 
     ```
 4. Installing GNU tools and C libraries

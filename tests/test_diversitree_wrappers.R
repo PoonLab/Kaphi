@@ -17,58 +17,73 @@ require(Kaphi, quietly=TRUE)
 require(RUnit, quietly=TRUE)
 require(diversitree, quietly=TRUE)
 
+test.yule.model <- function() {
+  config <- load.config('tests/fixtures/test-yule.yaml')
+  config <- set.model(config, 'yule')
+  theta <- sample.priors(config)
+  tree <- speciation.model(theta, nsim=1, tips=20, 'yule')
+  
+  expected <- # analytical solution 
+}
+
 
 test.speciation.model <- function() {
     ## Test BiSSE Model
     config <- load.config('tests/fixtures/test-bisse.yaml')
     config <- set.model(config, 'bisse')
     theta <- sample.priors(config)
-    result <- speciation.model(theta, nsim=1, tips=20, 'bisse') # 1 tree, 20 tips
-    expected <- tree.bisse(c(0.1, 0.2, 0.003, 0.003, 0.01, 0.01), max.taxa=20)
-    checkEquals(expected, result)
+    obs.tree <- tree.bisse(c(0.1, 0.2, 0.003, 0.003, 0.01, 0.01), max.taxa=20)
+    p.obs.tree <- parse.input.tree(obs.tree, config)
+    sim.trees <- speciation.model(theta, nsim=100, tips=20, 'bisse') 
+    dists <- sapply(sim.trees, function(st) {
+      pt <- parse.input.tree(st, config)
+      distance(p.obs.tree, pt, config)
+    })
+    result <- mean(dists) 
+    checkTrue(result < 0.2) # 0.2 is the max mean distance accepted
 
    ## Test BiSSE-ness Model
-   config <- load.config('tests/fixtures/test-bisseness.yaml')
-   config <- set.model(config, 'bisseness')
-   theta <- sample.priors(config)
-   result <- speciation.model(theta, nsim=1, tips=20, 'bisseness')
-   expected <- tree.bisseness(c(0.1, 0.2, 0.03, 0.03, 0.01, 0.01, 0.05, 0.1,
-                                0.05, 0.1), max.taxa=20)
-   checkEquals(expected, result)
+   #config <- load.config('tests/fixtures/test-bisseness.yaml')
+   #config <- set.model(config, 'bisseness')
+   #theta <- sample.priors(config)
+   #result <- speciation.model(theta, nsim=1, tips=20, 'bisseness')
+   #expected <- tree.bisseness(c(0.1, 0.2, 0.03, 0.03, 0.01, 0.01, 0.05, 0.1,
+  #                              0.05, 0.1), max.taxa=20)
+   #checkEquals(expected, result)
 
    ## Test Birth-Death Model
-   config <- load.config('tests/fixtures/test-bd.yaml')
-   config <- set.model(config, 'bd')
-   theta <- sample.priors(config)
-   result <- speciation.model(theta, nsim=1, tips=20, 'bd')
-   expected <- tree.bd(c(0.1, 0.003), max.taxa=20)
-   checkEquals(expected, result)
+   #config <- load.config('tests/fixtures/test-bd.yaml')
+   #config <- set.model(config, 'bd')
+   #theta <- sample.priors(config)
+   #result <- speciation.model(theta, nsim=1, tips=20, 'bd')
+   #expected <- tree.bd(c(0.1, 0.003), max.taxa=20)
+   #checkEquals(expected, result)
 
    ## Test ClaSSE Model
-   config <- load.config('tests/fixtures/test-classe.yaml')
-   config <- set.model(config, 'classe')
-   theta <- sample.priors(config)
-   result <- speciation.model(theta, nsim=1, tips=20, 'classe')
-   expected <- tree.classe(c(2.5, 0.5, 0, 0, 0, 5, 2.41, 5.24, 0.5, 0),
-                             max.taxa=20)
-   checkEquals(expected, result)
+   #config <- load.config('tests/fixtures/test-classe.yaml')
+   #config <- set.model(config, 'classe')
+   #theta <- sample.priors(config)
+   #result <- speciation.model(theta, nsim=1, tips=20, 'classe')
+   #expected <- tree.classe(c(2.5, 0.5, 0, 0, 0, 5, 2.41, 5.24, 0.5, 0),
+  #                           max.taxa=20)
+   #checkEquals(expected, result)
 
    ## Test GeoSSE Model
-   config <- load.config('tests/fixtures/test-geosse.yaml')
-   config <- set.model(config, 'geosse')
-   theta <- sample.priors(config)
-   result <- speciation.model(theta, nsim=1, tips=20, 'geosse')
-   expected <- tree.geosse(c(1.5, 0.5, 1.0, 0.7, 0.7, 1.5, 1.5), max.taxa=20)
-   checkEquals(expected, result)
+   #config <- load.config('tests/fixtures/test-geosse.yaml')
+   #config <- set.model(config, 'geosse')
+   #theta <- sample.priors(config)
+   #result <- speciation.model(theta, nsim=1, tips=20, 'geosse')
+   #expected <- tree.geosse(c(1.5, 0.5, 1.0, 0.7, 0.7, 1.5, 1.5), max.taxa=20)
+   #checkEquals(expected, result)
 
    ## Test MuSSE Model
-   config <- load.config('tests/fixtures/test-musse.yaml')
-   config <- set.model(config, 'musse')
-   theta <- sample.priors(config)
-   result <- speciation.model(theta, nsim=1, tips=20, 'musse')
-   expected <- tree.musse(c(0.1, 0.07, 0.2, 0.03, 0.01, 0.06, 0.01, 0.03, 0.04,
-                            0.08, 0.1, 0.01), max.taxa=20)
-   checkEquals(expected, result)
+   #config <- load.config('tests/fixtures/test-musse.yaml')
+   #config <- set.model(config, 'musse')
+   #theta <- sample.priors(config)
+   #result <- speciation.model(theta, nsim=1, tips=20, 'musse')
+   #expected <- tree.musse(c(0.1, 0.07, 0.2, 0.03, 0.01, 0.06, 0.01, 0.03, 0.04,
+  #                           0.08, 0.1, 0.01), max.taxa=20)
+   #checkEquals(expected, result)
 
    #TODO: Complete YAML file for QuaSSE (figure out prior for drift/diffusion)
    ## Test QuaSSE Model
@@ -83,21 +98,21 @@ test.speciation.model <- function() {
    #checkEquals(expected, result)
 
    ## Test Yule Models
-   config <- load.config('tests/fixtures/test-yule.yaml')
-   config <- set.model(config, 'yule')
-   theta <- sample.priors(config)
-   result <- speciation.model(theta, nsim=1, tips=20, 'yule')
-   expected <- tree.yule(c(0.1), max.taxa=20)
-   checkEquals(expected, result)
+   #config <- load.config('tests/fixtures/test-yule.yaml')
+   #config <- set.model(config, 'yule')
+   #theta <- sample.priors(config)
+   #result <- speciation.model(theta, nsim=1, tips=20, 'yule')
+   #expected <- tree.yule(c(0.1), max.taxa=20)
+   #checkEquals(expected, result)
 
    ## Test Multiple Simulations
-   config <- load.config('tests/fixtures/test-bisse.yaml')
-   config <- set.model(config, 'bisse')
-   theta <- sample.priors(config)
-   trees <- speciation.model(theta, nsim=50, tips=20, 'bisse')
-   result <- length(trees) # 50 trees
-   expected <- 50
-   checkEquals(expected, result)
+   #config <- load.config('tests/fixtures/test-bisse.yaml')
+   #config <- set.model(config, 'bisse')
+   #theta <- sample.priors(config)
+   #trees <- speciation.model(theta, nsim=50, tips=20, 'bisse')
+   #result <- length(trees) # 50 trees
+   #expected <- 50
+   #checkEquals(expected, result)
 
    ## Test varying tip numbers
    trees <- speciation.model(theta, nsim=1, tips=5, 'bisse')
