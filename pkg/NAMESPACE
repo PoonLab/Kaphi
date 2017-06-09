@@ -24,7 +24,7 @@ export(propose)
 export(proposal.density)
 export(print.smc.config)
 export(plot.smc.config)
-export(parse.tips)
+export(.parse.tips)
 
 export(parse.input.tree)
 export(.get.tip.heights)

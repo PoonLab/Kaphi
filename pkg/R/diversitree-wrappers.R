@@ -97,7 +97,7 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA) {
            classe, geosse, musse, quasse, yule')
   }
   ## Parse tips information
-  tips <- parse.tips(tips)
+  tips <- .parse.tips(tips)
   ## Set seed
   if(!is.na(seed)) {
         set.seed(seed)

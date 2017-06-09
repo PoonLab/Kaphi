@@ -16,14 +16,41 @@
 require(Kaphi, quietly=TRUE)
 require(RUnit, quietly=TRUE)
 require(diversitree, quietly=TRUE)
+require(igraph)
+
+## TODO: Call to igraph C library function (igraph_shortest_paths)
+##       instead of adding igraph R package as a dependency.
+
+source('tests/fixtures/simple-trees.R')
 
 test.yule.model <- function() {
+  ## Simulate tree under Yule model, n=20
   config <- load.config('tests/fixtures/test-yule.yaml')
   config <- set.model(config, 'yule')
   theta <- sample.priors(config)
-  tree <- speciation.model(theta, nsim=1, tips=20, 'yule')
+  tree <- speciation.model(theta, nsim=1, tips=20, 'yule')[[1]]
   
-  expected <- # analytical solution 
+  # tree <- t4 # for testing
+  
+  ## Use igraph function to generate matrix of pathlengths between nodes
+  igtree <- as.igraph(tree)
+  paths <- shortest.paths(igtree)
+  
+  ## Must remove paths involving internal nodes
+  leaf.path <- paths[c(!grepl('nd', colnames(paths))), 
+                     c(!grepl('nd', rownames(paths)))]
+  leaf.path <- paths[c(!grepl('Node', colnames(paths))),
+                     c(!grepl('Node', rownames(paths)))]
+  ## Distance between leaves sp1 and sp2 on tree
+  # dist12 <- leaf.paths['sp1', 'sp2'] 
+  
+  ## Probability Distribution for probability of each path
+  pd <- as.data.frame(table(leaf.path))
+  pd <- pd[!(grepl('^0$', pd$leaf.path, perl=TRUE)), ]
+  length <- length(pd$Freq)
+  total <- sum(pd$Freq)
+  # need to fit data to model to determine p.d.f. for calculation of expectation.
+  # compare to analytical solution for distance between 2 leaves (4.2 in Yule paper) for n=20.
 }
 
 
@@ -105,14 +132,14 @@ test.speciation.model <- function() {
    #expected <- tree.yule(c(0.1), max.taxa=20)
    #checkEquals(expected, result)
 
-   ## Test Multiple Simulations
-   #config <- load.config('tests/fixtures/test-bisse.yaml')
-   #config <- set.model(config, 'bisse')
-   #theta <- sample.priors(config)
-   #trees <- speciation.model(theta, nsim=50, tips=20, 'bisse')
-   #result <- length(trees) # 50 trees
-   #expected <- 50
-   #checkEquals(expected, result)
+   # Test Multiple Simulations
+   config <- load.config('tests/fixtures/test-bisse.yaml')
+   config <- set.model(config, 'bisse')
+   theta <- sample.priors(config)
+   trees <- speciation.model(theta, nsim=50, tips=20, 'bisse')
+   result <- length(trees) # 50 trees
+   expected <- 50
+   checkEquals(expected, result)
 
    ## Test varying tip numbers
    trees <- speciation.model(theta, nsim=1, tips=5, 'bisse')
