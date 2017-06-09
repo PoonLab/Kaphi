@@ -20,6 +20,7 @@ require(rcolgem, quietly=TRUE)
 .call.rcolgem <- function(x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, ndd, parms, fgyResolution, integrationMethod) {
   
   # get numerical solution of ODE system
+  
   fgy <- make.fgy(
     t0,       # start time
     t.end,    # end time
@@ -61,7 +62,7 @@ require(rcolgem, quietly=TRUE)
 }
 
 
-compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', labels=NA, seed=NA, fgyResolution=500, integrationMethod='adams') {
+compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=NA, fgyResolution=500, integrationMethod='adams') {
   "
   Use rcolgem to simulate coalescent trees under susceptible-infected (SI)
   model.
@@ -177,27 +178,19 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', label
 
   
   # check if there are tip labels (dates and states) to incorporate
-  if (!is.na(labels)) {
-    tip.heights <- names(labels)    # not sure what format the labels are in, could also just be one column for tip.heights
-    # check if population size is bigger than number of tips requested to include
-    n.tips <- nrow(tip.heights)
-    if (sum(x0) < n.tips) {
-      stop("Population size is smaller than requested number of tips")
-    }
-  }
-  else {
-    tip.heights <- rep.int(0, tips)  #may have to reverse this bc of backwards timescale for coalescent, and then take the absolute value
-    n.tips <- tips
+  tips <- .parse.tips(tips)      # function is written in smcConfig.R
+  if (sum(x0) < tips$n.tips) {
+    stop("Population size is smaller than requested number of tips")
   }
   
   # sample times
   # a vector indicating when each tip was sampled
-  sampleTimes <- sapply(tip.heights, function(x) {t.end - x})
+  sampleTimes <- sapply(tips$tip.heights, function(x) {t.end - x})
 
   # sample states
-  sampleStates <- matrix(1, nrow=tips, ncol=length(demes))
+  sampleStates <- matrix(1, nrow=tips$n.tips, ncol=length(demes))
   colnames(sampleStates) <- demes
-  rownames(sampleStates) <- 1:tips
+  rownames(sampleStates) <- 1:tips$n.tips
 
   
   # calculates numerical solution of ODE system and returns simulated trees

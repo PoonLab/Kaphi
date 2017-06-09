@@ -251,7 +251,9 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
     }
 }
 
-parse.tips <- function(tips) {
+# parse tip arguments for each model and creates either n tips of zero height if arg is an int 
+# or tips of varying heights if arg is a numeric vector of non-negative values
+.parse.tips <- function(tips) {
   if(length(tips) < 1) {
       stop('tips must have at least one value')
   } else if(length(tips) > 1) {
@@ -259,8 +261,25 @@ parse.tips <- function(tips) {
       tip.heights <- tips
   } else {
       n.tips <- as.integer(tips)
-      tip.heights <- rep(0, n.tips)
+      tip.heights <- rep.int(0, n.tips)
     }
   tips <- list(n.tips=n.tips, tip.heights=tip.heights)
   return(tips)
+}
+
+#### IN PROGRESS
+## collection times function
+# with a given Newick tree string representation or phylo object in R, 
+# function will extract sample collection times from tip labels
+# user specifies a delimiter character and field number (corresponds to time field)
+# or user can specify a regular expression
+# return value is a vector of node heights (where most recent tip is 0)
+# can also be passed as a vector to .parse.tips function
+collect.times <- function(tree, delim=":", field=NA) {
+  tree <- parse.input.tree(tree)
+  times <- tree$tip.label #a vector of mode character giving the names of the tips; the order of the names in this vector corresponds to the (positive) number in edge
+  # tree$node.label (optional) a vector of mode character giving the names of the nodes.
+  
+  return(times)
+  }
 }
