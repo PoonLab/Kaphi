@@ -4,11 +4,11 @@ priors:
     hyperparameters:
     - mean: 5
     - sd: 2
-  'N':                # population size
-    dist: 'rlnorm'    # lognormal distribution
+  'N':
+    dist: 'rlnorm'
     hyperparameters:
-    - mean: 9.21      # exp(9.21) = 1e4
-    - sd: 0.21        # 95% interval about 6700 to 14700
+    - mean: 9.21
+    - sd: 0.21
   'beta':
     dist: 'rgamma'
     hyperparameters:
@@ -19,7 +19,7 @@ priors:
     hyperparameters:
     - shape: 0.5
     - rate: 1
-  'mu': 
+  'mu':
     dist: 'rgamma'
     hyperparameters:
     - shape: 0.5
@@ -35,11 +35,11 @@ proposals:
     parameters:
     - mean: 5
     - sd: 2
-  'N':                # population size
-    dist: 'rlnorm'    # lognormal distribution
+  'N':
+    dist: 'rlnorm'
     parameters:
-    - mean: 9.21      # exp(9.21) = 1e4
-    - sd: 0.21        # 95% interval about 6700 to 14700
+    - mean: 9.21
+    - sd: 0.21
   'beta':
     dist: 'rgamma'
     parameters:

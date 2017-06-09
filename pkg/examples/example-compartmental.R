@@ -15,8 +15,8 @@ obs.tree <- compartmental.model(theta, nsim=1, tips=100, model='sir.nondynamic')
 obs.tree <- parse.input.tree(obs.tree, config)
 
 # calculate kernel distances for varying t.end
-x <- seq(1000, 10000, 500)    # (from, to, step)
-result <- sapply(x, function(value) {
+x <- seq(1000, 2000, 500)    # (from, to, step)
+res <- sapply(x, function(value) {
   theta <- c(t.end=value, N=1000, beta=0.01, gamma=1/520, mu=1/3640, epsilon=0)
   sim.trees <- compartmental.model(theta, nsim=50, tips=100, model='sir.nondynamic')
   distances <- sapply(sim.trees, function(singletree) {
@@ -24,5 +24,24 @@ result <- sapply(x, function(value) {
     distance(obs.tree, processtree, config)
   })
   cat(value, "\n")
-  mean(dists)
+  mean(distances)
 })
+
+# generate a plot
+par(mar=c(5,5,2,2))
+plot(x, res, type='b', xlab='t.end', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0,1))
+
+
+
+## estimate posterior distribution
+
+# initialize workspace
+ws <- init.workspace(obs.tree, config)
+
+# this takes about....idk how long to run
+result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv')    #require a tsv file here ... find a dataset for this epidemiological model
+
+# examine the contents of the trace file
+trace <- read.table('pkg/examples/example-compartmental.tsv', header=T, sep='\t')
+
+# trajectory of mean estimate of ...?

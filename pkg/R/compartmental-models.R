@@ -33,21 +33,31 @@ require(rcolgem, quietly=TRUE)
     integrationMethod=integrationMethod
   )
   
-  # simulate trees...but which function in rcolgem is it? with '.fgy' or without?
-  trees <- simulate.binary.dated.tree.fgy(
+  # simulate tree
+  tree <- simulate.binary.dated.tree.fgy(
     fgy[[1]],  # time axis of ODE solution
     fgy[[2]],  # births
     fgy[[3]],  # migrations
     fgy[[4]],  # deme sizes
     sampleTimes,
     sampleStates,
-    integrationMethod=integrationMethod  #  , n.reps=nreps   #this isn't a parameter in rcolgem's simulate.binary.dated.tree.fgy
+    integrationMethod=integrationMethod  #  , n.reps=nreps   --this isn't a parameter in rcolgem's simulate.binary.dated.tree.fgy
   )
   
-
-  # cast result as a multiPhylo object
-  class(trees) <- c('multiPhylo', 'phylo')
-  return(trees)
+  
+  # https://github.com/cran/ape/blob/master/R/rtree.R converting tree result into an ape phylo object phy
+  phy <- list(edge=tree$edge, edge.length=tree$edge.length)
+  if (is.null(tree$tip.label))
+    tree$tip.label <- paste("t", 1:tree$n)     # n = number of tips
+  phy$tip.label <- sample(tree$tip.label)
+  phy$Nnode <- tree$n - 1L
+  class(phy) <- "phylo"
+  phy <- reorder(phy)
+  # to avoid crossings when converting with as.hclust
+  phy$edge[phy$edge[,2] <= n, 2] <- 1:n
+  phy
+  
+  return(phy)    # returning an ape phylo object
 }
 
 
@@ -191,25 +201,17 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', label
 
   
   # calculates numerical solution of ODE system and returns simulated trees
-  trees <- .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod)
+  # tree <- .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod)
   # for seir model, have to incorporate the Exposed compartment into tree simulations
+  # incorporate number of simulations
+  trees <- replicate(nsim, # num of simulations
+                     .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod),
+                     simplify=FALSE
+                     )
   
-  
-  # https://github.com/cran/ape/blob/master/R/rtree.R attempt to convert trees result into a phylo object
-  phy <- list(edge=trees$edge, edge.length=trees$edge.length)
-  if (is.null(trees$tip.label))
-    trees$tip.label <- paste("t", 1:trees$n)     # n = number of tips
-  phy$tip.label <- sample(trees$tip.label)
-  phy$Nnode <- trees$n - 1L
-  class(phy) <- "phylo"
-  phy <- reorder(phy)
-  # to avoid crossings when converting with as.hclust
-  phy$edge[phy$edge[,2] <= n, 2] <- 1:n
-  phy
-  
-  
-  return(phy)  # returning an ape phylo object
+  # cast result as a multiPhylo object
+  class(trees) <- "multiPhylo"
+  return(trees)
 } 
 attr(compartmental.model, 'name') <- "compartmental.model"  # satisfies requirement in smcConfig.R set.model() function
-
 
