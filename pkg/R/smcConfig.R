@@ -281,5 +281,5 @@ collect.times <- function(tree, delim=":", field=NA) {
   # tree$node.label (optional) a vector of mode character giving the names of the nodes.
   
   return(times)
-  }
 }
+
