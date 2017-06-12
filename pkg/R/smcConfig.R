@@ -287,10 +287,16 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
 # or user can specify a regular expression
 # return value is a vector of node heights (where most recent tip is 0)
 # can also be passed as a vector to .parse.tips function
-collect.times <- function(tree, delim=":", field=NA) {
+collect.times <- function(tree, delim=":", tsample="after", field=NA) {
   tree <- parse.input.tree(tree)
-  times <- tree$tip.label #a vector of mode character giving the names of the tips; the order of the names in this vector corresponds to the (positive) number in edge
-  # tree$node.label (optional) a vector of mode character giving the names of the nodes.
+  labels <- sapply(tree$tip.label, function(x) {strsplit(x, delim)})
+  # need to know where the collection times are situated: before or after the delimiter specified?
+  if (identical(tolower(tsample, "after"))) {
+    times <- sapply(labels, function(x) {x[[2]]})   # returns a vector of mode character
+  }
+  if (identical(tolower(tsample, "before"))) {
+    times <- sapply(labels, function(x) {x[[1]]})
+  }
   
   return(times)
 }
