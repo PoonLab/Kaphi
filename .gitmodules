@@ -1,0 +1,3 @@
+[submodule "colgem"]
+	path = colgem
+	url = https://github.com/PoonLab/colgem
