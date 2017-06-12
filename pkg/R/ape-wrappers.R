@@ -29,7 +29,7 @@ const.coalescent <- function(theta, nsim, tips, labels=NA, seed=NA) {
 	if (!is.na(seed)) {
 		set.seed(seed)
 	}
-  tips <- .parse.tips(tips)   # using .parse.tips function in smcConfig.R
+  tips <- .parse.tips(tips)   # .parse.tips function in smcConfig.R
     if (all(is.na(labels))) {
         result <- lapply(1:nsim, function(x) {
             tree <- rcoal(n=tips$n.tips, br='coalescent')
