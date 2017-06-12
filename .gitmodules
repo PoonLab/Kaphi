@@ -1,8 +1,0 @@
-[submodule "igraph"]
-    path = pkg/src/igraph
-    url = git://github.com/rmcclosk/igraph.git
-    ignore = dirty
-
-[submodule "colgem"]
-	path = colgem
-	url = https://github.com/PoonLab/colgem
