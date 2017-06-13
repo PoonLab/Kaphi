@@ -13,6 +13,9 @@
 * GNU tools: 
   * [bison](https://www.gnu.org/software/bison/)
   * [flex](https://github.com/westes/flex)
+  * [m4](https://www.gnu.org/software/m4/m4.html) (Only for Mac as it is already installed on Ubuntu)
+  * [autoconf](https://www.gnu.org/software/autoconf/autoconf.html) (Only for Mac as it is already installed on Ubuntu)
+  * [GFortran](https://gcc.gnu.org/wiki/GFortran) (Only for Mac as it is already installed on Ubuntu)
 * C libraries:
   * [GNU Scientific Library](https://www.gnu.org/software/gsl/) 
   * [Judy C library](http://judy.sourceforge.net/) 
@@ -54,6 +57,91 @@
     ```
     
 ## Kaphi Installation Procedure (Ubuntu):
+
+* Navigate to your preferred location in the filesystem and clone Kaphi from the GitHhub repository
+    ```
+	   git clone --recursive https://github.com/PoonLab/Kaphi.git
+    ```
+    
+* Compile igraph
+    ```
+	   cd Kaphi/pkg/src/igraph
+	   touch configure.ac aclocal.m4 configure Makefile.am Makefile.in
+	   ./configure
+	   make
+	   sudo make install
+    ```
+* Compile and install rcolgem
+    ```
+	   cd ../../../colgem  # navigate back to the colgem directory
+	   R CMD INSTALL pkg
+    ```
+* Compile and install Kaphi
+    ```
+	   cd ..  # navigate back to package root
+	   R CMD INSTALL pkg
+    ```
+
+## Requirements Installation Procedure (Mac):
+
+* The commands for each step are to be written/copied line by line to the terminal.
+
+1. Install the latest version of R from the appropriate [mirror](https://cran.r-project.org/mirrors.html).
+2. Installing Xcode
+   ```
+      xcode-select --install
+   ```
+   Follow the generated prompts to the end of installation. To verify that Xcode was correctly installed check what version    of Xcode was installed:
+   ```
+      xcodebuild -version
+   ```
+3. Installing Command Line Tools
+
+   Go to http://developer.apple.com/downloads and sign in with your Apple ID (the same one you use for iTunes and app
+   purchases). Search for "command line tools" (in the search field on the left), then click on version corresponding to the
+   installed version of Xcode and click on the the .dmg link to download it. Run the .dmg and follow the generated prompts
+   to the end of installation.
+4. Installing Homebrew
+   ```
+      /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+   ```
+5. Installing R Packages
+    ```
+	   R
+	   install.packages("yaml")
+	   install.packages("deSolve")
+	   install.packages("ape")
+	   install.packages("diversitree")
+	   install.packages("RUnit")
+	   install.packages("inline")
+	   install.packages("shiny") 
+	   install.packages("devtools")
+	   quit() 
+    ```
+4. Installing GNU tools and C libraries
+    ```
+	   brew install bison
+	   brew install flex  
+	   brew install gsl
+	   brew install m4
+	   brew install autoconf   
+    ```
+    
+    GFortran is needed when compiling rcolgem. The .dgm can be download from [here](https://gcc.gnu.org/wiki/GFortranBinaries#MacOS). Run the .dmg and follow the generated prompts to the end of 
+    installation.
+    
+    Judy is no longer supported by Homebrew so we need to compile it from [binaries](https://sourceforge.net/projects/judy/):
+    ```
+       cd Downloads			# Downloads can be replace by wherever Judy was downloaded.
+       tar -xvzf Judy-*.*.*.tar.gz	# The * should be replace by the release number.
+       cd judy-*.*.*		# The * should be replace by the release number.
+       ./configure
+       make
+       make check
+       sudo make install
+    ```
+    
+## Kaphi Installation Procedure (Mac):
 
 * Navigate to your preferred location in the filesystem and clone Kaphi from the GitHhub repository
     ```
