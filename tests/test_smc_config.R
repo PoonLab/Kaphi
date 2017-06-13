@@ -104,7 +104,7 @@ test.proposal.density <- function() {
 
 test.parse.tips <- function() {
     tips <- 6
-    result <- parse.tips(tips)
+    result <- .parse.tips(tips)
     n.tips <- result$n.tips
     n.expected <- 6
     checkEquals(n.tips, n.expected)
@@ -113,7 +113,7 @@ test.parse.tips <- function() {
     checkEquals(tip.heights, expected.heights)
     
     tips2 <- c(4, 3, 8, 2, 3)
-    result2 <- parse.tips(tips2)
+    result2 <- .parse.tips(tips2)
     n.tips2 <- result2$n.tips
     n.expected2 <- 5
     checkEquals(n.tips2, n.expected2)

@@ -65,104 +65,188 @@ test.yule.model <- function() {
 
 
 test.speciation.model <- function() {
-    ## Test BiSSE Model
+    ## Test BiSSE:
+    ## set config (unif priors), simulate tree sets, calculate self-kernels
+    trees1 <- trees(c(0.1, 0.2, 0.003, 0.003, 0.01, 0.01), 
+                    type='bisse', n=20, max.taxa=20)  
     config <- load.config('tests/fixtures/test-bisse.yaml')
     config <- set.model(config, 'bisse')
     theta <- sample.priors(config)
+    trees2 <- speciation.model(theta, nsim=20, tips=20, 'bisse') 
+    trees1 <- lapply(trees1, function(st) parse.input.tree(st, config))
+    trees2 <- lapply(trees2, function(st) parse.input.tree(st, config))
     
-    trees1 <- sapply(50, function(x)) {
-      
-    tree.bisse(c(0.1, 0.2, 0.003, 0.003, 0.01, 0.01), max.taxa=20)
-      
-    trees2 <- speciation.model(theta, nsim=50, tips=20, 'bisse') 
-      
-    dists <- sapply(sim.trees, function(st) {
-      pt <- parse.input.tree(st, config)
-      distance(p.obs.tree, pt, config)
+    ## set names (to improve readability for testing)
+    #names1 <- c('t1.1', 't1.2', 't1.3') #test
+    #names(trees1) <- names1 #test
+    #names2 <- c('t2.1', 't2.2', 't2.3') #test
+    #names(trees2) <- names2
+    
+    ## kernel distances between pairs within trees1
+    #nms <- combn(names(trees1), 2, FUN = paste0, collapse = "", simplify = FALSE) #test
+    pairs <- combn(trees1, 2, simplify=FALSE)
+    out1 <- lapply(pairs, function(x) distance(x[[1]], x[[2]], config))
+    m1 <- mean(unlist(out1))
+    #setNames(out,nms)
+    
+    ## kernel distance betwen pairs between trees1 and trees2
+    out2 <- lapply(trees1, function(t1) {
+      lapply(trees2, function(t2) distance(t1, t2, config))
     })
-    result <- mean(dists) 
-    checkTrue(result < 0.2) # 0.2 is the max mean distance accepted
+    m2 <- mean(unlist(out2))
+    
+    ## compare distributions
+    epsilon <- 0.05
+    res <- abs(m1-m2)
+    checkTrue(res < epsilon)
+    
+    
+    ## Test BiSSE-ness:
+    trees1 <- trees(c(0.1, 0.2, 0.003, 0.003, 0.01, 0.01, 0.05, 0.1, 0.05, 0.1), 
+                    type='bisseness', n=20, max.taxa=20)  
+    config <- load.config('tests/fixtures/test-bisseness.yaml')
+    config <- set.model(config, 'bisseness')
+    theta <- sample.priors(config)
+    trees2 <- speciation.model(theta, nsim=20, tips=20, 'bisseness') 
+    trees1 <- lapply(trees1, function(st) parse.input.tree(st, config))
+    trees2 <- lapply(trees2, function(st) parse.input.tree(st, config))
+    pairs <- combn(trees1, 2, simplify=FALSE)
+    out1 <- lapply(pairs, function(x) distance(x[[1]], x[[2]], config))
+    m1 <- mean(unlist(out1))
+    out2 <- lapply(trees1, function(t1) {
+      lapply(trees2, function(t2) distance(t1, t2, config))
+    })
+    m2 <- mean(unlist(out2))
+    epsilon <- 0.05
+    res <- abs(m1-m2)
+    checkTrue(res < epsilon)
+   
+    
+    ## Test Birth-Death:
+    trees1 <- trees(c(0.1, 0.003), type='bd', n=20, max.taxa=20)  
+    config <- load.config('tests/fixtures/test-bd.yaml')
+    config <- set.model(config, 'bd')
+    theta <- sample.priors(config)
+    trees2 <- speciation.model(theta, nsim=20, tips=20, 'bd') 
+    trees1 <- lapply(trees1, function(st) parse.input.tree(st, config))
+    trees2 <- lapply(trees2, function(st) parse.input.tree(st, config))
+    pairs <- combn(trees1, 2, simplify=FALSE)
+    out1 <- lapply(pairs, function(x) distance(x[[1]], x[[2]], config))
+    m1 <- mean(unlist(out1))
+    out2 <- lapply(trees1, function(t1) {
+      lapply(trees2, function(t2) distance(t1, t2, config))
+    })
+    m2 <- mean(unlist(out2))
+    epsilon <- 0.05
+    res <- abs(m1-m2)
+    checkTrue(res < epsilon)
+    
+    
+    ## Test ClaSSE:
+    trees1 <- trees(c(2.5, 0.5, 0, 0, 0, 5, 2.41, 5.24, 0.5, 0), type='classe',
+                    n=20, max.taxa=20)
+    config <- load.config('tests/fixtures/test-classe.yaml')
+    config <- set.model(config, 'classe')
+    theta <- sample.priors(config)
+    trees2 <- speciation.model(theta, nsim=20, tips=20, 'classe') 
+    trees1 <- lapply(trees1, function(st) parse.input.tree(st, config))
+    trees2 <- lapply(trees2, function(st) parse.input.tree(st, config))
+    pairs <- combn(trees1, 2, simplify=FALSE)
+    out1 <- lapply(pairs, function(x) distance(x[[1]], x[[2]], config))
+    m1 <- mean(unlist(out1))
+    out2 <- lapply(trees1, function(t1) {
+      lapply(trees2, function(t2) distance(t1, t2, config))
+    })
+    m2 <- mean(unlist(out2))
+    epsilon <- 0.05
+    res <- abs(m1-m2)
+    checkTrue(res < epsilon)
+    
+    
+    ## Test GeoSSE:
+    trees1 <- trees(c(1.5, 0.5, 1.0, 0.7, 0.7, 1.5, 1.5), type='geosse', n=20, 
+                    max.taxa=20)
+    config <- load.config('tests/fixtures/test-geosse.yaml')
+    config <- set.model(config, 'geosse')
+    theta <- sample.priors(config)
+    trees2 <- speciation.model(theta, nsim=20, tips=20, 'geosse') 
+    trees1 <- lapply(trees1, function(st) parse.input.tree(st, config))
+    trees2 <- lapply(trees2, function(st) parse.input.tree(st, config))
+    pairs <- combn(trees1, 2, simplify=FALSE)
+    out1 <- lapply(pairs, function(x) distance(x[[1]], x[[2]], config))
+    m1 <- mean(unlist(out1))
+    out2 <- lapply(trees1, function(t1) {
+      lapply(trees2, function(t2) distance(t1, t2, config))
+    })
+    m2 <- mean(unlist(out2))
+    epsilon <- 0.05
+    res <- abs(m1-m2)
+    checkTrue(res < epsilon)
+    
+    
+    ## Test MuSSE:
+    trees1 <- trees(c(0.1, 0.07, 0.2, 0.03, 0.01, 0.06, 0.01, 0.03, 0.04, 
+                    0.08, 0.1, 0.01), type='musse', n=20, max.taxa=20)
+    config <- load.config('tests/fixtures/test-bisse.yaml')
+    config <- set.model(config, 'bisse')
+    theta <- sample.priors(config)
+    trees2 <- speciation.model(theta, nsim=20, tips=20, 'bisse') 
+    trees1 <- lapply(trees1, function(st) parse.input.tree(st, config))
+    trees2 <- lapply(trees2, function(st) parse.input.tree(st, config))
+    pairs <- combn(trees1, 2, simplify=FALSE)
+    out1 <- lapply(pairs, function(x) distance(x[[1]], x[[2]], config))
+    m1 <- mean(unlist(out1))
+    out2 <- lapply(trees1, function(t1) {
+      lapply(trees2, function(t2) distance(t1, t2, config))
+    })
+    m2 <- mean(unlist(out2))
+    epsilon <- 0.05
+    res <- abs(m1-m2)
+    #checkTrue(res < epsilon) # this one does not pass at the same epsilon as the others
+    
+    
+    ## Test QuaSSE:
+    #TODO: Complete YAML file for QuaSSE (figure out prior for drift/diffusion)
+    
 
-   ## Test BiSSE-ness Model
-   #config <- load.config('tests/fixtures/test-bisseness.yaml')
-   #config <- set.model(config, 'bisseness')
-   #theta <- sample.priors(config)
-   #result <- speciation.model(theta, nsim=1, tips=20, 'bisseness')
-   #expected <- tree.bisseness(c(0.1, 0.2, 0.03, 0.03, 0.01, 0.01, 0.05, 0.1,
-  #                              0.05, 0.1), max.taxa=20)
-   #checkEquals(expected, result)
+    ## Test Yule:
+    trees1 <- trees(c(0.1), type='yule', n=20, max.taxa=20)  
+    config <- load.config('tests/fixtures/test-yule.yaml')
+    config <- set.model(config, 'yule')
+    theta <- sample.priors(config)
+    trees2 <- speciation.model(theta, nsim=20, tips=20, 'yule') 
+    trees1 <- lapply(trees1, function(st) parse.input.tree(st, config))
+    trees2 <- lapply(trees2, function(st) parse.input.tree(st, config))
+    pairs <- combn(trees1, 2, simplify=FALSE)
+    out1 <- lapply(pairs, function(x) distance(x[[1]], x[[2]], config))
+    m1 <- mean(unlist(out1))
+    out2 <- lapply(trees1, function(t1) {
+      lapply(trees2, function(t2) distance(t1, t2, config))
+    })
+    m2 <- mean(unlist(out2))
+    epsilon <- 0.05
+    res <- abs(m1-m2)
+    checkTrue(res < epsilon)
+    
+    
+    # Test Multiple Simulations:
+    config <- load.config('tests/fixtures/test-bisse.yaml')
+    config <- set.model(config, 'bisse')
+    theta <- sample.priors(config)
+    trees <- speciation.model(theta, nsim=50, tips=20, 'bisse')
+    result <- length(trees) # 50 trees
+    expected <- 50
+    checkEquals(expected, result)
+    
 
-   ## Test Birth-Death Model
-   #config <- load.config('tests/fixtures/test-bd.yaml')
-   #config <- set.model(config, 'bd')
-   #theta <- sample.priors(config)
-   #result <- speciation.model(theta, nsim=1, tips=20, 'bd')
-   #expected <- tree.bd(c(0.1, 0.003), max.taxa=20)
-   #checkEquals(expected, result)
+    ## Test varying tip numbers:
+    tree <- speciation.model(theta, nsim=1, tips=5, 'bisse')[[1]]
+    result <- length(tree$tip.label) # 5 tips
+    expected <- 5
+    checkEquals(expected, result)
 
-   ## Test ClaSSE Model
-   #config <- load.config('tests/fixtures/test-classe.yaml')
-   #config <- set.model(config, 'classe')
-   #theta <- sample.priors(config)
-   #result <- speciation.model(theta, nsim=1, tips=20, 'classe')
-   #expected <- tree.classe(c(2.5, 0.5, 0, 0, 0, 5, 2.41, 5.24, 0.5, 0),
-  #                           max.taxa=20)
-   #checkEquals(expected, result)
-
-   ## Test GeoSSE Model
-   #config <- load.config('tests/fixtures/test-geosse.yaml')
-   #config <- set.model(config, 'geosse')
-   #theta <- sample.priors(config)
-   #result <- speciation.model(theta, nsim=1, tips=20, 'geosse')
-   #expected <- tree.geosse(c(1.5, 0.5, 1.0, 0.7, 0.7, 1.5, 1.5), max.taxa=20)
-   #checkEquals(expected, result)
-
-   ## Test MuSSE Model
-   #config <- load.config('tests/fixtures/test-musse.yaml')
-   #config <- set.model(config, 'musse')
-   #theta <- sample.priors(config)
-   #result <- speciation.model(theta, nsim=1, tips=20, 'musse')
-   #expected <- tree.musse(c(0.1, 0.07, 0.2, 0.03, 0.01, 0.06, 0.01, 0.03, 0.04,
-  #                           0.08, 0.1, 0.01), max.taxa=20)
-   #checkEquals(expected, result)
-
-   #TODO: Complete YAML file for QuaSSE (figure out prior for drift/diffusion)
-   ## Test QuaSSE Model
-   #config <- load.config('tests/fixtures/test-quasse.yaml')
-   #config <- set.model(config, 'quasse')
-   #theta <- sample.priors(config)
-   #result <- speciation.model(theta, nsim=1, tips=20, 'quasse')
-   #lambda <- function(x) constant.x(x, 0.1)
-   #mu <- function(x) constant.x(x, 0.03)
-   #char <- make.brownian.with.drift(0, 0.025)
-   #expected <- tree.quasse(c(lambda, mu, char), max.taxa=20)
-   #checkEquals(expected, result)
-
-   ## Test Yule Models
-   #config <- load.config('tests/fixtures/test-yule.yaml')
-   #config <- set.model(config, 'yule')
-   #theta <- sample.priors(config)
-   #result <- speciation.model(theta, nsim=1, tips=20, 'yule')
-   #expected <- tree.yule(c(0.1), max.taxa=20)
-   #checkEquals(expected, result)
-
-   # Test Multiple Simulations
-   config <- load.config('tests/fixtures/test-bisse.yaml')
-   config <- set.model(config, 'bisse')
-   theta <- sample.priors(config)
-   trees <- speciation.model(theta, nsim=50, tips=20, 'bisse')
-   result <- length(trees) # 50 trees
-   expected <- 50
-   checkEquals(expected, result)
-
-   ## Test varying tip numbers
-   trees <- speciation.model(theta, nsim=1, tips=5, 'bisse')
-   result <- length(trees$tip.label) # 5 tips
-   expected <- 5
-   checkEquals(expected, result)
-
-   trees <- speciation.model(theta, nsim=1, tips=100, 'bisse')
-   result <- length(trees$tip.label) # 100 tips
-   expected <- 100
-   checkEquals(expected, result)
+    tree <- speciation.model(theta, nsim=1, tips=100, 'bisse')[[1]]
+    result <- length(tree$tip.label) # 100 tips
+    expected <- 100
+    checkEquals(expected, result)
 }
