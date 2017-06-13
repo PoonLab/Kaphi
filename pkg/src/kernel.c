@@ -217,6 +217,8 @@ SEXP R_Kaphi_il_nodes(SEXP nwk) {
 
 SEXP R_Kaphi_width(SEXP nwk) {
     SEXP result;
+
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
     igraph_t * t1 = R_Kaphi_parse_newick(nwk);
 
     PROTECT(result = NEW_NUMERIC(1));
