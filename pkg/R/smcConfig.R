@@ -255,8 +255,7 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
             xlim=q
           )  
           s <- s + 1
-        }
-        else {
+        } else {
           break
         }
       }
@@ -279,25 +278,29 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
   return(tips)
 }
 
-#### IN PROGRESS
-## collection times function
 # with a given Newick tree string representation or phylo object in R, 
 # function will extract sample collection times from tip labels
-# user specifies a delimiter character and field number (corresponds to time field)
-# or user can specify a regular expression
-# return value is a vector of node heights (where most recent tip is 0)
-# can also be passed as a vector to .parse.tips function
-collect.times <- function(tree, delim=":", tsample="after", field=NA) {
-  tree <- parse.input.tree(tree)
-  labels <- sapply(tree$tip.label, function(x) {strsplit(x, delim)})
-  # need to know where the collection times are situated: before or after the delimiter specified?
-  if (identical(tolower(tsample, "after"))) {
-    times <- sapply(labels, function(x) {x[[2]]})   # returns a vector of mode character
-  }
-  if (identical(tolower(tsample, "before"))) {
-    times <- sapply(labels, function(x) {x[[1]]})
-  }
+# @delim user specifies a delimiter character or user can specify a regular expression 
+# @fieldnum field number (corresponds to int time field)
+# @tsample need to know where the collection times are situated: "before" or "after" the delimiter specified?
+# @return value is a vector of node heights (where most recent tip is 0)
+collect.times <- function(tree, delim="|", tsample="after", perl=TRUE, fieldnum=0) {
+  #check if class phylo / Newick object
+  if (class(tree) != "phylo") stop('Tree must of class "phylo" or Newick object')
   
-  return(times)
+  labels <- sapply(tree$tip.label, function(x) {strsplit(x, delim, perl=perl)})
+  
+  if (identical(tolower(tsample), "after")) {
+    times <- as.integer(sapply(labels, function(x) {x[[2]]}))   # returns a vector of mode character
+  } else if (identical(tolower(tsample), "before")) {
+    times <- as.integer(sapply(labels, function(x) {x[[1]]}))
+    } else {
+      stop("Sampling times need to be before or after given delimiter/regexp")
+  }
+  # modify tip.heights in .parse.tips to reflect field number (number of years since X) -> nodeheights
+  ptips <-.parse.tips(times)
+  ndheights <- as.integer(sapply(ptips$tip.heights, function(x) {x-fieldnum}))
+  
+  return(ndheights)
 }
 
