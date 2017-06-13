@@ -30,8 +30,6 @@ test.yule.model <- function() {
   theta <- sample.priors(config)
   tree <- speciation.model(theta, nsim=1, tips=20, 'yule')[[1]]
   
-  # tree <- t4 # for testing
-  
   ## Use igraph function to generate matrix of pathlengths between nodes
   igtree <- as.igraph(tree)
   paths <- shortest.paths(igtree)
@@ -39,18 +37,30 @@ test.yule.model <- function() {
   ## Must remove paths involving internal nodes
   leaf.path <- paths[c(!grepl('nd', colnames(paths))), 
                      c(!grepl('nd', rownames(paths)))]
-  leaf.path <- paths[c(!grepl('Node', colnames(paths))),
-                     c(!grepl('Node', rownames(paths)))]
-  ## Distance between leaves sp1 and sp2 on tree
-  # dist12 <- leaf.paths['sp1', 'sp2'] 
-  
+
   ## Probability Distribution for probability of each path
   pd <- as.data.frame(table(leaf.path))
   pd <- pd[!(grepl('^0$', pd$leaf.path, perl=TRUE)), ]
   length <- length(pd$Freq)
   total <- sum(pd$Freq)
-  # need to fit data to model to determine p.d.f. for calculation of expectation.
+  
+  ## Add column of probabilities
+  prob <- c()
+  for (i in seq(1:length)) {
+    prob <- c(prob, as.numeric(pd$Freq[i]) / total)
+  }
+  pd$prob <- prob
+  
+  ## Add column of weighted path lengths
+  w.mean <- c()
+  for (i in seq(1:length)) {
+    w.mean <- c(w.mean, as.numeric(pd$leaf.path[i]) * as.numeric(pd$prob[i]))
+  }
+  pd$w.mean <- w.mean
+  
+  exp <- sum(w.mean) # expected value
   # compare to analytical solution for distance between 2 leaves (4.2 in Yule paper) for n=20.
+  # replace for loops with functionals for better run time
 }
 
 
@@ -59,9 +69,13 @@ test.speciation.model <- function() {
     config <- load.config('tests/fixtures/test-bisse.yaml')
     config <- set.model(config, 'bisse')
     theta <- sample.priors(config)
-    obs.tree <- tree.bisse(c(0.1, 0.2, 0.003, 0.003, 0.01, 0.01), max.taxa=20)
-    p.obs.tree <- parse.input.tree(obs.tree, config)
-    sim.trees <- speciation.model(theta, nsim=100, tips=20, 'bisse') 
+    
+    trees1 <- sapply(50, function(x)) {
+      
+    tree.bisse(c(0.1, 0.2, 0.003, 0.003, 0.01, 0.01), max.taxa=20)
+      
+    trees2 <- speciation.model(theta, nsim=50, tips=20, 'bisse') 
+      
     dists <- sapply(sim.trees, function(st) {
       pt <- parse.input.tree(st, config)
       distance(p.obs.tree, pt, config)
