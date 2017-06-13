@@ -10,6 +10,8 @@
   * [inline](https://cran.r-project.org/web/packages/inline/index.html)
   * [Shiny](https://shiny.rstudio.com/)
   * [devtools](https://cran.r-project.org/web/packages/devtools/index.html)
+  * [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html)
+  * [RcppArmadillo](https://cran.r-project.org/web/packages/RcppArmadillo/index.html)
 * GNU tools: 
   * [bison](https://www.gnu.org/software/bison/)
   * [flex](https://github.com/westes/flex)
@@ -46,6 +48,8 @@
 	   install.packages("inline")
 	   install.packages("shiny") 
 	   install.packages("devtools")
+	   install.packages("Rcpp")
+	   install.packages("RcppArmadillo")
 	   quit() 
     ```
 4. Installing GNU tools and C libraries
@@ -90,6 +94,8 @@
 	   install.packages("inline")
 	   install.packages("shiny") 
 	   install.packages("devtools")
+	   install.packages("Rcpp")
+	   install.packages("RcppArmadillo")
 	   quit() 
     ```
 4. Installing GNU tools and C libraries
