@@ -1,4 +1,4 @@
-## Installation Requirements:
+## Installation Requirements (Ubuntu and Mac):
 
 * [R software environment](https://cran.r-project.org/)
 * R packages
@@ -6,11 +6,10 @@
   * [deSolve](http://desolve.r-forge.r-project.org/)
   * [ape](http://ape-package.ird.fr/)
   * [diversitree](https://CRAN.R-project.org/package=diversitree)
-  * [ECcmtc](https://cran.r-project.org/web/packages/ECctmc/index.html)
   * [RUnit](https://cran.r-project.org/web/packages/RUnit/index.html)
   * [inline](https://cran.r-project.org/web/packages/inline/index.html)
-  * [rcolgem](http://colgem.r-forge.r-project.org/)
   * [Shiny](https://shiny.rstudio.com/)
+  * [devtools](https://cran.r-project.org/web/packages/devtools/index.html)
 * GNU tools: 
   * [bison](https://www.gnu.org/software/bison/)
   * [flex](https://github.com/westes/flex)
@@ -39,11 +38,11 @@
 	   install.packages("yaml")
 	   install.packages("deSolve")
 	   install.packages("ape")
-	   install.packages("ECcmtc")
+	   install.packages("diversitree")
 	   install.packages("RUnit")
 	   install.packages("inline")
-	   install.packages("rcolgem", repos="http://R-Forge.R-project.org") 
-	   install.packages("shiny")
+	   install.packages("shiny") 
+	   install.packages("devtools")
 	   quit() 
     ```
 4. Installing GNU tools and C libraries
@@ -69,8 +68,13 @@
 	   make
 	   sudo make install
     ```
+* Compile and install rcolgem
+    ```
+	   cd ../../../colgem  # navigate back to the colgem directory
+	   R CMD INSTALL pkg
+    ```
 * Compile and install Kaphi
     ```
-	   cd ../../../  # navigate back to package root
+	   cd ..  # navigate back to package root
 	   R CMD INSTALL pkg
     ```
