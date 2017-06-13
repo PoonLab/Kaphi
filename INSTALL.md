@@ -128,7 +128,7 @@
 	   git clone --recursive https://github.com/PoonLab/Kaphi.git
     ```
     
-* Compile igraph
+* Compile and install igraph
     ```
 	   cd Kaphi/pkg/src/igraph
 	   touch configure.ac aclocal.m4 configure Makefile.am Makefile.in
