@@ -9,7 +9,6 @@
   * [RUnit](https://cran.r-project.org/web/packages/RUnit/index.html)
   * [inline](https://cran.r-project.org/web/packages/inline/index.html)
   * [Shiny](https://shiny.rstudio.com/)
-  * [devtools](https://cran.r-project.org/web/packages/devtools/index.html)
   * [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html)
   * [RcppArmadillo](https://cran.r-project.org/web/packages/RcppArmadillo/index.html)
 * GNU tools: 
@@ -47,7 +46,6 @@
 	   install.packages("RUnit")
 	   install.packages("inline")
 	   install.packages("shiny") 
-	   install.packages("devtools")
 	   install.packages("Rcpp")
 	   install.packages("RcppArmadillo")
 	   quit() 
@@ -93,7 +91,6 @@
 	   install.packages("RUnit")
 	   install.packages("inline")
 	   install.packages("shiny") 
-	   install.packages("devtools")
 	   install.packages("Rcpp")
 	   install.packages("RcppArmadillo")
 	   quit() 
