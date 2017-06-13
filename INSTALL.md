@@ -55,32 +55,6 @@
 	   sudo apt-get install libgsl-dev
 	   sudo apt-get install libjudy-dev
     ```
-    
-## Kaphi Installation Procedure (Ubuntu):
-
-* Navigate to your preferred location in the filesystem and clone Kaphi from the GitHhub repository
-    ```
-	   git clone --recursive https://github.com/PoonLab/Kaphi.git
-    ```
-    
-* Compile igraph
-    ```
-	   cd Kaphi/pkg/src/igraph
-	   touch configure.ac aclocal.m4 configure Makefile.am Makefile.in
-	   ./configure
-	   make
-	   sudo make install
-    ```
-* Compile and install rcolgem
-    ```
-	   cd ../../../colgem  # navigate back to the colgem directory
-	   R CMD INSTALL pkg
-    ```
-* Compile and install Kaphi
-    ```
-	   cd ..  # navigate back to package root
-	   R CMD INSTALL pkg
-    ```
 
 ## Requirements Installation Procedure (Mac):
 
@@ -141,7 +115,7 @@
        sudo make install
     ```
     
-## Kaphi Installation Procedure (Mac):
+## Kaphi Installation Procedure (Ubuntu and Mac):
 
 * Navigate to your preferred location in the filesystem and clone Kaphi from the GitHhub repository
     ```
