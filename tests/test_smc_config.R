@@ -121,3 +121,23 @@ test.parse.tips <- function() {
     expected.heights2 <- c(4, 3, 8, 2, 3)
     checkEquals(tip.heights2, expected.heights2)
 }
+
+test.collect.tips <- function() {
+  # testing default settings of collect.times and "after"
+  t6 <- read.tree(text="(((A|2017:0.1,B|2017:0.1):0.15,C|2016:0.25):0.05,D|2015:0.3):0;")
+  result <- collect.times(t6)
+  expected <- c(2017,2017,2016,2015)
+  checkEquals(result, expected)
+  
+  # testing with different delimiter, and "before"
+  t7 <- read.tree(text="(((0$A:0.1,3$B:0.1):0.15,1$C:0.25):0.05,4$D:0.3):0;")
+  result <- collect.times(t7, delim="$", tsample="before", fieldnum=1)
+  expected <- c(-1,2,0,3)
+  checkEquals(result, expected)
+  
+  # testing with delim = regexp
+  t8 <- read.tree(text="(((A@@0:0.1,B@@5:0.1):0.15,C@@6:0.25):0.05,D@@3:0.3):0;")
+  result <- collect.times(t8, delim='@.', regexp=TRUE, tsample="after", fieldnum=0)
+  expected <- c(0,5,6,3)
+  checkEquals(result, expected)
+}

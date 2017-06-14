@@ -284,11 +284,12 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
 # @fieldnum field number (corresponds to int time field)
 # @tsample need to know where the collection times are situated: "before" or "after" the delimiter specified?
 # @return value is a vector of node heights (where most recent tip is 0)
-collect.times <- function(tree, delim="|", tsample="after", perl=TRUE, fieldnum=0) {
+collect.times <- function(tree, delim="|", regexp=FALSE, tsample="after", fieldnum=0) {
   #check if class phylo / Newick object
   if (class(tree) != "phylo") stop('Tree must of class "phylo" or Newick object')
   
-  labels <- sapply(tree$tip.label, function(x) {strsplit(x, delim, perl=perl)})
+  if (regexp == TRUE) labels <- sapply(tree$tip.label, function(x) {strsplit(x, delim)})
+  else labels <- sapply(tree$tip.label, function(x) {strsplit(x, delim, fixed=TRUE)})
   
   if (identical(tolower(tsample), "after")) {
     times <- as.integer(sapply(labels, function(x) {x[[2]]}))   # returns a vector of mode character
