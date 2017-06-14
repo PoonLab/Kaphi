@@ -16,7 +16,7 @@
 require(diversitree)
 
 ## Standard Speciation Models
-speciation.model <- function(theta, nsim, tips, model, seed=NA) {
+speciation.model <- function(theta, nsim, tips, model, seed=NA, ...) {
     "
     theta : a vector containing the parameter values for the model
         @param lambda(i) : Rate of speciation (for state i)
@@ -67,7 +67,7 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA) {
       }
   } else if(model == 'classe') { # model depends upon number given parameters
       if(any(!is.element(c('lambda111', 'mu1'), names(theta)))) {
-        stop('theta does not contain all of the required parameters:
+        stop('theta does not contain the minimum required parameters:
              lambda111, mu1. Additional parameters are required for specifying
              more than one trait.')
       }
@@ -78,11 +78,11 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA) {
                sA, sB, sAB, xA, xB, dA, dB')
     }
   } else if(model == 'musse') { # model depends upon number given parameters
-      if(any(!is.element(c('lambda1, mu1'), names(theta)))) {
-        stop('theta does not contain all of the required parameters:
+      if(any(!is.element(c('lambda1', 'mu1'), names(theta)))) {  
+        stop('theta does not contain the minimum required parameters:
              lambda1, mu1. Additional parameters are required for specifying
              more than one trait.')
-      }
+    }
   } else if(model == 'quasse') {
     if(any(!is.element(c('lambda', 'mu', 'char'), names(theta)))) {
       stop('theta does not contain all of the required parameters:
@@ -106,7 +106,7 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA) {
   parms <- unname(theta)
   ## Simulate tree(s)
   result <- trees(parms, type=model, n=nsim, max.taxa=tips$n.tips,
-                  max.t=Inf, include.extinct=FALSE)
+                  max.t=Inf, include.extinct=FALSE, ...)
   return(result)
 }
 attr(speciation.model, 'name') <- 'speciation.model'
