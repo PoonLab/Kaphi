@@ -37,7 +37,7 @@ plot(x,res, type='b', xlab='lambda', ylab='Mean kernel distance', cex.lab=1.2)
 ws <- init.workspace(obs.tree, config)
 
 # this takes about an hour to run
-result <- run.smc(ws, trace.file='pkg/examples/example-yule2.tsv', model='yule')
+result <- run.smc(ws, trace.file='pkg/examples/example-yule2.tsv', model='yule', verbose=TRUE)
 
 # let's examine the contents of the trace file
 trace <- read.table('pkg/examples/example-yule2.tsv', header=T, sep='\t')
@@ -46,7 +46,7 @@ trace <- read.table('pkg/examples/example-yule2.tsv', header=T, sep='\t')
 par(mar=c(5,5,2,2))
 plot(
   sapply(split(trace$lambda*trace$weight, trace$n.iter), sum), 
-  ylim=c(500, 1500), 
+  ylim=c(0, 2000), 
   type='b',
   xlab='Iteration', 
   ylab='Mean lambda',
@@ -58,15 +58,15 @@ abline(h=1000, lty=2)
 pal <- rainbow(n=6, start=0, end=0.3, v=0.8, s=0.5)
 par(mar=c(5,5,2,2))
 plot(density(trace$lambda[trace$n.iter==1], weights=trace$weight[trace$n.iter==1]), xlim=c(0, 2), col=pal[1], lwd=2, main=NA, xlab='Yule rate parameter (lambda)', cex.lab=1.2)
-for (i in 1:4) {
-  temp <- trace[trace$n.iter==i*10,]
+for (i in 1:5) {
+  temp <- trace[trace$n.iter==i*5,]
   lines(density(temp$lambda, weights=temp$weight), col=pal[i+1], lwd=1.5)
 }
 lines(density(trace$lambda[trace$n.iter==max(trace$n.iter)], weights=trace$weight[trace$n.iter==max(trace$n.iter)]), col=pal[length(pal)], lwd=2)  # final estimates
 
 # show the prior distribution
 x <- seq(0, 1, 0.1)
-y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[["Ne.tau"]]))}
+y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[["lambda"]]))}
 lines(x, y(x), lty=2)
 
 # show posterior distribution (work in progress)
