@@ -25,7 +25,7 @@ resize.amount <- 100
 bisection.max.iter <- 10000
 
 
-simulate.trees <- function(workspace, theta, seed=NA, model, ...) {
+simulate.trees <- function(workspace, theta, model, seed=NA, ...) {
 	# @param workspace: smc.workspace object
 	# @param theta: parameter vector
 	# @param seed: argument to set.seed()
