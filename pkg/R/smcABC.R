@@ -25,7 +25,7 @@ resize.amount <- 100
 bisection.max.iter <- 10000
 
 
-simulate.trees <- function(workspace, theta, seed=NA, ...) {
+simulate.trees <- function(workspace, theta, seed=NA, model, ...) {
 	# @param workspace: smc.workspace object
 	# @param theta: parameter vector
 	# @param seed: argument to set.seed()
@@ -36,8 +36,8 @@ simulate.trees <- function(workspace, theta, seed=NA, ...) {
 	if (!is.na(seed)) {
 		set.seed(seed)
 	}
-    result <- config$model(theta, config$nsample, workspace$n.tips,
-        workspace$tip.heights, workspace$tip.labels, ...)
+    result <- config$model(theta, config$nsample, workspace$tip.heights,
+                           model, seed, workspace$tip.labels, ...)
 
     # annotate each trees with its self-kernel score
     for (i in 1:config$nsample) {
@@ -82,7 +82,7 @@ distance <- function(t1, t2, config) {
 }
 
 
-initialize.smc <- function(ws, ...) {
+initialize.smc <- function(ws, model, ...) {
     config <- ws$config
     nparams <- length(config$params)
     colnames(ws$particles) <- config$params
@@ -95,7 +95,7 @@ initialize.smc <- function(ws, ...) {
 		ws$weights[i] <- 1./config$nparticle
 
 		# simulate trees from particle
-		ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], ...)
+		ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], model=model, ...)
 
 		# calculate kernel distances for trees
 		ws$dists[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
@@ -231,7 +231,7 @@ initialize.smc <- function(ws, ...) {
         # simulate new trees  # TODO: this is probably a good spot for parallelization
         for (j in 1:config$nsample) {
             # retain sim.trees in case we revert to previous particle
-            new.trees <- simulate.trees(ws, new.particle)
+            new.trees <- simulate.trees(ws, new.particle, model=model)
             new.dists[,i] <- sapply(new.trees, function(sim.tree) {
                 distance(ws$obs.tree, sim.tree, config)
 		    })
@@ -256,7 +256,7 @@ initialize.smc <- function(ws, ...) {
 }
 
 
-run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FALSE, ...) {
+run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FALSE, model='', ...) {
     # @param ws: workspace
 	# @param obs.tree: object of class 'phylo'
 	# @param trace.file: (optional) path to a file to write outputs
@@ -278,7 +278,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     # draw particles from prior distribution, assign weights and simulate data
     ptm <- proc.time()  # start timer
     cat ("Initializing SMC-ABC run with", config$nparticle, "particles\n")
-    ws <- initialize.smc(ws)
+    ws <- initialize.smc(ws, model)
 
     niter <- 0
     ws$epsilon <- .Machine$double.xmax

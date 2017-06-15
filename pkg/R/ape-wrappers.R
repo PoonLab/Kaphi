@@ -15,7 +15,7 @@
 
 require(ape)
 
-const.coalescent <- function(theta, nsim, tips, labels=NA, seed=NA) {
+const.coalescent <- function(theta, nsim, tips, seed=NA, labels=NA) {
 	"
 	This function exists only as a prototype.
 	It generates a tree under Kingman's coalescent where branch lengths are in

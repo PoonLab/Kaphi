@@ -16,7 +16,7 @@
 require(diversitree)
 
 ## Standard Speciation Models
-speciation.model <- function(theta, nsim, tips, model, seed=NA, ...) {
+speciation.model <- function(theta, nsim, tips, model, seed=NA, labels=NA, ...) {
     "
     theta : a vector containing the parameter values for the model
         @param lambda(i) : Rate of speciation (for state i)
@@ -100,7 +100,7 @@ speciation.model <- function(theta, nsim, tips, model, seed=NA, ...) {
   tips <- .parse.tips(tips)
   ## Set seed
   if(!is.na(seed)) {
-        set.seed(seed)
+    set.seed(seed)
   }
   ## BiSSE parameter vector
   parms <- unname(theta)
