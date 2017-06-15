@@ -1,5 +1,4 @@
 require(Kaphi)
-require(rcolgem)
 
 setwd('~/git/Kaphi')
 
@@ -18,10 +17,11 @@ obs.tree <- parse.input.tree(obs.tree, config)
 x <- seq(1000, 2000, 500)    # (from, to, step)
 res <- sapply(x, function(value) {
   theta <- c(t.end=value, N=1000, beta=0.01, gamma=1/520, mu=1/3640, epsilon=0)
-  sim.trees <- compartmental.model(theta, nsim=50, tips=100, model='sir.nondynamic')
+  sim.trees <- compartmental.model(theta, nsim=10, tips=100, model='sir.nondynamic')
   distances <- sapply(sim.trees, function(singletree) {
     processtree <- .preprocess.tree(singletree, config)
     distance(obs.tree, processtree, config)
+    
   })
   cat(value, "\n")
   mean(distances)
@@ -39,7 +39,7 @@ plot(x, res, type='b', xlab='t.end', ylab='Mean kernel distance', cex.lab=1.2, y
 ws <- init.workspace(obs.tree, config)
 
 # this takes about....idk how long to run
-result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv')    #require a tsv file here ... find a dataset for this epidemiological model
+result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', model="sir.nondynamic")    #require a tsv file here ... find a dataset for this epidemiological model
 
 # examine the contents of the trace file
 trace <- read.table('pkg/examples/example-compartmental.tsv', header=T, sep='\t')

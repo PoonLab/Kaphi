@@ -31,7 +31,7 @@ test.simulate.trees <- function() {
     workspace <- init.workspace(t2, config)
     theta <- c(1)
     names(theta) <- c('Ne.tau')
-    result <- simulate.trees(workspace, theta)
+    result <- simulate.trees(workspace, theta, const.coalescent)
     checkEquals(length(result), 10)
     checkEquals(class(result), 'list')
     st1 <- result[[1]]
@@ -145,7 +145,7 @@ test.initialize.smc <- function() {
     config <- load.config('tests/fixtures/test-coalescent.yaml')
     config <- set.model(config, const.coalescent)
     ws <- init.workspace(t2, config)
-    ws <- initialize.smc(ws)
+    ws <- initialize.smc(ws, const.coalescent)
 
     # check generation of particles
     checkEquals(ws$config$nparticle, 10)
@@ -216,10 +216,10 @@ test.perturb.particles <- function() {
     obs.tree <- parse.input.tree(obs.tree, config)
 
     ws <- init.workspace(obs.tree, config)
-    ws <- initialize.smc(ws)
+    ws <- initialize.smc(ws, const.coalescent)
     before <- ws
     set.seed(11)  # with this seed acceptance rate is 7/10
-    after <- .perturb.particles(ws)
+    after <- .perturb.particles(ws, const.coalescent)
 
     # all the particles should be alive
     checkEquals(after$alive, 10)
