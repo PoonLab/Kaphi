@@ -40,7 +40,7 @@ plot(x,res, type='b', xlab='Ne.tau', ylab='Mean kernel distance', cex.lab=1.2)
 ws <- init.workspace(obs.tree, config)
 
 # this takes about an hour to run
-result <- run.smc(ws, trace.file='pkg/examples/example-coalescent2.tsv')
+result <- run.smc(ws, trace.file='pkg/examples/example-coalescent2.tsv', model='const.coalescent', verbose=TRUE)
 
 # let's examine the contents of the trace file
 trace <- read.table('pkg/examples/example-coalescent2.tsv', header=T, sep='\t')

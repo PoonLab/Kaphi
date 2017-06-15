@@ -36,8 +36,8 @@ simulate.trees <- function(workspace, theta, seed=NA, model, ...) {
 	if (!is.na(seed)) {
 		set.seed(seed)
 	}
-    result <- config$model(theta, config$nsample, workspace$tip.heights,
-                           model, seed, workspace$tip.labels, ...)
+    result <- config$model(theta=theta, nsim=config$nsample, tips=workspace$tip.heights,
+                           model=model, seed=seed, labels=workspace$tip.labels, ...)
 
     # annotate each trees with its self-kernel score
     for (i in 1:config$nsample) {
@@ -199,7 +199,7 @@ initialize.smc <- function(ws, model, ...) {
 }
 
 
-.perturb.particles <- function(ws) {
+.perturb.particles <- function(ws, model) {
     ##  This implements the Metropolis-Hastings acceptance/rejection step
     config <- ws$config
     nparticle <- config$nparticle
@@ -311,7 +311,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
         # perturb particles
         ws$accept <- 0
         ws$alive <- 0
-        ws <- .perturb.particles(ws)  # Metropolis-Hastings sampling
+        ws <- .perturb.particles(ws, model)  # Metropolis-Hastings sampling
 
         # record everything
         result$theta[[niter]] <- ws$particles
