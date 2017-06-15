@@ -62,7 +62,7 @@ require(rcolgem, quietly=TRUE)
 }
 
 
-compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=NA, fgyResolution=500, integrationMethod='adams') {
+compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=NA, labels=NA, fgyResolution=500, integrationMethod='adams') {
   "
   Use rcolgem to simulate coalescent trees under susceptible-infected (SI)
   model.

@@ -1,62 +1,62 @@
 priors:
   't.end':
-    dist: 'rnorm'
+    dist: 'norm'
     hyperparameters:
-    - mean: 5
-    - sd: 2
+    - mean: 1000
+    - sd: 5
   'N':
-    dist: 'rlnorm'
+    dist: 'lnorm'
     hyperparameters:
     - mean: 9.21
     - sd: 0.21
   'beta':
-    dist: 'rgamma'
+    dist: 'gamma'
     hyperparameters:
     - shape: 0.5
     - rate: 1
   'gamma':
-    dist: 'rgamma'
+    dist: 'gamma'
     hyperparameters:
     - shape: 0.5
     - rate: 1
   'mu':
-    dist: 'rgamma'
+    dist: 'gamma'
     hyperparameters:
     - shape: 0.5
     - rate: 1
   'epsilon':
-    dist: 'rgamma'
+    dist: 'gamma'
     hyperparameters:
     - shape: 0.5
     - rate: 1
 proposals:
   't.end':
-    dist: 'rnorm'
+    dist: 'norm'
     parameters:
     - mean: 5
     - sd: 2
   'N':
-    dist: 'rlnorm'
+    dist: 'lnorm'
     parameters:
     - mean: 9.21
     - sd: 0.21
   'beta':
-    dist: 'rgamma'
+    dist: 'gamma'
     parameters:
     - shape: 0.5
     - rate: 1
   'gamma':
-    dist: 'rgamma'
+    dist: 'gamma'
     parameters:
     - shape: 0.5
     - rate: 1
   'mu':
-    dist: 'rgamma'
+    dist: 'gamma'
     parameters:
     - shape: 0.5
     - rate: 1
   'epsilon':
-    dist: 'rgamma'
+    dist: 'gamma'
     parameters:
     - shape: 0.5
     - rate: 1
