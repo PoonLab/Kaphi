@@ -1,8 +1,9 @@
 priors:
   lambda:
-    dist: 'exp'
+    dist: 'lnorm'
     hyperparameters:
-    - rate: 1
+    - meanlog: 5
+    - sdlog: 2
 proposals:
   lambda:
     dist: 'norm'

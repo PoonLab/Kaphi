@@ -15,7 +15,7 @@
 
 require(ape)
 
-const.coalescent <- function(theta, nsim, tips, model=const.coalescent, seed=NA, labels=NA) {
+const.coalescent <- function(theta, nsim, tips, model='const.coalescent', seed=NA, labels=NA) {
 	"
 	This function exists only as a prototype.
 	It generates a tree under Kingman's coalescent where branch lengths are in
@@ -23,7 +23,6 @@ const.coalescent <- function(theta, nsim, tips, model=const.coalescent, seed=NA,
 	time tree, they must be rescaled by generation time (\tau).  Thus, the key
 	parameter (N_e * tau) determines the scale of the coalescent tree.
 	"
-  model <- model
     if (!is.element('Ne.tau', names(theta))) {
         stop('theta does not contain required parameter "Ne.tau"')
     }
