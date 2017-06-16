@@ -4,7 +4,7 @@ ui <- fluidPage(
   
   # Page Title
   titlePanel(
-    h1(strong("Kaphi"), "- Kernel-embedded ABC-SMC for phylodynamic inference"),
+    title = h1(strong("Kaphi"), "- Kernel-embedded ABC-SMC for phylodynamic inference"),
     windowTitle = "Kaphi - Kernel-embedded ABC-SMC for phylodynamic inference"
   ),
   
@@ -36,13 +36,28 @@ ui <- fluidPage(
     mainPanel(
       tabsetPanel(
         # Tab for Tree Plot
-        tabPanel("Tree Plot", plotOutput(outputId = "tree")), 
+        tabPanel(
+          title = "Tree Plot",
+          textInput(inputId = "treeTitle", label = "Enter a Tree Title"),
+          fluidRow(
+            column(
+              6,
+              sliderInput("width", "Plot Width (%)", min = 0, max = 100, value = 100)
+            ),
+            column(
+              6,
+              sliderInput("height", "Plot Height (px)", min = 0, max = 5000, value = 500)
+            )
+          ),
+          actionButton(inputId = "downloadPlot", label = "Download Tree Plot"),
+          uiOutput("tree.ui")
+        ), 
         # Tab for Prior Distributions
-        tabPanel("Prior Distributions"), 
+        tabPanel(title = "Prior Distributions"), 
         # Tab for Feedback/Diagnosis
-        tabPanel("Feedback/Diagnosis"),
+        tabPanel(title = "Feedback/Diagnosis"),
         # Tab for Simulation Results
-        tabPanel("Simulation Results")
+        tabPanel(title = "Simulation Results")
       )
     )
     
@@ -71,10 +86,16 @@ server <- function(input, output) {
     }
   )
   
-  # Rendering Newick Input
+  # Plotting Newick Input
   output$tree <- renderPlot({
     if (is.null(newickInput$data)) return()
     plot(newickInput$data)
+    title(input$treeTitle)
+  })
+  
+  # Rendering Newick Input
+  output$tree.ui <- renderUI({
+    plotOutput("tree", width = paste0(input$width, "%"), height = input$height)
   })
   
 }
