@@ -38,7 +38,7 @@ ui <- fluidPage(
         # Tab for Tree Plot
         tabPanel(
           title = "Tree Plot",
-          textInput(inputId = "treeTitle", label = "Enter a Tree Title"),
+          textInput(inputId = "treeTitle", label = "Enter Tree Title"),
           fluidRow(
             column(
               6,
@@ -49,7 +49,8 @@ ui <- fluidPage(
               sliderInput("height", "Plot Height (px)", min = 0, max = 5000, value = 500)
             )
           ),
-          actionButton(inputId = "downloadPlot", label = "Download Tree Plot"),
+          selectInput(inputId = "downloadFormat", label = "Select Download Format", choices = list("png", "pdf")),
+          downloadButton(outputId = "downloadTree", label = "Download Tree"),
           uiOutput("tree.ui")
         ), 
         # Tab for Prior Distributions
@@ -89,14 +90,26 @@ server <- function(input, output) {
   # Plotting Newick Input
   output$tree <- renderPlot({
     if (is.null(newickInput$data)) return()
-    plot(newickInput$data)
-    title(input$treeTitle)
+    plot(newickInput$data, main = input$treeTitle)
   })
   
   # Rendering Newick Input
   output$tree.ui <- renderUI({
     plotOutput("tree", width = paste0(input$width, "%"), height = input$height)
   })
+  
+  # Downloading Tree Plot
+  output$downloadTree <- downloadHandler(
+    fileName <-  function() {
+      paste(input$treeTitle, input$downloadFormat, sep=".")
+    },
+    content <- function(file) {
+      if(input$downloadFormat == "png")png(file) # open the png device
+      else pdf(file) # open the pdf device
+      plot(newickInput$data, main = input$treeTitle) # draw the plot
+      dev.off()  # turn the device off
+    }
+  )
   
 }
 
