@@ -42,11 +42,11 @@ ui <- fluidPage(
           fluidRow(
             column(
               6,
-              sliderInput("width", "Plot Width (%)", min = 0, max = 100, value = 100)
+              sliderInput("width", "Plot Width (px)", min = 0, max = 10000, value = 500)
             ),
             column(
               6,
-              sliderInput("height", "Plot Height (px)", min = 0, max = 5000, value = 500)
+              sliderInput("height", "Plot Height (px)", min = 0, max = 10000, value = 500)
             )
           ),
           selectInput(inputId = "downloadFormat", label = "Select Download Format", choices = list("png", "pdf")),
@@ -95,7 +95,7 @@ server <- function(input, output) {
   
   # Rendering Newick Input
   output$tree.ui <- renderUI({
-    plotOutput("tree", width = paste0(input$width, "%"), height = input$height)
+    plotOutput("tree", width = input$width, height = input$height)
   })
   
   # Downloading Tree Plot
