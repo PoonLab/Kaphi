@@ -21,11 +21,18 @@ ui <- fluidPage(
       ),
       # Row for Configuration Creation
       fluidRow(
-        h3(strong(em("Configuration Creation")))
+        h3(strong(em("SMC Settings Initialization"))),
+        numericInput(inputId = "particleNumber", label = "Number of Particles", value = 1000),
+        numericInput(inputId = "sampleNumber", label = "Number of Samples", value = 5),
+        numericInput(inputId = "ESSTolerance", label = "Effective Sample Size (ESS) Tolerance", value = 1.5),
+        numericInput(inputId = "finalEpsilon", label = "Final Epsilon", value = 0.01),
+        numericInput(inputId = "finalAcceptanceRate", label = "Final Acceptance Rate", value = 0.015),
+        numericInput(inputId = "quality", label = "Quality", value = 0.95),
+        numericInput(inputId = "stepTolerance", label = "Step Tolerance", value = 1e-5)
       ),
-      # Row for Model Specification
+      # Row for Model Selection
       fluidRow(
-        h3(strong(em("Model Specification"))),
+        h3(strong(em("Model Selection"))),
         # General Model Drop-down Menu
         selectInput(
           inputId = "generalModel", 
@@ -49,7 +56,7 @@ ui <- fluidPage(
             )
           )
         ),
-        # Coalescent Model Drop-down Menu
+        # Compartmental Model Drop-down Menu
         conditionalPanel(
           condition = "input.generalModel == 'compartmental'",
           selectInput(
@@ -63,7 +70,7 @@ ui <- fluidPage(
             )
           )
         ),
-        # Coalescent Model Drop-down Menu
+        # Network Model Drop-down Menu
         conditionalPanel(
           condition = "input.generalModel == 'network'",
           selectInput(
@@ -74,7 +81,7 @@ ui <- fluidPage(
             )
           )
         ),
-        # Coalescent Model Drop-down Menu
+        # Speciation Model Drop-down Menu
         conditionalPanel(
           condition = "input.generalModel == 'speciation'",
           selectInput(
@@ -92,6 +99,10 @@ ui <- fluidPage(
             )
           )
         )
+      ),
+      # Row for Model Parameters Initialization
+      fluidRow(
+        h3(strong(em("Model Parameters Initialization")))
       ),
       # Row for Running Simulation
       fluidRow(
