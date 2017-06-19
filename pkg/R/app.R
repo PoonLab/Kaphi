@@ -30,9 +30,9 @@ ui <- fluidPage(
         numericInput(inputId = "quality", label = "Quality", value = 0.95),
         numericInput(inputId = "stepTolerance", label = "Step Tolerance", value = 1e-5)
       ),
-      # Row for Model Selection
+      # Row for Model Selection and Initialization
       fluidRow(
-        h3(strong(em("Model Selection"))),
+        h3(strong(em("Model Selection and Initialization"))),
         # General Model Drop-down Menu
         selectInput(
           inputId = "generalModel", 
@@ -54,6 +54,30 @@ ui <- fluidPage(
             choices = c(
               "Constant Coalescent"
             )
+          ),
+          conditionalPanel(
+            condition = "input.specificCoalescent == 'Constant Coalescent'",
+            selectInput(
+              inputId = "NeTauPriorDistribution", 
+              label = "Ne Tau Prior Distribution",  
+              choices = c(
+                "Exponential",
+                "Gamma",
+                "Normal",
+                "Log Normal"
+              )
+            ),
+            selectInput(
+              inputId = "NeTauPriorDistribution", 
+              label = "Ne Tau Prior Distribution", 
+              choices = c(
+                "Exponential",
+                "Gamma",
+                "Normal",
+                "Log Normal"
+              )
+            ),
+            actionButton(inputId = "initializeCoalescentModel", label = "Initialize Coalescent Model")
           )
         ),
         # Compartmental Model Drop-down Menu
@@ -68,17 +92,32 @@ ui <- fluidPage(
               "Susceptible-Exposed-Infected-Removed (SEIR)",
               "Susceptible-Infected-Susceptible (SIS)"
             )
+          ),
+          conditionalPanel(
+            condition = "input.specificCompartmental == 'Susceptible-Infected-Removed-Dynamic (SIRD)'"
+          ),
+          conditionalPanel(
+            condition = "input.specificCompartmental == 'Susceptible-Infected-Removed-Non-Dynamic (SIRND)'"
+          ),
+          conditionalPanel(
+            condition = "input.specificCompartmental == 'Susceptible-Exposed-Infected-Removed (SEIR)'"
+          ),
+          conditionalPanel(
+            condition = "input.specificCompartmental == 'Susceptible-Infected-Susceptible (SIS)'"
           )
         ),
         # Network Model Drop-down Menu
         conditionalPanel(
           condition = "input.generalModel == 'network'",
           selectInput(
-            inputId = "specificNetwork", 
-            label = "Select Specific Network Model", 
+            inputId = "specificNetwork",
+            label = "Select Specific Network Model",
             choices = c(
               "Coming Soon"
             )
+          ),
+          conditionalPanel(
+            condition = "input.specificNetwork == 'Coming Soon'"
           )
         ),
         # Speciation Model Drop-down Menu
@@ -97,12 +136,32 @@ ui <- fluidPage(
               "BiSS-ness",
               "ClaSSE"
             )
+          ),
+          conditionalPanel(
+            condition = "input.specificSpeciation == 'Yule'"
+          ),
+          conditionalPanel(
+            condition = "input.specificSpeciation == 'Birth-Death'"
+          ),
+          conditionalPanel(
+            condition = "input.specificSpeciation == 'Binary State Speciation Extinction (BiSSE)'"
+          ),
+          conditionalPanel(
+            condition = "input.specificSpeciation == 'MuSSE'"
+          ),
+          conditionalPanel(
+            condition = "input.specificSpeciation == 'QuaSSE'"
+          ),
+          conditionalPanel(
+            condition = "input.specificSpeciation == 'GeoSSE'"
+          ),
+          conditionalPanel(
+            condition = "input.specificSpeciation == 'BiSS-ness'"
+          ),
+          conditionalPanel(
+            condition = "input.specificSpeciation == 'ClaSSE'"
           )
         )
-      ),
-      # Row for Model Parameters Initialization
-      fluidRow(
-        h3(strong(em("Model Parameters Initialization")))
       ),
       # Row for Running Simulation
       fluidRow(
