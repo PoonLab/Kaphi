@@ -25,7 +25,73 @@ ui <- fluidPage(
       ),
       # Row for Model Specification
       fluidRow(
-        h3(strong(em("Model Specification")))
+        h3(strong(em("Model Specification"))),
+        # General Model Drop-down Menu
+        selectInput(
+          inputId = "generalModel", 
+          label = "Select General Simulation Model", 
+          choices = c(
+            Coalescent = "coalescent",
+            Compartmental = "compartmental", 
+            Network = "network",
+            Speciation = "speciation"
+          )
+        ),
+        # Specific Model Drop-down Menus
+        # Coalescent Model Drop-down Menu
+        conditionalPanel(
+          condition = "input.generalModel == 'coalescent'",
+          selectInput(
+            inputId = "specificCoalescent", 
+            label = "Select Specific Coalescent Model", 
+            choices = c(
+              "Constant Coalescent"
+            )
+          )
+        ),
+        # Coalescent Model Drop-down Menu
+        conditionalPanel(
+          condition = "input.generalModel == 'compartmental'",
+          selectInput(
+            inputId = "specificCompartmental", 
+            label = "Select Specific Compartmental Model", 
+            choices = c(
+              "Susceptible-Infected-Removed-Dynamic (SIRD)",
+              "Susceptible-Infected-Removed-Non-Dynamic (SIRND)",
+              "Susceptible-Exposed-Infected-Removed (SEIR)",
+              "Susceptible-Infected-Susceptible (SIS)"
+            )
+          )
+        ),
+        # Coalescent Model Drop-down Menu
+        conditionalPanel(
+          condition = "input.generalModel == 'network'",
+          selectInput(
+            inputId = "specificNetwork", 
+            label = "Select Specific Network Model", 
+            choices = c(
+              "Coming Soon"
+            )
+          )
+        ),
+        # Coalescent Model Drop-down Menu
+        conditionalPanel(
+          condition = "input.generalModel == 'speciation'",
+          selectInput(
+            inputId = "specificSpeciation", 
+            label = "Select Specific Speciation Model", 
+            choices = c(
+              "Yule", 
+              "Birth-Death",
+              "Binary State Speciation Extinction (BiSSE)",
+              "MuSSE",
+              "QuaSSE",
+              "GeoSSE",
+              "BiSS-ness",
+              "ClaSSE"
+            )
+          )
+        )
       ),
       # Row for Running Simulation
       fluidRow(
@@ -49,7 +115,7 @@ ui <- fluidPage(
               sliderInput("height", "Plot Height (px)", min = 0, max = 10000, value = 500)
             )
           ),
-          selectInput(inputId = "downloadFormat", label = "Select Download Format", choices = list("png", "pdf")),
+          selectInput(inputId = "downloadFormat", label = "Select Download Format", choices = c(PNG = "png", PDF = "pdf")),
           downloadButton(outputId = "downloadTree", label = "Download Tree"),
           uiOutput("tree.ui")
         ), 
