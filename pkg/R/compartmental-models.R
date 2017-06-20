@@ -75,9 +75,9 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   @param integrationMethod : method for numerical solution of ODE
   "
   # check contents of theta list
-  # params like mu and epsilon are only used in certain models
+  # params like mu and alpha are only used in certain models
   th.args <- names(theta)
-  if (length(th.args) < 6 || any(!is.element(c('t.end', 'N', 'beta', 'gamma', 'mu', 'epsilon'), th.args))) {
+  if (length(th.args) < 6 || any(!is.element(c('t.end', 'N', 'beta', 'gamma', 'mu', 'alpha'), th.args))) {
     stop("'theta' does not hold Kaphi-compatible parameters")
   }
 
@@ -88,7 +88,6 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   # initial population frequencies
   S <- theta$N - 1
   I <- 1  # assume epidemic starts with single infected individual
-  R <- 0
   # x0 <- c(I=I, R=R, S=S)  #sample vector, removed R=R b/c rcolgem allows only births and ndd 1x1 matrices (checks that length(x0) == m + mm)
   x0 <- c(I=I, S=S)
   
@@ -105,7 +104,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
     beta=theta$beta,        # transmission rate
     gamma=theta$gamma,      # mortality from infection
     mu=theta$mu,            # baseline death rate
-    epsilon=theta$epsilon   # incubation period
+    alpha=theta$alpha   # incubation period
   )
   if (any(parms < 0)) {
     stop('No negative values permitted for model rate parameters.')
@@ -126,25 +125,25 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
     # non-deme dynamics is describing the subpopulation
     # note replacement of susceptibles with death of infected, for constant population size
     
-    births <- rbind(c('parms$beta * S * I / (S+I)'))
-    migrations <- rbind(c('0'))
+    births <- rbind(c('parms$beta * S * I / (S+I) - parms$gamma * I'))
+    migrations <- rbind(c('0'))      #in rcolgem manual say this should be omitted if there is only one deme
     deaths <- c('parms$gamma * I')
-    nonDemeDynamics <- c('-parms$beta * S * I / (S+I) + parms$gamma * I')
+    nonDemeDynamics <- c('-parms$beta * S * I / (S+I)')
   }
   
   # SIR model w/ vital dynamics and constant population
   else if (identical(tolower(model), 'sir.dynamic')) {
-    births <- rbind(c('parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I'))
+    births <- cbind(c('parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I'))
     migrations <- rbind(c('0'))
-    deaths <- rbind(c('parms$gamma * I - parms$mu * R'))
-    nonDemeDynamics <- rbind(c('parms$mu * (I+R) - parms$beta * S * I / (S+I)'))
+    deaths <- rbind(c('parms$gamma * I'))          # removed from the population
+    nonDemeDynamics <- rbind(c('parms$mu * I - parms$beta * S * I / (S+I)'))
   }
   
   # SIS model w/ births and deaths
   else if (identical(tolower(model), 'sis')) {
     births <- rbind(c('parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I'))
-    migrations <- rbind(c('0'))
-    deaths <- rbind(c('parms$gamma * I - parms$mu * R'))
+    migrations <- rbind(c('parms$gamma * I'))       # migrating out of I compartment, but back into S compartment
+    deaths <- rbind(c('0'))
     nonDemeDynamics <- rbind(c('-parms$beta * S * I / (S+I)'))
   }
   
@@ -152,18 +151,15 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   else if (identical(tolower(model), 'seir')) {
     # first infected will be exposed for an incubation period, not immediately infectious
     # update sample vector to include Exposed compartment
-    E <- 1
-    I <- 0
-    #x0 <- c(I=I, R=R, S=S, E=E)
+    E <- 0
+    S <- theta$N - (E+I)
+    x0 <- c(S=S, E=E, I=I)
     
-    births <- rbind(c('parms$epsilon * E - (parms$gamma + parms$mu) * I'))
+    births <- rbind(c('parms$alpha * E - (parms$gamma + parms$mu) * I'))
     migrations <- rbind(c('0'))
-    deaths <- rbind(c('parms$gamma * I - parms$mu * R'))
-    nonDemeDynamics <- rbind(c('-parms$beta * S * I / (S+I) + parms$mu * (I+R) - parms$mu * E'))
-    
-    # exposed individuals in incubation period
-    exposed <- rbind(c('parms$beta * S * I / (S+I) - (parms$epsilon + parms$mu) * E'))
-    rownames(exposed) <- colnames(exposed) <- demes  # assigned deme state to exposed b/c strictly seir case at the moment
+    deaths <- rbind(c('parms$gamma * I'))
+    nonDemeDynamics <- paste('-parms$beta * S * I / (S+I) + parms$mu * I - parms$mu * E', '+parms$beta * S * I / (S+I) - (parms$alpha + parms$mu) * E', sep='')
+    # second part of ndd is the expression for exposed individuals in incubation period
   }
   
   else {
@@ -174,7 +170,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   rownames(births) <- colnames(births) <- demes
   rownames(migrations) <- colnames(migrations) <- demes
   names(deaths) <- demes 
-  names(nonDemeDynamics) <- 'S'
+  names(nonDemeDynamics) <- nonDemes
 
   
   # check if there are tip labels (dates and states) to incorporate
@@ -198,7 +194,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   # for seir model, have to incorporate the Exposed compartment into tree simulations
   # incorporate number of simulations
   trees <- replicate(nsim, # num of simulations
-                     .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod),
+                     .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, migrations=NA, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod),
                      simplify=FALSE
                      )
   
