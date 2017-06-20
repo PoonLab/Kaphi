@@ -38,16 +38,16 @@ ui <- fluidPage(
           inputId = "generalModel", 
           label = "Select General Simulation Model", 
           choices = c(
-            Coalescent = "coalescent",
-            Compartmental = "compartmental", 
-            Network = "network",
-            Speciation = "speciation"
+            "Coalescent",
+            "Compartmental", 
+            "Network",
+            "Speciation"
           )
         ),
         # Specific Model Drop-down Menus
         # Coalescent Model Drop-down Menu
         conditionalPanel(
-          condition = "input.generalModel == 'coalescent'",
+          condition = "input.generalModel == 'Coalescent'",
           selectInput(
             inputId = "specificCoalescent", 
             label = "Select Specific Coalescent Model", 
@@ -67,22 +67,60 @@ ui <- fluidPage(
                 "Log Normal"
               )
             ),
+            # conditionalPanel(
+            #   condition = "input.NeTauPriorDistribution == 'Exponential'",
+            #   numericInput(inputId = "NeTauPriorExponentialRate", label = "Ne Tau Prior Exponential Rate", value = )
+            # ),
+            # conditionalPanel(
+            #   condition = "input.NeTauPriorDistribution == 'Gamma'",
+            #   numericInput(inputId = "NeTauPriorGammaShape", label = "Ne Tau Prior Gamma Shape", value = ),
+            #   numericInput(inputId = "NeTauPriorGammaRate", label = "Ne Tau Prior Gamma Rate", value = )
+            # ),
+            # conditionalPanel(
+            #   condition = "input.NeTauPriorDistribution == 'Normal'",
+            #   numericInput(inputId = "NeTauPriorNormalMean", label = "Ne Tau Prior Normal Mean", value = ),
+            #   numericInput(inputId = "NeTauPriorNormalStandardDeviation", label = "Ne Tau Prior Normal Standard Deviation", value = )
+            # ),
+            # conditionalPanel(
+            #   condition = "input.NeTauPriorDistribution == 'Log Normal'",
+            #   numericInput(inputId = "NeTauPriorLogNormalMean", label = "Ne Tau Prior Log Normal Mean", value = ),
+            #   numericInput(inputId = "NeTauPriorLogNormalStandardDeviation", label = "Ne Tau Prior Log Normal Standard Deviation", value = )
+            # ),
             selectInput(
-              inputId = "NeTauPriorDistribution", 
-              label = "Ne Tau Prior Distribution", 
+              inputId = "NeTauProposalDistribution", 
+              label = "Ne Tau Proposal Distribution", 
               choices = c(
                 "Exponential",
                 "Gamma",
                 "Normal",
                 "Log Normal"
               )
-            ),
-            actionButton(inputId = "initializeCoalescentModel", label = "Initialize Coalescent Model")
+              # ,
+              # conditionalPanel(
+              #   condition = "input.NeTauProposalDistribution == 'Exponential'",
+              #   numericInput(inputId = "NeTauProposalExponentialRate", label = "Ne Tau Proposal Exponential Rate", value = )
+              # ),
+              # conditionalPanel(
+              #   condition = "input.NeTauProposalDistribution == 'Gamma'",
+              #   numericInput(inputId = "NeTauProposalGammaShape", label = "Ne Tau Proposal Gamma Shape", value = ),
+              #   numericInput(inputId = "NeTauProposalGammaRate", label = "Ne Tau Proposal Gamma Rate", value = )
+              # ),
+              # conditionalPanel(
+              #   condition = "input.NeTauProposalDistribution == 'Normal'",
+              #   numericInput(inputId = "NeTauProposalNormalMean", label = "Ne Tau Proposal Normal Mean", value = ),
+              #   numericInput(inputId = "NeTauProposalNormalStandardDeviation", label = "Ne Tau Proposal Normal Standard Deviation", value = )
+              # ),
+              # conditionalPanel(
+              #   condition = "input.NeTauProposalDistribution == 'Log Normal'",
+              #   numericInput(inputId = "NeTauProposalLogNormalMean", label = "Ne Tau Proposal Log Normal Mean", value = ),
+              #   numericInput(inputId = "NeTauProposalLogNormalStandardDeviation", label = "Ne Tau Proposal Log Normal Standard Deviation", value = )
+              # )
+            )
           )
         ),
         # Compartmental Model Drop-down Menu
         conditionalPanel(
-          condition = "input.generalModel == 'compartmental'",
+          condition = "input.generalModel == 'Compartmental'",
           selectInput(
             inputId = "specificCompartmental", 
             label = "Select Specific Compartmental Model", 
@@ -108,7 +146,7 @@ ui <- fluidPage(
         ),
         # Network Model Drop-down Menu
         conditionalPanel(
-          condition = "input.generalModel == 'network'",
+          condition = "input.generalModel == 'Network'",
           selectInput(
             inputId = "specificNetwork",
             label = "Select Specific Network Model",
@@ -122,7 +160,7 @@ ui <- fluidPage(
         ),
         # Speciation Model Drop-down Menu
         conditionalPanel(
-          condition = "input.generalModel == 'speciation'",
+          condition = "input.generalModel == 'Speciation'",
           selectInput(
             inputId = "specificSpeciation", 
             label = "Select Specific Speciation Model", 
@@ -138,7 +176,66 @@ ui <- fluidPage(
             )
           ),
           conditionalPanel(
-            condition = "input.specificSpeciation == 'Yule'"
+            condition = "input.specificSpeciation == 'Yule'",
+            selectInput(
+              inputId = "lambdaPriorDistribution", 
+              label = "Lambda Prior Distribution",  
+              choices = c(
+                "Exponential",
+                "Gamma",
+                "Normal",
+                "Log Normal"
+              )
+            ),
+            # conditionalPanel(
+            #   condition = "input.lambdaPriorDistribution == 'Exponential'",
+            #   numericInput(inputId = , label = , value = )
+            # ),
+            # conditionalPanel(
+            #   condition = "input.lambdaPriorDistribution == 'Gamma'",
+            #   numericInput(inputId = , label = , value = ),
+            #   numericInput(inputId = , label = , value = )
+            # ),
+            # conditionalPanel(
+            #   condition = "input.lambdaPriorDistribution == 'Normal'",
+            #   numericInput(inputId = , label = , value = ),
+            #   numericInput(inputId = , label = , value = )
+            # ),
+            # conditionalPanel(
+            #   condition = "input.lambdaPriorDistribution == 'Log Normal'",
+            #   numericInput(inputId = , label = , value = ),
+            #   numericInput(inputId = , label = , value = )
+            # ),
+            selectInput(
+              inputId = "lambdaProposalDistribution", 
+              label = "Lambda Proposal Distribution", 
+              choices = c(
+                "Exponential",
+                "Gamma",
+                "Normal",
+                "Log Normal"
+              )
+            )
+            # ,
+            # conditionalPanel(
+            #   condition = "input.lambdaProposalDistribution == 'Exponential'",
+            #   numericInput(inputId = , label = , value = )
+            # ),
+            # conditionalPanel(
+            #   condition = "input.lambdaProposalDistribution == 'Gamma'",
+            #   numericInput(inputId = , label = , value = ),
+            #   numericInput(inputId = , label = , value = )
+            # ),
+            # conditionalPanel(
+            #   condition = "input.lambdaProposalDistribution == 'Normal'",
+            #   numericInput(inputId = , label = , value = ),
+            #   numericInput(inputId = , label = , value = )
+            # ),
+            # conditionalPanel(
+            #   condition = "input.lambdaProposalDistribution == 'Log Normal'",
+            #   numericInput(inputId = , label = , value = ),
+            #   numericInput(inputId = , label = , value = )
+            # )
           ),
           conditionalPanel(
             condition = "input.specificSpeciation == 'Birth-Death'"
