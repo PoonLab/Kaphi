@@ -1,9 +1,10 @@
+# Still working on priors and proposals for yule model
 priors:
   lambda:
-    dist: 'lnorm'
+    dist: 'gamma'
     hyperparameters:
-    - meanlog: 5
-    - sdlog: 2
+    - shape: 1.0 # kappa
+    - rate: 1.0 # theta
 proposals:
   lambda:
     dist: 'norm'
@@ -12,7 +13,7 @@ proposals:
     - sd: 50
 smc:
   nparticle: 100
-  nsample: 10
+  nsample: 5
   ess.tolerance: 50.0
   final.accept.rate: 0.1
   final.epsilon: 0.1
