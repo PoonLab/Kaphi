@@ -28,7 +28,8 @@ ui <- fluidPage(
         numericInput(inputId = "finalEpsilon", label = "Final Epsilon", value = 0.01),
         numericInput(inputId = "finalAcceptanceRate", label = "Final Acceptance Rate", value = 0.015),
         numericInput(inputId = "quality", label = "Quality", value = 0.95),
-        numericInput(inputId = "stepTolerance", label = "Step Tolerance", value = 1e-5)
+        numericInput(inputId = "stepTolerance", label = "Step Tolerance", value = 1e-5),
+        actionButton(inputId = "initializeSMCSettings", label = "Initialize SMC Settings")
       ),
       # Row for Model Selection and Initialization
       fluidRow(
@@ -67,25 +68,29 @@ ui <- fluidPage(
                 "Log Normal"
               )
             ),
-            # conditionalPanel(
-            #   condition = "input.NeTauPriorDistribution == 'Exponential'",
-            #   numericInput(inputId = "NeTauPriorExponentialRate", label = "Ne Tau Prior Exponential Rate", value = )
-            # ),
-            # conditionalPanel(
-            #   condition = "input.NeTauPriorDistribution == 'Gamma'",
-            #   numericInput(inputId = "NeTauPriorGammaShape", label = "Ne Tau Prior Gamma Shape", value = ),
-            #   numericInput(inputId = "NeTauPriorGammaRate", label = "Ne Tau Prior Gamma Rate", value = )
-            # ),
-            # conditionalPanel(
-            #   condition = "input.NeTauPriorDistribution == 'Normal'",
-            #   numericInput(inputId = "NeTauPriorNormalMean", label = "Ne Tau Prior Normal Mean", value = ),
-            #   numericInput(inputId = "NeTauPriorNormalStandardDeviation", label = "Ne Tau Prior Normal Standard Deviation", value = )
-            # ),
-            # conditionalPanel(
-            #   condition = "input.NeTauPriorDistribution == 'Log Normal'",
-            #   numericInput(inputId = "NeTauPriorLogNormalMean", label = "Ne Tau Prior Log Normal Mean", value = ),
-            #   numericInput(inputId = "NeTauPriorLogNormalStandardDeviation", label = "Ne Tau Prior Log Normal Standard Deviation", value = )
-            # ),
+            conditionalPanel(
+              condition = "input.NeTauPriorDistribution == 'Exponential'",
+              numericInput(inputId = "NeTauCoalescentPriorExponentialRate", label = "Ne Tau Prior Exponential Rate", value = 0),
+              actionButton(inputId = "initializeNeTauCoalescentPriorExponential", label = "Initialize Ne Tau Prior")
+            ),
+            conditionalPanel(
+              condition = "input.NeTauPriorDistribution == 'Gamma'",
+              numericInput(inputId = "NeTauCoalescentPriorGammaShape", label = "Ne Tau Prior Gamma Shape", value = 0),
+              numericInput(inputId = "NeTauCoalescentPriorGammaRate", label = "Ne Tau Prior Gamma Rate", value = 0),
+              actionButton(inputId = "initializeNeTauCoalescentPriorGamma", label = "Initialize Ne Tau Prior")
+            ),
+            conditionalPanel(
+              condition = "input.NeTauPriorDistribution == 'Normal'",
+              numericInput(inputId = "NeTauCoalescentPriorNormalMean", label = "Ne Tau Prior Normal Mean", value = 0),
+              numericInput(inputId = "NeTauCoalescentPriorNormalStandardDeviation", label = "Ne Tau Prior Normal Standard Deviation", value = 0),
+              actionButton(inputId = "initializeNeTauCoalescentPriorNormal", label = "Initialize Ne Tau Prior")
+            ),
+            conditionalPanel(
+              condition = "input.NeTauPriorDistribution == 'Log Normal'",
+              numericInput(inputId = "NeTauCoalescentPriorLogNormalMean", label = "Ne Tau Prior Log Normal Mean", value = 0),
+              numericInput(inputId = "NeTauCoalescentPriorLogNormalStandardDeviation", label = "Ne Tau Prior Log Normal Standard Deviation", value = 0),
+              actionButton(inputId = "initializeNeTauCoalescentPriorLogNormal", label = "Initialize Ne Tau Prior")
+            ),
             selectInput(
               inputId = "NeTauProposalDistribution", 
               label = "Ne Tau Proposal Distribution", 
@@ -95,26 +100,29 @@ ui <- fluidPage(
                 "Normal",
                 "Log Normal"
               )
-              # ,
-              # conditionalPanel(
-              #   condition = "input.NeTauProposalDistribution == 'Exponential'",
-              #   numericInput(inputId = "NeTauProposalExponentialRate", label = "Ne Tau Proposal Exponential Rate", value = )
-              # ),
-              # conditionalPanel(
-              #   condition = "input.NeTauProposalDistribution == 'Gamma'",
-              #   numericInput(inputId = "NeTauProposalGammaShape", label = "Ne Tau Proposal Gamma Shape", value = ),
-              #   numericInput(inputId = "NeTauProposalGammaRate", label = "Ne Tau Proposal Gamma Rate", value = )
-              # ),
-              # conditionalPanel(
-              #   condition = "input.NeTauProposalDistribution == 'Normal'",
-              #   numericInput(inputId = "NeTauProposalNormalMean", label = "Ne Tau Proposal Normal Mean", value = ),
-              #   numericInput(inputId = "NeTauProposalNormalStandardDeviation", label = "Ne Tau Proposal Normal Standard Deviation", value = )
-              # ),
-              # conditionalPanel(
-              #   condition = "input.NeTauProposalDistribution == 'Log Normal'",
-              #   numericInput(inputId = "NeTauProposalLogNormalMean", label = "Ne Tau Proposal Log Normal Mean", value = ),
-              #   numericInput(inputId = "NeTauProposalLogNormalStandardDeviation", label = "Ne Tau Proposal Log Normal Standard Deviation", value = )
-              # )
+            ),
+            conditionalPanel(
+              condition = "input.NeTauProposalDistribution == 'Exponential'",
+              numericInput(inputId = "NeTauCoalescentProposalExponentialRate", label = "Ne Tau Proposal Exponential Rate", value = 0),
+              actionButton(inputId = "initializeNeTauCoalescentProposalExponential", label = "Initialize Ne Tau Proposal")
+            ),
+            conditionalPanel(
+              condition = "input.NeTauProposalDistribution == 'Gamma'",
+              numericInput(inputId = "NeTauCoalescentProposalGammaShape", label = "Ne Tau Proposal Gamma Shape", value = 0),
+              numericInput(inputId = "NeTauCoalescentProposalGammaRate", label = "Ne Tau Proposal Gamma Rate", value = 0),
+              actionButton(inputId = "initializeNeTauCoalescentProposalGamma", label = "Initialize Ne Tau Proposal")
+            ),
+            conditionalPanel(
+              condition = "input.NeTauProposalDistribution == 'Normal'",
+              numericInput(inputId = "NeTauCoalescentProposalNormalMean", label = "Ne Tau Proposal Normal Mean", value = 0),
+              numericInput(inputId = "NeTauCoalescentProposalNormalStandardDeviation", label = "Ne Tau Proposal Normal Standard Deviation", value = 0),
+              actionButton(inputId = "initializeNeTauCoalescentProposalNormal", label = "Initialize Ne Tau Proposal")
+            ),
+            conditionalPanel(
+              condition = "input.NeTauProposalDistribution == 'Log Normal'",
+              numericInput(inputId = "NeTauCoalescentProposalLogNormalMean", label = "Ne Tau Proposal Log Normal Mean", value = 0),
+              numericInput(inputId = "NeTauCoalescentProposalLogNormalStandardDeviation", label = "Ne Tau Proposal Log Normal Standard Deviation", value = 0),
+              actionButton(inputId = "initializeNeTauCoalescentProposalLogNormal", label = "Initialize Ne Tau Proposal")
             )
           )
         ),
@@ -187,25 +195,29 @@ ui <- fluidPage(
                 "Log Normal"
               )
             ),
-            # conditionalPanel(
-            #   condition = "input.lambdaPriorDistribution == 'Exponential'",
-            #   numericInput(inputId = , label = , value = )
-            # ),
-            # conditionalPanel(
-            #   condition = "input.lambdaPriorDistribution == 'Gamma'",
-            #   numericInput(inputId = , label = , value = ),
-            #   numericInput(inputId = , label = , value = )
-            # ),
-            # conditionalPanel(
-            #   condition = "input.lambdaPriorDistribution == 'Normal'",
-            #   numericInput(inputId = , label = , value = ),
-            #   numericInput(inputId = , label = , value = )
-            # ),
-            # conditionalPanel(
-            #   condition = "input.lambdaPriorDistribution == 'Log Normal'",
-            #   numericInput(inputId = , label = , value = ),
-            #   numericInput(inputId = , label = , value = )
-            # ),
+            conditionalPanel(
+              condition = "input.lambdaPriorDistribution == 'Exponential'",
+              numericInput(inputId = "lambdaYulePriorExponentialRate", label = "Lambda Prior Exponential Rate", value = 0),
+              actionButton(inputId = "initializeLambdaYulePriorExponential", label = "Initialize Lambda Prior")
+            ),
+            conditionalPanel(
+              condition = "input.lambdaPriorDistribution == 'Gamma'",
+              numericInput(inputId = "lambdaYulePriorGammaShape", label = "Lambda Prior Gamma Shape", value = 0),
+              numericInput(inputId = "lambdaYulePriorGammaRate", label = "Lambda Prior Gamma Rate", value = 0),
+              actionButton(inputId = "initializeLambdaYulePriorGamma", label = "Initialize Lambda Prior")
+            ),
+            conditionalPanel(
+              condition = "input.lambdaPriorDistribution == 'Normal'",
+              numericInput(inputId = "lambdaYulePriorNormalMean", label = "Lambda Prior Normal Mean", value = 0),
+              numericInput(inputId = "lambdaYulePriorNormalStandardDeviation", label = "Lambda Prior Normal Standard Deviation", value = 0),
+              actionButton(inputId = "initializeLambdaYulePriorNormal", label = "Initialize Lambda Prior")
+            ),
+            conditionalPanel(
+              condition = "input.lambdaPriorDistribution == 'Log Normal'",
+              numericInput(inputId = "lambdaYulePriorLogNormalMean", label = "Lambda Prior Log Normal Mean", value = 0),
+              numericInput(inputId = "lambdaYulePriorLogNormalStandardDeviation", label = "Lambda Prior Log Normal Standard Deviation", value = 0),
+              actionButton(inputId = "initializeLambdaYulePriorNormal", label = "Initialize Lambda Prior")
+            ),
             selectInput(
               inputId = "lambdaProposalDistribution", 
               label = "Lambda Proposal Distribution", 
@@ -215,27 +227,30 @@ ui <- fluidPage(
                 "Normal",
                 "Log Normal"
               )
+            ),
+            conditionalPanel(
+              condition = "input.lambdaProposalDistribution == 'Exponential'",
+              numericInput(inputId = "lambdaYuleProposalExponentialRate", label = "Lambda Proposal Exponential Rate", value = 0),
+              actionButton(inputId = "initializeLambdaYuleProposalExponential", label = "Initialize Lambda Proposal")
+            ),
+            conditionalPanel(
+              condition = "input.lambdaProposalDistribution == 'Gamma'",
+              numericInput(inputId = "lambdaYuleProposalGammaShape", label = "Lambda Proposal Gamma Shape", value = 0),
+              numericInput(inputId = "lambdaYuleProposalGammaRate", label = "Lambda Proposal Gamma Rate", value = 0),
+              actionButton(inputId = "initializeLambdaYuleProposalGamma", label = "Initialize Lambda Proposal")
+            ),
+            conditionalPanel(
+              condition = "input.lambdaProposalDistribution == 'Normal'",
+              numericInput(inputId = "lambdaYuleProposalNormalMean", label = "Lambda Proposal Normal Mean", value = 0),
+              numericInput(inputId = "lambdaYuleProposalNormalStandardDeviation", label = "Lambda Proposal Normal Standard Deviation", value = 0),
+              actionButton(inputId = "initializeLambdaYuleProposalNormal", label = "Initialize Lambda Proposal")
+            ),
+            conditionalPanel(
+              condition = "input.lambdaProposalDistribution == 'Log Normal'",
+              numericInput(inputId = "lambdaYuleProposalLogNormalMean", label = "Lambda Proposal Log Normal Mean", value = 0),
+              numericInput(inputId = "lambdaYuleProposalLogNormalStandardDeviation", label = "Lambda Proposal Log Normal Standard Deviation", value = 0),
+              actionButton(inputId = "initializeLambdaYuleProposalLogNormal", label = "Initialize Lambda Proposal")
             )
-            # ,
-            # conditionalPanel(
-            #   condition = "input.lambdaProposalDistribution == 'Exponential'",
-            #   numericInput(inputId = , label = , value = )
-            # ),
-            # conditionalPanel(
-            #   condition = "input.lambdaProposalDistribution == 'Gamma'",
-            #   numericInput(inputId = , label = , value = ),
-            #   numericInput(inputId = , label = , value = )
-            # ),
-            # conditionalPanel(
-            #   condition = "input.lambdaProposalDistribution == 'Normal'",
-            #   numericInput(inputId = , label = , value = ),
-            #   numericInput(inputId = , label = , value = )
-            # ),
-            # conditionalPanel(
-            #   condition = "input.lambdaProposalDistribution == 'Log Normal'",
-            #   numericInput(inputId = , label = , value = ),
-            #   numericInput(inputId = , label = , value = )
-            # )
           ),
           conditionalPanel(
             condition = "input.specificSpeciation == 'Birth-Death'"
@@ -303,6 +318,30 @@ server <- function(input, output) {
   
   newickInput <- reactiveValues(data = NULL)
   
+  config <- list(
+    params=NA,
+    priors=list(),
+    prior.densities=list(),
+    proposals=list(),
+    proposal.densities=list(),
+    model=NA,
+    
+    # SMC settings
+    nparticle=1000,
+    nsample=5,
+    ess.tolerance=1.5,
+    final.epsilon=0.01,
+    final.accept.rate=0.015,
+    quality=0.95,
+    step.tolerance=1e-5,
+    
+    # kernel settings
+    decay.factor=0.2,
+    rbf.variance=2.0,
+    sst.control=1.0,
+    norm.mode='MEAN'
+  )
+  
   # Reading Tree from Newick String
   observeEvent(
     input$processString,
@@ -341,6 +380,20 @@ server <- function(input, output) {
       else pdf(file) # open the pdf device
       plot(newickInput$data, main = input$treeTitle) # draw the plot
       dev.off()  # turn the device off
+    }
+  )
+  
+  # Initializing SMC Settings
+  observeEvent(
+    input$initializeSMCSettings,
+    {
+      config$nparticle <- input$particleNumber
+      config$nsample <- input$sampleNumber
+      config$ess.tolerance <- input$ESSTolerance
+      config$final.epsilon <- input$finalEpsilon
+      config$final.accept.rate <- input$finalAcceptanceRate
+      config$quality <- input$quality
+      config$step.tolerance <- input$stepTolerance
     }
   )
   
