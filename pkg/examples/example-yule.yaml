@@ -8,11 +8,14 @@ priors:
 proposals:
   lambda:
     dist: 'norm'
+    #dist: 'gamma'
     parameters:
     - mean: 0
-    - sd: 50
+    - sd: 0.5
+    #- shape: 0.001
+    #- rate: 0.001
 smc:
-  nparticle: 100
+  nparticle: 10
   nsample: 5
   ess.tolerance: 50.0
   final.accept.rate: 0.1

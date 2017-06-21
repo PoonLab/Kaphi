@@ -267,7 +267,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
 
     # clear file and write header row
     write.table(t(c(
-        'n.iter', 'part.num', 'weight', config$params, paste0('dist.', 1:config$nsample)
+        'n', 'part.num', 'weight', config$params, paste0('dist.', 1:config$nsample)
     )), file=trace.file, sep='\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
 
 	config <- ws$config
@@ -292,7 +292,9 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     while (ws$epsilon != config$final.epsilon) {
         niter <- niter + 1
 
-        if (verbose) { cat("ws$dists:\n", show(ws$dists), "\n\n") }
+        if (verbose) { cat("ws$dists:\n") 
+                       show(ws$dists)
+                       cat("\n\n")}
 
         # update epsilon
         ws <- .next.epsilon(ws)

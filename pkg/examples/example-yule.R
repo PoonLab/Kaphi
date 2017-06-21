@@ -11,7 +11,7 @@ config <- set.model(config, 'yule')
 # simulate target tree
 theta <- c(lambda=0.1)  # this is the true value
 set.seed(50)
-obs.tree <- speciation.model(theta, nsim=1, tips=100, model='yule')[[1]]
+obs.tree <- speciation.model(theta, nsim=1, tips=20, model='yule')[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
 # calculate kernel distances for varying lambda
@@ -52,7 +52,8 @@ plot(
   ylab='Mean lambda',
   cex.lab=1.2
 )
-abline(h=0.1, lty=2)
+abline(h=0.09, lty=2)
+abline(h=0.11, lty=2)
 
 # use kernel densities to visualize posterior approximations
 pal <- rainbow(n=6, start=0, end=0.3, v=0.8, s=0.5)
