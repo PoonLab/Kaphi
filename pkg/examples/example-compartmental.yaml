@@ -2,8 +2,8 @@ priors:
   't.end':
     dist: 'norm'
     hyperparameters:
-    - mean: 1000
-    - sd: 5
+    - mean: 5
+    - sd: 2
   'N':
     dist: 'lnorm'
     hyperparameters:

@@ -33,6 +33,8 @@ require(rcolgem, quietly=TRUE)
     fgyResolution=fgyResolution, 
     integrationMethod=integrationMethod
   )
+  #plot(fgy[[2]], fgy[[1]])
+  #return(fgy)
   
   # simulate tree
   tree <- simulate.binary.dated.tree.fgy(
@@ -44,7 +46,7 @@ require(rcolgem, quietly=TRUE)
     sampleStates,
     integrationMethod=integrationMethod  #  , n.reps=nreps   --this isn't a parameter in rcolgem's simulate.binary.dated.tree.fgy
   )
-  
+  #return(tree)
   
   # https://github.com/cran/ape/blob/master/R/rtree.R converting tree result into an ape phylo object phy
   phy <- list(edge=tree$edge, edge.length=tree$edge.length)
@@ -64,7 +66,7 @@ require(rcolgem, quietly=TRUE)
 
 compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=NA, labels=NA, fgyResolution=500, integrationMethod='adams') {
   "
-  Use rcolgem to simulate coalescent trees under susceptible-infected (SI)
+  Use rcolgem to simulate coalescent trees under susceptible-infected (SI) 
   model.
   @param theta : vector containing parameter values for the model
   @param nsim : number of replicate trees to simulate
@@ -127,13 +129,13 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
     
     births <- rbind(c('parms$beta * S * I / (S+I) - parms$gamma * I'))
     migrations <- rbind(c('0'))      #in rcolgem manual say this should be omitted if there is only one deme
-    deaths <- c('parms$gamma * I')
+    deaths <- rbind(c('parms$gamma * I'))
     nonDemeDynamics <- c('-parms$beta * S * I / (S+I)')
   }
   
   # SIR model w/ vital dynamics and constant population
   else if (identical(tolower(model), 'sir.dynamic')) {
-    births <- cbind(c('parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I'))
+    births <- rbind(c('parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I'))
     migrations <- rbind(c('0'))
     deaths <- rbind(c('parms$gamma * I'))          # removed from the population
     nonDemeDynamics <- rbind(c('parms$mu * I - parms$beta * S * I / (S+I)'))
@@ -179,8 +181,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
     stop("Population size is smaller than requested number of tips")
   }
   
-  # sample times
-  # a vector indicating when each tip was sampled
+  # sample times: a vector indicating when each tip was sampled
   sampleTimes <- sapply(tips$tip.heights, function(x) {t.end - x})
 
   # sample states
@@ -190,8 +191,6 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
 
   
   # calculates numerical solution of ODE system and returns simulated trees
-  # tree <- .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, migrations, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod)
-  # for seir model, have to incorporate the Exposed compartment into tree simulations
   # incorporate number of simulations
   trees <- replicate(nsim, # num of simulations
                      .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, migrations=NA, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod),
