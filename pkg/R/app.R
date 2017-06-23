@@ -11,6 +11,9 @@ ui <- fluidPage(
   sidebarLayout(
     
     sidebarPanel( 
+      # Allowing Independent Scrolling in the Sidebar
+      id = "sidebarPanel",
+      style = "overflow-y:scroll; max-height: 600px",
       # Row for Newick Text/File Input 
       fluidRow(
         h3(strong(em("Newick Input"))),
