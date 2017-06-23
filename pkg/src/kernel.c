@@ -145,6 +145,8 @@ SEXP R_Kaphi_nLTT(SEXP nwk1, SEXP nwk2) {
 
 SEXP R_Kaphi_sackin(SEXP nwk, SEXP arg_useBL) {
     SEXP result;
+
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
     igraph_t * t1;
     int use_branch_lengths = INTEGER(arg_useBL)[0];
 
@@ -163,6 +165,8 @@ SEXP R_Kaphi_sackin(SEXP nwk, SEXP arg_useBL) {
 
 SEXP R_Kaphi_colless(SEXP nwk) {
     SEXP result;
+
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
     igraph_t * t1 = R_Kaphi_parse_newick(nwk);
 
     PROTECT(result = NEW_NUMERIC(1));
@@ -175,6 +179,8 @@ SEXP R_Kaphi_colless(SEXP nwk) {
 
 SEXP R_Kaphi_cophenetic(SEXP nwk, SEXP arg_useBL) {
     SEXP result;
+
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
     igraph_t * t1;
     int use_branch_lengths = INTEGER(arg_useBL)[0];
 
@@ -193,6 +199,8 @@ SEXP R_Kaphi_cophenetic(SEXP nwk, SEXP arg_useBL) {
 
 SEXP R_Kaphi_ladder_length(SEXP nwk) {
     SEXP result;
+
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
     igraph_t * t1 = R_Kaphi_parse_newick(nwk);
 
     PROTECT(result = NEW_NUMERIC(1));
@@ -205,6 +213,8 @@ SEXP R_Kaphi_ladder_length(SEXP nwk) {
 
 SEXP R_Kaphi_il_nodes(SEXP nwk) {
     SEXP result;
+    
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
     igraph_t * t1 = R_Kaphi_parse_newick(nwk);
 
     PROTECT(result = NEW_NUMERIC(1));
@@ -231,6 +241,8 @@ SEXP R_Kaphi_width(SEXP nwk) {
 
 SEXP R_Kaphi_max_delta_width(SEXP nwk) {
     SEXP result;
+    
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
     igraph_t * t1 = R_Kaphi_parse_newick(nwk);
 
     PROTECT(result = NEW_NUMERIC(1));
@@ -243,6 +255,8 @@ SEXP R_Kaphi_max_delta_width(SEXP nwk) {
 
 SEXP R_Kaphi_cherries(SEXP nwk) {
     SEXP result;
+
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
     igraph_t * t1 = R_Kaphi_parse_newick(nwk);
 
     PROTECT(result = NEW_NUMERIC(1));
@@ -255,6 +269,8 @@ SEXP R_Kaphi_cherries(SEXP nwk) {
 
 SEXP R_Kaphi_prop_unbalanced(SEXP nwk) {
     SEXP result;
+
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
     igraph_t * t1 = R_Kaphi_parse_newick(nwk);
 
     PROTECT(result = NEW_NUMERIC(1));
@@ -267,6 +283,8 @@ SEXP R_Kaphi_prop_unbalanced(SEXP nwk) {
 
 SEXP R_Kaphi_avg_unbalance(SEXP nwk) {
     SEXP result;
+
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
     igraph_t * t1 = R_Kaphi_parse_newick(nwk);
 
     PROTECT(result = NEW_NUMERIC(1));
@@ -279,6 +297,8 @@ SEXP R_Kaphi_avg_unbalance(SEXP nwk) {
 
 SEXP R_Kaphi_pybus_gamma(SEXP nwk) {
     SEXP result;
+
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
     igraph_t * t1 = R_Kaphi_parse_newick(nwk);
 
     PROTECT(result = NEW_NUMERIC(1));
@@ -291,6 +311,8 @@ SEXP R_Kaphi_pybus_gamma(SEXP nwk) {
 
 SEXP R_Kaphi_internal_terminal_ratio(SEXP nwk) {
     SEXP result;
+
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
     igraph_t * t1 = R_Kaphi_parse_newick(nwk);
 
     PROTECT(result = NEW_NUMERIC(1));

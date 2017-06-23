@@ -1,4 +1,216 @@
 library(shiny)
+library(Kaphi)
+
+distributions = list(
+  "exp" = list(
+    "rate" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    )
+  ),
+  "gamma" = list(
+    "rate" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    ),
+    "shape" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    )
+  ),
+  "lnorm" = list(
+    "mean" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    ),
+    "sd" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    )
+  ),
+  "norm" = list(
+    "mean" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    ),
+    "sd" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    )
+  )
+)
+
+ConstantCoalescent = list(
+  Ne.tau = distributions
+)
+
+SIRD = list(
+  beta = distributions,
+  gamma = distributions,
+  mu = distributions
+)
+
+SIRND =list(
+  beta = distributions,
+  gamma = distributions
+)
+
+SIS = list(
+  beta = distributions,
+  gamma = distributions,
+  mu = distributions
+)
+
+SEIR = list(
+  beta = distributions,
+  gamma = distributions,
+  mu = distributions, 
+  alpha = distributions
+)
+
+Yule = list(
+  lambda = distributions
+)
+
+BirthDeath = list(
+  lambda = distributions,
+  mu = distributions
+)  
+
+BiSSE = list(
+  lambda0 = distributions,
+  lambda1 = distributions,
+  mu0 = distributions,
+  mu1 = distributions,
+  q01 = distributions,
+  q10 = distributions
+)
+
+MuSSE = list(
+  lambda1 = distributions,
+  lambda2 = distributions,
+  lambda3 = distributions,
+  mu1 = distributions,
+  mu2 = distributions,
+  mu3 = distributions,
+  q12 = distributions,
+  q13 = distributions,
+  q21 = distributions,
+  q23 = distributions,
+  q31 = distributions,
+  q32 = distributions
+)
+
+QuaSSE = list(
+  lambda = distributions,
+  mu = distributions,
+  char = distributions
+) 
+
+GeoSSE = list(
+  sA = distributions,
+  sB = distributions,
+  sAB = distributions,
+  xA = distributions,
+  xB = distributions,
+  dA = distributions,
+  dB = distributions
+)
+
+BiSSness = list(
+  lambda0 = distributions,
+  lambda1 = distributions,
+  mu0 = distributions,
+  mu1 = distributions,
+  q01 = distributions,
+  q10 = distributions,
+  p0c = distributions,
+  p0a = distributions,
+  p1c = distributions,
+  p1a = distributions
+)
+
+ClaSSE = list(
+  lambda111 = distributions,
+  lambda112 = distributions,
+  lambda122 = distributions,
+  lambda211 = distributions,
+  lambda212 = distributions,
+  lambda222 = distributions,
+  mu1 = distributions,
+  mu2 = distributions,
+  q12 = distributions,
+  q21 = distributions
+)
+
+models = list(
+  "Coalescent" = list(
+    "Constant Coalescent" = list(
+      "Priors" = ConstantCoalescent,
+      "Proposals" = ConstantCoalescent
+    )
+  ),
+  "Compartmental" = list(
+    "Susceptible-Infected-Removed-Dynamic (SIRD)" = list(
+      "Priors" = SIRD,
+      "Proposals" = SIRD
+    ),
+    "Susceptible-Infected-Removed-Non-Dynamic (SIRND)" = list(
+      "Priors" = SIRND,
+      "Proposals" = SIRND
+    ),
+    "Susceptible-Exposed-Infected-Removed (SEIR)" = list(
+      "Priors" = SEIR,
+      "Proposals" = SEIR
+    ),
+    "Susceptible-Infected-Susceptible (SIS)" = list(
+      "Priors" = SIS,
+      "Proposals" = SIS
+    )
+  ),
+  "Networks" = list(),
+  "Speciation" = list(
+    "Yule" = list(
+      "Priors" = Yule,
+      "Proposals" = Yule
+    ), 
+    "Birth-Death" = list(
+      "Priors" = BirthDeath,
+      "Proposals" = BirthDeath
+    ),
+    "Binary State Speciation Extinction (BiSSE)" = list(
+      "Priors" = BiSSE,
+      "Proposals" = BiSSE
+    ),
+    "MuSSE" = list(
+      "Priors" = list(),
+      "Proposals" = list()
+    ),
+    "QuaSSE" = list(
+      "Priors" = list(),
+      "Proposals" = list()
+    ),
+    "GeoSSE" = list(
+      "Priors" = list(),
+      "Proposals" = list()
+    ),
+    "BiSS-ness" = list(
+      "Priors" = BiSSness,
+      "Proposals" = BiSSness
+    ),
+    "ClaSSE" = list(
+      "Priors" = list(),
+      "Proposals" = list()
+    )
+  )
+)
 
 ui <- fluidPage(
   
@@ -11,6 +223,9 @@ ui <- fluidPage(
   sidebarLayout(
     
     sidebarPanel( 
+      # Allowing Independent Scrolling in the Sidebar
+      id = "sidebarPanel",
+      style = "overflow-y:scroll; max-height:600px",
       # Row for Newick Text/File Input 
       fluidRow(
         h3(strong(em("Newick Input"))),
@@ -33,247 +248,7 @@ ui <- fluidPage(
       ),
       # Row for Model Selection and Initialization
       fluidRow(
-        h3(strong(em("Model Selection and Initialization"))),
-        # General Model Drop-down Menu
-        selectInput(
-          inputId = "generalModel", 
-          label = "Select General Simulation Model", 
-          choices = c(
-            "Coalescent",
-            "Compartmental", 
-            "Network",
-            "Speciation"
-          )
-        ),
-        # Specific Model Drop-down Menus
-        # Coalescent Model Drop-down Menu
-        conditionalPanel(
-          condition = "input.generalModel == 'Coalescent'",
-          selectInput(
-            inputId = "specificCoalescent", 
-            label = "Select Specific Coalescent Model", 
-            choices = c(
-              "Constant Coalescent"
-            )
-          ),
-          conditionalPanel(
-            condition = "input.specificCoalescent == 'Constant Coalescent'",
-            selectInput(
-              inputId = "NeTauPriorDistribution", 
-              label = "Ne Tau Prior Distribution",  
-              choices = c(
-                "Exponential",
-                "Gamma",
-                "Normal",
-                "Log Normal"
-              )
-            ),
-            conditionalPanel(
-              condition = "input.NeTauPriorDistribution == 'Exponential'",
-              numericInput(inputId = "NeTauCoalescentPriorExponentialRate", label = "Ne Tau Prior Exponential Rate", value = 0),
-              actionButton(inputId = "initializeNeTauCoalescentPriorExponential", label = "Initialize Ne Tau Prior")
-            ),
-            conditionalPanel(
-              condition = "input.NeTauPriorDistribution == 'Gamma'",
-              numericInput(inputId = "NeTauCoalescentPriorGammaShape", label = "Ne Tau Prior Gamma Shape", value = 0),
-              numericInput(inputId = "NeTauCoalescentPriorGammaRate", label = "Ne Tau Prior Gamma Rate", value = 0),
-              actionButton(inputId = "initializeNeTauCoalescentPriorGamma", label = "Initialize Ne Tau Prior")
-            ),
-            conditionalPanel(
-              condition = "input.NeTauPriorDistribution == 'Normal'",
-              numericInput(inputId = "NeTauCoalescentPriorNormalMean", label = "Ne Tau Prior Normal Mean", value = 0),
-              numericInput(inputId = "NeTauCoalescentPriorNormalStandardDeviation", label = "Ne Tau Prior Normal Standard Deviation", value = 0),
-              actionButton(inputId = "initializeNeTauCoalescentPriorNormal", label = "Initialize Ne Tau Prior")
-            ),
-            conditionalPanel(
-              condition = "input.NeTauPriorDistribution == 'Log Normal'",
-              numericInput(inputId = "NeTauCoalescentPriorLogNormalMean", label = "Ne Tau Prior Log Normal Mean", value = 0),
-              numericInput(inputId = "NeTauCoalescentPriorLogNormalStandardDeviation", label = "Ne Tau Prior Log Normal Standard Deviation", value = 0),
-              actionButton(inputId = "initializeNeTauCoalescentPriorLogNormal", label = "Initialize Ne Tau Prior")
-            ),
-            selectInput(
-              inputId = "NeTauProposalDistribution", 
-              label = "Ne Tau Proposal Distribution", 
-              choices = c(
-                "Exponential",
-                "Gamma",
-                "Normal",
-                "Log Normal"
-              )
-            ),
-            conditionalPanel(
-              condition = "input.NeTauProposalDistribution == 'Exponential'",
-              numericInput(inputId = "NeTauCoalescentProposalExponentialRate", label = "Ne Tau Proposal Exponential Rate", value = 0),
-              actionButton(inputId = "initializeNeTauCoalescentProposalExponential", label = "Initialize Ne Tau Proposal")
-            ),
-            conditionalPanel(
-              condition = "input.NeTauProposalDistribution == 'Gamma'",
-              numericInput(inputId = "NeTauCoalescentProposalGammaShape", label = "Ne Tau Proposal Gamma Shape", value = 0),
-              numericInput(inputId = "NeTauCoalescentProposalGammaRate", label = "Ne Tau Proposal Gamma Rate", value = 0),
-              actionButton(inputId = "initializeNeTauCoalescentProposalGamma", label = "Initialize Ne Tau Proposal")
-            ),
-            conditionalPanel(
-              condition = "input.NeTauProposalDistribution == 'Normal'",
-              numericInput(inputId = "NeTauCoalescentProposalNormalMean", label = "Ne Tau Proposal Normal Mean", value = 0),
-              numericInput(inputId = "NeTauCoalescentProposalNormalStandardDeviation", label = "Ne Tau Proposal Normal Standard Deviation", value = 0),
-              actionButton(inputId = "initializeNeTauCoalescentProposalNormal", label = "Initialize Ne Tau Proposal")
-            ),
-            conditionalPanel(
-              condition = "input.NeTauProposalDistribution == 'Log Normal'",
-              numericInput(inputId = "NeTauCoalescentProposalLogNormalMean", label = "Ne Tau Proposal Log Normal Mean", value = 0),
-              numericInput(inputId = "NeTauCoalescentProposalLogNormalStandardDeviation", label = "Ne Tau Proposal Log Normal Standard Deviation", value = 0),
-              actionButton(inputId = "initializeNeTauCoalescentProposalLogNormal", label = "Initialize Ne Tau Proposal")
-            )
-          )
-        ),
-        # Compartmental Model Drop-down Menu
-        conditionalPanel(
-          condition = "input.generalModel == 'Compartmental'",
-          selectInput(
-            inputId = "specificCompartmental", 
-            label = "Select Specific Compartmental Model", 
-            choices = c(
-              "Susceptible-Infected-Removed-Dynamic (SIRD)",
-              "Susceptible-Infected-Removed-Non-Dynamic (SIRND)",
-              "Susceptible-Exposed-Infected-Removed (SEIR)",
-              "Susceptible-Infected-Susceptible (SIS)"
-            )
-          ),
-          conditionalPanel(
-            condition = "input.specificCompartmental == 'Susceptible-Infected-Removed-Dynamic (SIRD)'"
-          ),
-          conditionalPanel(
-            condition = "input.specificCompartmental == 'Susceptible-Infected-Removed-Non-Dynamic (SIRND)'"
-          ),
-          conditionalPanel(
-            condition = "input.specificCompartmental == 'Susceptible-Exposed-Infected-Removed (SEIR)'"
-          ),
-          conditionalPanel(
-            condition = "input.specificCompartmental == 'Susceptible-Infected-Susceptible (SIS)'"
-          )
-        ),
-        # Network Model Drop-down Menu
-        conditionalPanel(
-          condition = "input.generalModel == 'Network'",
-          selectInput(
-            inputId = "specificNetwork",
-            label = "Select Specific Network Model",
-            choices = c(
-              "Coming Soon"
-            )
-          ),
-          conditionalPanel(
-            condition = "input.specificNetwork == 'Coming Soon'"
-          )
-        ),
-        # Speciation Model Drop-down Menu
-        conditionalPanel(
-          condition = "input.generalModel == 'Speciation'",
-          selectInput(
-            inputId = "specificSpeciation", 
-            label = "Select Specific Speciation Model", 
-            choices = c(
-              "Yule", 
-              "Birth-Death",
-              "Binary State Speciation Extinction (BiSSE)",
-              "MuSSE",
-              "QuaSSE",
-              "GeoSSE",
-              "BiSS-ness",
-              "ClaSSE"
-            )
-          ),
-          conditionalPanel(
-            condition = "input.specificSpeciation == 'Yule'",
-            selectInput(
-              inputId = "lambdaPriorDistribution", 
-              label = "Lambda Prior Distribution",  
-              choices = c(
-                "Exponential",
-                "Gamma",
-                "Normal",
-                "Log Normal"
-              )
-            ),
-            conditionalPanel(
-              condition = "input.lambdaPriorDistribution == 'Exponential'",
-              numericInput(inputId = "lambdaYulePriorExponentialRate", label = "Lambda Prior Exponential Rate", value = 0),
-              actionButton(inputId = "initializeLambdaYulePriorExponential", label = "Initialize Lambda Prior")
-            ),
-            conditionalPanel(
-              condition = "input.lambdaPriorDistribution == 'Gamma'",
-              numericInput(inputId = "lambdaYulePriorGammaShape", label = "Lambda Prior Gamma Shape", value = 0),
-              numericInput(inputId = "lambdaYulePriorGammaRate", label = "Lambda Prior Gamma Rate", value = 0),
-              actionButton(inputId = "initializeLambdaYulePriorGamma", label = "Initialize Lambda Prior")
-            ),
-            conditionalPanel(
-              condition = "input.lambdaPriorDistribution == 'Normal'",
-              numericInput(inputId = "lambdaYulePriorNormalMean", label = "Lambda Prior Normal Mean", value = 0),
-              numericInput(inputId = "lambdaYulePriorNormalStandardDeviation", label = "Lambda Prior Normal Standard Deviation", value = 0),
-              actionButton(inputId = "initializeLambdaYulePriorNormal", label = "Initialize Lambda Prior")
-            ),
-            conditionalPanel(
-              condition = "input.lambdaPriorDistribution == 'Log Normal'",
-              numericInput(inputId = "lambdaYulePriorLogNormalMean", label = "Lambda Prior Log Normal Mean", value = 0),
-              numericInput(inputId = "lambdaYulePriorLogNormalStandardDeviation", label = "Lambda Prior Log Normal Standard Deviation", value = 0),
-              actionButton(inputId = "initializeLambdaYulePriorNormal", label = "Initialize Lambda Prior")
-            ),
-            selectInput(
-              inputId = "lambdaProposalDistribution", 
-              label = "Lambda Proposal Distribution", 
-              choices = c(
-                "Exponential",
-                "Gamma",
-                "Normal",
-                "Log Normal"
-              )
-            ),
-            conditionalPanel(
-              condition = "input.lambdaProposalDistribution == 'Exponential'",
-              numericInput(inputId = "lambdaYuleProposalExponentialRate", label = "Lambda Proposal Exponential Rate", value = 0),
-              actionButton(inputId = "initializeLambdaYuleProposalExponential", label = "Initialize Lambda Proposal")
-            ),
-            conditionalPanel(
-              condition = "input.lambdaProposalDistribution == 'Gamma'",
-              numericInput(inputId = "lambdaYuleProposalGammaShape", label = "Lambda Proposal Gamma Shape", value = 0),
-              numericInput(inputId = "lambdaYuleProposalGammaRate", label = "Lambda Proposal Gamma Rate", value = 0),
-              actionButton(inputId = "initializeLambdaYuleProposalGamma", label = "Initialize Lambda Proposal")
-            ),
-            conditionalPanel(
-              condition = "input.lambdaProposalDistribution == 'Normal'",
-              numericInput(inputId = "lambdaYuleProposalNormalMean", label = "Lambda Proposal Normal Mean", value = 0),
-              numericInput(inputId = "lambdaYuleProposalNormalStandardDeviation", label = "Lambda Proposal Normal Standard Deviation", value = 0),
-              actionButton(inputId = "initializeLambdaYuleProposalNormal", label = "Initialize Lambda Proposal")
-            ),
-            conditionalPanel(
-              condition = "input.lambdaProposalDistribution == 'Log Normal'",
-              numericInput(inputId = "lambdaYuleProposalLogNormalMean", label = "Lambda Proposal Log Normal Mean", value = 0),
-              numericInput(inputId = "lambdaYuleProposalLogNormalStandardDeviation", label = "Lambda Proposal Log Normal Standard Deviation", value = 0),
-              actionButton(inputId = "initializeLambdaYuleProposalLogNormal", label = "Initialize Lambda Proposal")
-            )
-          ),
-          conditionalPanel(
-            condition = "input.specificSpeciation == 'Birth-Death'"
-          ),
-          conditionalPanel(
-            condition = "input.specificSpeciation == 'Binary State Speciation Extinction (BiSSE)'"
-          ),
-          conditionalPanel(
-            condition = "input.specificSpeciation == 'MuSSE'"
-          ),
-          conditionalPanel(
-            condition = "input.specificSpeciation == 'QuaSSE'"
-          ),
-          conditionalPanel(
-            condition = "input.specificSpeciation == 'GeoSSE'"
-          ),
-          conditionalPanel(
-            condition = "input.specificSpeciation == 'BiSS-ness'"
-          ),
-          conditionalPanel(
-            condition = "input.specificSpeciation == 'ClaSSE'"
-          )
-        )
+        h3(strong(em("Model Selection and Initialization")))
       ),
       # Row for Running Simulation
       fluidRow(
@@ -297,8 +272,6 @@ ui <- fluidPage(
               sliderInput("height", "Plot Height (px)", min = 0, max = 10000, value = 500)
             )
           ),
-          selectInput(inputId = "downloadFormat", label = "Select Download Format", choices = c(PNG = "png", PDF = "pdf")),
-          downloadButton(outputId = "downloadTree", label = "Download Tree"),
           uiOutput("tree.ui")
         ), 
         # Tab for Prior Distributions
@@ -369,19 +342,6 @@ server <- function(input, output) {
   output$tree.ui <- renderUI({
     plotOutput("tree", width = input$width, height = input$height)
   })
-  
-  # Downloading Tree Plot
-  output$downloadTree <- downloadHandler(
-    fileName <-  function() {
-      paste(input$treeTitle, input$downloadFormat, sep=".")
-    },
-    content <- function(file) {
-      if(input$downloadFormat == "png")png(file) # open the png device
-      else pdf(file) # open the pdf device
-      plot(newickInput$data, main = input$treeTitle) # draw the plot
-      dev.off()  # turn the device off
-    }
-  )
   
   # Initializing SMC Settings
   observeEvent(
