@@ -45,7 +45,7 @@ trace <- read.table('pkg/examples/example-yule2.tsv', header=T, sep='\t')
 # trajectory of mean estimate of lambda
 par(mar=c(5,5,2,2))
 plot(
-  sapply(split(trace$lambda*trace$weight, trace$n.iter), sum), 
+  sapply(split(trace$lambda*trace$weight, trace$n), sum), 
   ylim=c(0, 0.8), 
   type='b',
   xlab='Iteration', 
