@@ -1,7 +1,7 @@
 \name{load.config}
 \alias{load.config}
 \title{
-Loads Configuration of..?
+Load Configuration
 }
 \description{
 Loads file and sets up configuration with the default settings, including sequential Monte-Carlo (SMC) settings and kernel settings. 
@@ -75,19 +75,12 @@ A list is returned of items stored in \code{config}, an \code{smc.config} object
 Del Moral, P., Doucet, A., and Jasra, A. (2012). An adaptive sequential Monte Carlo method for approximate Bayesian computation. \emph{Statistics and Computing}, \bold{22}, 1009--1020.
 }
 \author{
-%%  ~~who you are~~
+Art Poon and Tammy Ng
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+require(Kaphi, quietly=TRUE)
+setwd('~/git/Kaphi')
 
-## The function is currently defined as
-function (x) 
-{
-  }
+# load configuration file (assumes R was launched from Kaphi root dir)
+config <- load.config('pkg/examples/example-coalescent.yaml')
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

@@ -9,7 +9,7 @@
 \alias{max.delta.width}
 \alias{n.cherries}
 \alias{prop.unbalanced}
-\alias{avg.unbalanced}
+\alias{avg.unbalance}
 \alias{internal.terminal.ratio}
 \title{Compute Tree Statistics}
 \description{
@@ -23,7 +23,7 @@
 \code{max.delta.width} is a wrapper function that returns the absolute value of the maximum difference in widths (number of nodes) between two levels in a tree.\cr\cr
 \code{n.cherries} is a wrapper function that returns the number of internal nodes with two child descendants as leaves in a tree.\cr\cr
 \code{prop.unbalanced} is a wrapper function that finds and returns the proportion of unbalanced subtrees in the specified tree.\cr\cr
-\code{avg.unbalanced} is a wrapper function that computes and returns the average ratio of unbalanced subtrees in the specified tree.\cr\cr
+\code{avg.unbalance} is a wrapper function that computes and returns the average ratio of unbalanced subtrees in the specified tree.\cr\cr
 \code{internal.terminal.ratio} is a wrapper function that computes and returns the ratio of internal to terminal branch lengths of the tree.
 }
 \usage{
@@ -37,7 +37,7 @@ tree.width(x)
 max.delta.width(x)
 n.cherries(x)
 prop.unbalanced(x)
-avg.unbalanced(x)
+avg.unbalance(x)
 internal.terminal.ratio(x)
 }
 \arguments{
@@ -69,8 +69,27 @@ Pybus, O. G., & Harvey, P. H. (2000). Testing macro-evolutionary models using in
 Norstrom, M. M., Prosperi, M. C., Gray, R. R., et al. (2012). Phylotempo: a set of R scripts for assessing and visualizing temporal clustering in genealogies inferred from serially sampled viral sequences. \emph{Evolutionary Bioinformatics; London}, \bold{8}, 261.
 }
 \author{
-%%  ~~who you are~~
+Art Poon and Tammy Ng
 }
 \seealso{
 \code{\link{nLTT}}
+}
+\examples{
+require(Kaphi, quietly=TRUE)
+
+#create tree in Newick format
+tree <- read.tree(text="(((A:0.1,B:0.1):0.1,C:0.2):0.1,D:0.3):0;")
+
+sackin(tree, TRUE)   # using branch lengths = TRUE
+colless(tree)
+cophenetic(tree)
+pybus.gamma(tree)
+ladder.length(tree)
+tree.width(tree)
+IL.nodes(tree)
+max.delta.width(tree)
+n.cherries(tree)
+prop.unbalanced(tree)
+avg.unbalance(tree)
+internal.terminal.ratio(tree)
 }

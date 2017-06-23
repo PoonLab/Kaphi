@@ -27,25 +27,20 @@ Returns the density of the proposal distribution.
 %% ~put references to the literature/web site here ~
 }
 \author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
+Art Poon and Tammy Ng
 }
 \seealso{
 \code{\link{prior.density}}, \code{\link{propose}}, \code{\link{sample.priors}}
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+require(Kaphi, quietly=TRUE)
 
-## The function is currently defined as
-function (x) 
-{
-  }
+#load configuration file
+setwd('~/git/Kaphi')
+config <- load.config('pkg/examples/example-coalescent.yaml')    # Ne.tau parameter has proposal distribution of: rnorm(n=1,mean=0,sd=50)
+
+theta <- c(Ne.tau=1000)                 # say this is the true value
+new.theta <- propose(config, theta)     # sample draw of parameter(s) of proposal distribution
+
+proposal.density(config, theta, new.theta)
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

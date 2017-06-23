@@ -9,7 +9,6 @@ Calculates a numerical solution of an ODE system specified by a given compartmen
 \usage{
 compartmental.model(theta, nsim, tips, model='sir.nondynamic', seed=NA, fgyResolution=500, integrationMethod='adams')
 }
-
 \arguments{
   \item{theta}{
     Vector containing parameter values for the given model. Should contain
@@ -43,22 +42,25 @@ An ape \code{'multiPhylo'} object of simulated trees.
 %% ~put references to the literature/web site here ~
 }
 \author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
+Art Poon and Tammy Ng
 }
 \seealso{
 \code{\link{speciation.model}} , \code{\link{const.coalescent}}
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+require(Kaphi, quietly=TRUE)
 
-## The function is currently defined as
-function (x) 
-{
-  }
+setwd('~/git/Kaphi')
+
+config <- load.config('pkg/examples/example-compartmental.yaml')
+config <- set.model(config, 'sir.nondynamic')
+
+config$nsample <- 5
+
+# simulate target tree
+theta <- c(t.end=1000, N=500, beta=0.01, gamma=1/520, mu=1/3640, alpha=0)
+set.seed(7)
+obs.tree <- compartmental.model(theta, nsim=1, tips=100, model='sir.nondynamic')[[1]]
+obs.tree <- parse.input.tree(obs.tree, config)
 }
 
