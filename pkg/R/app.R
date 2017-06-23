@@ -190,24 +190,24 @@ models = list(
       "Proposals" = BiSSE
     ),
     "MuSSE" = list(
-      "Priors" = list(),
-      "Proposals" = list()
+      "Priors" = MuSSE,
+      "Proposals" = MuSSE
     ),
     "QuaSSE" = list(
-      "Priors" = list(),
-      "Proposals" = list()
+      "Priors" = QuaSSE,
+      "Proposals" = QuaSSE
     ),
     "GeoSSE" = list(
-      "Priors" = list(),
-      "Proposals" = list()
+      "Priors" = GeoSSE,
+      "Proposals" = GeoSSE
     ),
     "BiSS-ness" = list(
       "Priors" = BiSSness,
       "Proposals" = BiSSness
     ),
     "ClaSSE" = list(
-      "Priors" = list(),
-      "Proposals" = list()
+      "Priors" = ClaSSE,
+      "Proposals" = ClaSSE
     )
   )
 )
