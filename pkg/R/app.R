@@ -1,4 +1,6 @@
 library(shiny)
+library(Kaphi)
+library(rmarkdown)
 
 ui <- fluidPage(
   
@@ -13,7 +15,7 @@ ui <- fluidPage(
     sidebarPanel( 
       # Allowing Independent Scrolling in the Sidebar
       id = "sidebarPanel",
-      style = "overflow-y:scroll; max-height: 600px",
+      style = "overflow-y:scroll; max-height:600px",
       # Row for Newick Text/File Input 
       fluidRow(
         h3(strong(em("Newick Input"))),
@@ -60,8 +62,6 @@ ui <- fluidPage(
               sliderInput("height", "Plot Height (px)", min = 0, max = 10000, value = 500)
             )
           ),
-          selectInput(inputId = "downloadFormat", label = "Select Download Format", choices = c(PNG = "png", PDF = "pdf")),
-          downloadButton(outputId = "downloadTree", label = "Download Tree"),
           uiOutput("tree.ui")
         ), 
         # Tab for Prior Distributions
@@ -132,19 +132,6 @@ server <- function(input, output) {
   output$tree.ui <- renderUI({
     plotOutput("tree", width = input$width, height = input$height)
   })
-  
-  # Downloading Tree Plot
-  output$downloadTree <- downloadHandler(
-    fileName <-  function() {
-      paste(input$treeTitle, input$downloadFormat, sep=".")
-    },
-    content <- function(file) {
-      if(input$downloadFormat == "png")png(file) # open the png device
-      else pdf(file) # open the pdf device
-      plot(newickInput$data, main = input$treeTitle) # draw the plot
-      dev.off()  # turn the device off
-    }
-  )
   
   # Initializing SMC Settings
   observeEvent(
