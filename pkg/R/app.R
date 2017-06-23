@@ -1,6 +1,216 @@
 library(shiny)
 library(Kaphi)
-library(rmarkdown)
+
+distributions = list(
+  "exp" = list(
+    "rate" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    )
+  ),
+  "gamma" = list(
+    "rate" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    ),
+    "shape" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    )
+  ),
+  "lnorm" = list(
+    "mean" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    ),
+    "sd" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    )
+  ),
+  "norm" = list(
+    "mean" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    ),
+    "sd" = list(
+      "Lower" = 0,
+      "Upper" = Inf,
+      "Default" = 1
+    )
+  )
+)
+
+ConstantCoalescent = list(
+  Ne.tau = distributions
+)
+
+SIRD = list(
+  beta = distributions,
+  gamma = distributions,
+  mu = distributions
+)
+
+SIRND =list(
+  beta = distributions,
+  gamma = distributions
+)
+
+SIS = list(
+  beta = distributions,
+  gamma = distributions,
+  mu = distributions
+)
+
+SEIR = list(
+  beta = distributions,
+  gamma = distributions,
+  mu = distributions, 
+  alpha = distributions
+)
+
+Yule = list(
+  lambda = distributions
+)
+
+BirthDeath = list(
+  lambda = distributions,
+  mu = distributions
+)  
+
+BiSSE = list(
+  lambda0 = distributions,
+  lambda1 = distributions,
+  mu0 = distributions,
+  mu1 = distributions,
+  q01 = distributions,
+  q10 = distributions
+)
+
+MuSSE = list(
+  lambda1 = distributions,
+  lambda2 = distributions,
+  lambda3 = distributions,
+  mu1 = distributions,
+  mu2 = distributions,
+  mu3 = distributions,
+  q12 = distributions,
+  q13 = distributions,
+  q21 = distributions,
+  q23 = distributions,
+  q31 = distributions,
+  q32 = distributions
+)
+
+QuaSSE = list(
+  lambda = distributions,
+  mu = distributions,
+  char = distributions
+) 
+
+GeoSSE = list(
+  sA = distributions,
+  sB = distributions,
+  sAB = distributions,
+  xA = distributions,
+  xB = distributions,
+  dA = distributions,
+  dB = distributions
+)
+
+BiSSness = list(
+  lambda0 = distributions,
+  lambda1 = distributions,
+  mu0 = distributions,
+  mu1 = distributions,
+  q01 = distributions,
+  q10 = distributions,
+  p0c = distributions,
+  p0a = distributions,
+  p1c = distributions,
+  p1a = distributions
+)
+
+ClaSSE = list(
+  lambda111 = distributions,
+  lambda112 = distributions,
+  lambda122 = distributions,
+  lambda211 = distributions,
+  lambda212 = distributions,
+  lambda222 = distributions,
+  mu1 = distributions,
+  mu2 = distributions,
+  q12 = distributions,
+  q21 = distributions
+)
+
+models = list(
+  "Coalescent" = list(
+    "Constant Coalescent" = list(
+      "Priors" = ConstantCoalescent,
+      "Proposals" = ConstantCoalescent
+    )
+  ),
+  "Compartmental" = list(
+    "Susceptible-Infected-Removed-Dynamic (SIRD)" = list(
+      "Priors" = SIRD,
+      "Proposals" = SIRD
+    ),
+    "Susceptible-Infected-Removed-Non-Dynamic (SIRND)" = list(
+      "Priors" = SIRND,
+      "Proposals" = SIRND
+    ),
+    "Susceptible-Exposed-Infected-Removed (SEIR)" = list(
+      "Priors" = SEIR,
+      "Proposals" = SEIR
+    ),
+    "Susceptible-Infected-Susceptible (SIS)" = list(
+      "Priors" = SIS,
+      "Proposals" = SIS
+    )
+  ),
+  "Networks" = list(),
+  "Speciation" = list(
+    "Yule" = list(
+      "Priors" = Yule,
+      "Proposals" = Yule
+    ), 
+    "Birth-Death" = list(
+      "Priors" = BirthDeath,
+      "Proposals" = BirthDeath
+    ),
+    "Binary State Speciation Extinction (BiSSE)" = list(
+      "Priors" = BiSSE,
+      "Proposals" = BiSSE
+    ),
+    "MuSSE" = list(
+      "Priors" = list(),
+      "Proposals" = list()
+    ),
+    "QuaSSE" = list(
+      "Priors" = list(),
+      "Proposals" = list()
+    ),
+    "GeoSSE" = list(
+      "Priors" = list(),
+      "Proposals" = list()
+    ),
+    "BiSS-ness" = list(
+      "Priors" = BiSSness,
+      "Proposals" = BiSSness
+    ),
+    "ClaSSE" = list(
+      "Priors" = list(),
+      "Proposals" = list()
+    )
+  )
+)
 
 ui <- fluidPage(
   
