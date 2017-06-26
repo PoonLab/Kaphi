@@ -49,9 +49,13 @@ require(rcolgem, quietly=TRUE)
     sampleStates,
     integrationMethod=integrationMethod  #  , n.reps=nreps   --this isn't a parameter in rcolgem's simulate.binary.dated.tree.fgy
   )
-  return(tree)
+ phy <- tree[[1]]
+ class(phy) <- 'phylo'
+ return(phy)
+ # return(tree)
   
   # https://github.com/cran/ape/blob/master/R/rtree.R converting tree result into an ape phylo object phy
+  tree <- tree[[1]]
   phy <- list(edge=tree$edge, edge.length=tree$edge.length)
   if (is.null(tree$tip.label))
     tree$tip.label <- paste("t", 1:tree$n)     # n = number of tips
