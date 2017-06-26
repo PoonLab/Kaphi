@@ -229,13 +229,11 @@ initialize.smc <- function(ws, model, ...) {
         }
 
         # simulate new trees  # TODO: this is probably a good spot for parallelization
-        for (j in 1:config$nsample) {
-            # retain sim.trees in case we revert to previous particle
-            new.trees <- simulate.trees(ws, new.particle, model=model)
-            new.dists[,i] <- sapply(new.trees, function(sim.tree) {
-                distance(ws$obs.tree, sim.tree, config)
+        # retain sim.trees in case we revert to previous particle
+        new.trees <- simulate.trees(ws, new.particle, model=model)
+        new.dists[,i] <- sapply(new.trees, function(sim.tree) {
+          distance(ws$obs.tree, sim.tree, config)
 		    })
-        }
 
         # SMC approximation to likelihood ratio
         old.nbhd <- sum(ws$dists[,i] < ws$epsilon)  # how many samples are in neighbourhood of data?
@@ -258,11 +256,11 @@ initialize.smc <- function(ws, model, ...) {
 
 run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FALSE, model='', ...) {
     # @param ws: workspace
-	# @param obs.tree: object of class 'phylo'
-	# @param trace.file: (optional) path to a file to write outputs
-	# @param seed: (optional) integer to set random seed
-	# @param nthreads: (optional) for running on multiple cores
-	# @param ...: additional arguments to pass to config@generator via
+	  # @param obs.tree: object of class 'phylo'
+	  # @param trace.file: (optional) path to a file to write outputs
+	  # @param seed: (optional) integer to set random seed
+	  # @param nthreads: (optional) for running on multiple cores
+	  # @param ...: additional arguments to pass to config@generator via
     #   simulate.trees()
 
     # clear file and write header row
@@ -270,7 +268,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
         'n', 'part.num', 'weight', config$params, paste0('dist.', 1:config$nsample)
     )), file=trace.file, sep='\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
 
-	config <- ws$config
+	  config <- ws$config
 
     # space for returned values
     result <- list(niter=0, theta=list(), weights=list(), accept.rate={}, epsilons={})
