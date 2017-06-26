@@ -1,73 +1,73 @@
 priors:
   't.end':
-    dist: 'norm'
-    hyperparameters:
-    - mean: 5
-    - sd: 2
-  'N':
     dist: 'lnorm'
     hyperparameters:
-    - mean: 9.21
-    - sd: 0.21
+    - meanlog: 5
+    - sdlog: 2
+  'N':
+    dist: 'norm'
+    hyperparameters:
+    - mean: 500
+    - sd: 25
   'beta':
     dist: 'gamma'
     hyperparameters:
-    - shape: 0.5
+    - shape: 1
     - rate: 1
   'gamma':
-    dist: 'gamma'
+    dist: 'norm'
     hyperparameters:
-    - shape: 0.5
-    - rate: 1
+    - mean: 1
+    - sd: 0.1
   'mu':
-    dist: 'gamma'
+    dist: 'norm'
     hyperparameters:
-    - shape: 0.5
-    - rate: 1
+    - mean: 1
+    - sd: 0.1
   'alpha':
-    dist: 'gamma'
+    dist: 'norm'
     hyperparameters:
-    - shape: 0.5
-    - rate: 1
+    - mean: 1
+    - sd: 0.1
 proposals:
   't.end':
-    dist: 'norm'
+    dist: 'lnorm'
     parameters:
     - mean: 5
     - sd: 2
   'N':
-    dist: 'lnorm'
+    dist: 'norm'
     parameters:
-    - mean: 9.21
-    - sd: 0.21
+    - mean: 500
+    - sd: 25
   'beta':
     dist: 'gamma'
     parameters:
-    - shape: 0.5
+    - shape: 1
     - rate: 1
   'gamma':
-    dist: 'gamma'
+    dist: 'norm'
     parameters:
-    - shape: 0.5
-    - rate: 1
+    - mean: 1
+    - sd: 0.1
   'mu':
     dist: 'gamma'
     parameters:
-    - shape: 0.5
-    - rate: 1
+    - mean: 1
+    - sd: 0.1
   'alpha':
-    dist: 'gamma'
+    dist: 'norm'
     parameters:
-    - shape: 0.5
-    - rate: 1
+    - mean: 1
+    - sd: 0.1
 smc:
   nparticle: 100
-  nsample: 10
+  nsample: 5
   ess.tolerance: 50.0
   final.accept.rate: 0.1
   final.epsilon: 0.1
   quality: 0.95
-  step.tolerance: 1.e-4
+  step.tolerance: 1.e-5
 kernel:
   decay.factor: 0.2
   rbf.variance: 100.0

@@ -33,7 +33,10 @@ require(rcolgem, quietly=TRUE)
     fgyResolution=fgyResolution, 
     integrationMethod=integrationMethod
   )
-  #plot(fgy[[2]], fgy[[1]])
+  plot(fgy[[2]], fgy[[1]])
+  plot(fgy[[3]], fgy[[1]])
+  plot(fgy[[4]], fgy[[1]])
+  plot(fgy[[5]], fgy[[1]])
   #return(fgy)
   
   # simulate tree
@@ -46,7 +49,7 @@ require(rcolgem, quietly=TRUE)
     sampleStates,
     integrationMethod=integrationMethod  #  , n.reps=nreps   --this isn't a parameter in rcolgem's simulate.binary.dated.tree.fgy
   )
-  #return(tree)
+  return(tree)
   
   # https://github.com/cran/ape/blob/master/R/rtree.R converting tree result into an ape phylo object phy
   phy <- list(edge=tree$edge, edge.length=tree$edge.length)
