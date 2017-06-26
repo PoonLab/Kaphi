@@ -1,5 +1,4 @@
 library(shiny)
-library(Kaphi)
 
 distributions = list(
   "exp" = list(

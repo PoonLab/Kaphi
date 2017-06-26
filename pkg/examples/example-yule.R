@@ -58,12 +58,12 @@ abline(h=0.11, lty=2)
 # use kernel densities to visualize posterior approximations
 pal <- rainbow(n=6, start=0, end=0.3, v=0.8, s=0.5)
 par(mar=c(5,5,2,2))
-plot(density(trace$lambda[trace$n.iter==1], weights=trace$weight[trace$n.iter==1]), xlim=c(-0.5, 1.5), col=pal[1], lwd=2, main=NA, xlab='Yule rate parameter (lambda)', cex.lab=1.2, ylim=c(0, 7))
-for (i in 1:5) {
-  temp <- trace[trace$n.iter==i*5,]
+plot(density(trace$lambda[trace$n==1], weights=trace$weight[trace$n==1]), xlim=c(-0.5, 1.5), col=pal[1], lwd=2, main=NA, xlab='Yule rate parameter (lambda)', cex.lab=1.2, ylim=c(0, 7))
+for (i in 1:9) {
+  temp <- trace[trace$n==i*10,]
   lines(density(temp$lambda, weights=temp$weight), col=pal[i+1], lwd=1.5)
 }
-lines(density(trace$lambda[trace$n.iter==max(trace$n.iter)], weights=trace$weight[trace$n.iter==max(trace$n.iter)]), col=pal[length(pal)], lwd=2)  # final estimates
+lines(density(trace$lambda[trace$n==max(trace$n)], weights=trace$weight[trace$n==max(trace$n)]), col=pal[length(pal)], lwd=2)  # final estimates
 
 # show the prior distribution
 x <- seq(0, 1, 0.1)
