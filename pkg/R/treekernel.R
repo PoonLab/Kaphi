@@ -74,10 +74,20 @@ parse.newick <- function(tree) {
 .to.newick <- function(tree) {
     # Make sure that the tree argument is an ape phylo object
     if (class(tree)=='phylo') {
+        tryCatch({
+          plot(tree, plot=FALSE)
+        }, error = function(e) {
+          stop("Malformed Newick tree string!")
+        })
         return (write.tree(tree))
     } else if (class(tree) == 'character') {
         # make sure string is standard Newick format
         tree <- read.tree(text=tree)
+        tryCatch({
+          plot(tree, plot=FALSE)
+        }, error = function(e) {
+          stop("Malformed Newick tree string!")
+        })
         if (is.null(tree)) {
             stop(".to.newick(): String failed to parse as Newick tree string")
         }
