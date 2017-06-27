@@ -7,13 +7,13 @@ priors:
   'N':
     dist: 'norm'
     hyperparameters:
-    - mean: 500
-    - sd: 25
+    - mean: 1000
+    - sd: 500
   'beta':
     dist: 'gamma'
     hyperparameters:
-    - shape: 1
-    - rate: 1
+    - shape: 200
+    - rate: 10
   'gamma':
     dist: 'norm'
     hyperparameters:
@@ -38,13 +38,13 @@ proposals:
   'N':
     dist: 'norm'
     parameters:
-    - mean: 500
-    - sd: 25
+    - mean: 1000
+    - sd: 500
   'beta':
     dist: 'gamma'
     parameters:
-    - shape: 1
-    - rate: 1
+    - shape: 20
+    - rate: 20
   'gamma':
     dist: 'norm'
     parameters:
