@@ -109,7 +109,9 @@ init.workspace <- function(obs.tree, config, regex=NA) {
 
 print.smc.workspace <- function(workspace, ...) {
     cat('Kaphi SMC workspace\n\n')
-    cat('Target tree:\n', summary(workspace$obs.tree))
-    cat('Configuration:\n', show(workspace$config))
+    cat('Target tree:\n')
+    cat(summary(workspace$obs.tree))
+    cat('Configuration:\n')
+    cat(show(workspace$config))
 }
 
