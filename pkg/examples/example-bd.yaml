@@ -1,0 +1,47 @@
+priors:
+  lambda:
+    dist: 'gamma'
+    hyperparameters:
+    - rate: 1.0
+    - shape: 2.0
+#  mu:
+#    dist: 'gamma'
+#    hyperparameters:
+#    - rate: 2.0
+#    - shape: 1.0
+
+#priors:
+#  lambda:
+#    dist: 'unif'
+#    hyperparameters:
+#    - min: 0.1
+#    - max: 0.1
+  mu:
+    dist: 'unif'
+    hyperparameters:
+    - min: 0.003
+    - max: 0.003
+proposals:
+  lambda:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 0.1
+  mu:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 0.1
+smc:
+  nparticle: 10
+  nsample: 5
+  ess.tolerance: 50.0
+  final.accept.rate: 0.01
+  final.epsilon: 0.01
+  quality: 0.95
+  step.tolerance: 1.e-4
+kernel:
+  decay.factor: 0.2
+  rbf.variance: 100.0
+  sst.control: 1.0
+  norm.mode: 'NONE'
