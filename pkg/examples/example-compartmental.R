@@ -27,8 +27,8 @@ result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', model
 # calculate kernel distances for varying N
 x <- seq(1000,10000, 1000)    # (from, to, step)
 res <- sapply(x, function(value) {
-  theta <- c(t.end=50, N=value, beta=0.1, gamma=1/520, mu=1/3640, alpha=0)
-  sim.trees <- compartmental.model(theta, nsim=10, tips=100, model='sir.nondynamic')
+  theta <- c(t.end=50, N=value, beta=0.1, gamma=1/520., mu=1/3640., alpha=0)
+  sim.trees <- compartmental.model(theta, nsim=100, tips=100, model='sir.nondynamic')
   distances <- sapply(sim.trees, function(singletree) {
     processtree <- .preprocess.tree(singletree, config)
     distance(obs.tree, processtree, config)
@@ -43,10 +43,10 @@ plot(x, res, type='b', xlab='N', ylab='Mean kernel distance', cex.lab=1.2)
 
 
 # calculate kernel distances for varying beta
-x <- seq(0.01,0.36, 0.025)    # (from, to, step)
+x <- seq(0.01,0.28, 0.025)    # (from, to, step)
 res <- sapply(x, function(value) {
   theta <- c(t.end=50, N=5000, beta=value, gamma=1/520, mu=1/3640, alpha=0)
-  sim.trees <- compartmental.model(theta, nsim=10, tips=100, model='sir.nondynamic')
+  sim.trees <- compartmental.model(theta, nsim=100, tips=100, model='sir.nondynamic')
   distances <- sapply(sim.trees, function(singletree) {
     processtree <- .preprocess.tree(singletree, config)
     distance(obs.tree, processtree, config)
@@ -64,7 +64,7 @@ plot(x, res, type='b', xlab='beta', ylab='Mean kernel distance', cex.lab=1.2)
 x <- seq(0.001,0.08, 0.0025)    # (from, to, step)
 res <- sapply(x, function(value) {
   theta <- c(t.end=50, N=5000, beta=0.1, gamma=value, mu=1/3640, alpha=0)
-  sim.trees <- compartmental.model(theta, nsim=10, tips=100, model='sir.nondynamic')
+  sim.trees <- compartmental.model(theta, nsim=100, tips=100, model='sir.nondynamic')
   distances <- sapply(sim.trees, function(singletree) {
     processtree <- .preprocess.tree(singletree, config)
     distance(obs.tree, processtree, config)
@@ -76,3 +76,46 @@ res <- sapply(x, function(value) {
 # generate a plot
 par(mar=c(5,5,2,2))
 plot(x, res, type='b', xlab='gamma', ylab='Mean kernel distance', cex.lab=1.2)
+
+
+#calculate kernel distances for varying mu
+x <- seq(0.0001,0.01, 0.0005)    # (from, to, step)
+res <- sapply(x, function(value) {
+  theta <- c(t.end=50, N=5000, beta=0.1, gamma=1/520, mu=value, alpha=0)
+  sim.trees <- compartmental.model(theta, nsim=10, tips=100, model='sir.nondynamic')
+  distances <- sapply(sim.trees, function(singletree) {
+    processtree <- .preprocess.tree(singletree, config)
+    distance(obs.tree, processtree, config)
+  })
+  cat(value, "\n")
+  mean(distances)
+})
+
+# generate a plot
+par(mar=c(5,5,2,2))
+plot(x, res, type='b', xlab='mu', ylab='Mean kernel distance', cex.lab=1.2)
+
+
+#calculate kernel distances for varying alpha
+#change test to seir (uses alpha parameter) and resimulate target tree
+config <- set.model(config, 'seir')
+theta <- c(t.end=50, N=5000, beta=0.1, gamma=1/520, mu=1/3640, alpha=5)
+set.seed(50)
+obs.tree <- compartmental.model(theta, nsim=1, tips=100, model='seir')[[1]]
+obs.tree <- parse.input.tree(obs.tree, config)
+
+x <- seq(0.0001,0.01, 0.0005)    # (from, to, step)
+res <- sapply(x, function(value) {
+  theta <- c(t.end=50, N=5000, beta=0.1, gamma=1/520, mu=value, alpha=0)
+  sim.trees <- compartmental.model(theta, nsim=10, tips=100, model='seir')
+  distances <- sapply(sim.trees, function(singletree) {
+    processtree <- .preprocess.tree(singletree, config)
+    distance(obs.tree, processtree, config)
+  })
+  cat(value, "\n")
+  mean(distances)
+})
+
+# generate a plot
+par(mar=c(5,5,2,2))
+plot(x, res, type='b', xlab='mu', ylab='Mean kernel distance', cex.lab=1.2)

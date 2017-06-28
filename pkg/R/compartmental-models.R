@@ -33,7 +33,7 @@ require(rcolgem, quietly=TRUE)
     fgyResolution=fgyResolution, 
     integrationMethod=integrationMethod
   )
-  plot(fgy[[2]], fgy[[1]])
+  #plot(fgy[[2]], fgy[[1]])
   #plot(fgy[[3]], fgy[[1]])
   #plot(fgy[[4]], fgy[[1]])
   #plot(fgy[[5]], fgy[[1]])

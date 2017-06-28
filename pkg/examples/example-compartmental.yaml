@@ -17,17 +17,17 @@ priors:
   'gamma':
     dist: 'gamma'
     hyperparameters:
-    - mean: 20
-    - sd: 1
+    - shape: 20
+    - rate: 1
   'mu':
-    dist: 'norm'
+    dist: 'gamma'
     hyperparameters:
-    - mean: 1
-    - sd: 0.1
+    - shape: 20
+    - rate: 1
   'alpha':
     dist: 'norm'
     hyperparameters:
-    - mean: 1
+    - mean: 5
     - sd: 0.1
 proposals:
   't.end':
@@ -48,13 +48,13 @@ proposals:
   'gamma':
     dist: 'gamma'
     parameters:
-    - mean: 20
-    - sd: 1
+    - shape: 20
+    - rate: 1
   'mu':
     dist: 'gamma'
     parameters:
-    - mean: 1
-    - sd: 0.1
+    - shape: 20
+    - rate: 1
   'alpha':
     dist: 'norm'
     parameters:
