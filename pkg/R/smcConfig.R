@@ -241,7 +241,7 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
     s <- 1        # counter
     # x11()
     par(ask=T)    # prompts user to 'Hit <Return> to see next plot'
-    n.slides <- ceiling(length(x) / (numr*numc)) #determine number of plot slides required according to specified dimensions
+    n.slides <- ceiling(length(y) / (numr*numc)) #determine number of plot slides required according to specified dimensions
     
     for (i in 1:n.slides){
       par(mfrow = c(numr, numc))     # multiple plot display option
