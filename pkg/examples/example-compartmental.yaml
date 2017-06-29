@@ -17,12 +17,12 @@ priors:
   'gamma':
     dist: 'gamma'
     hyperparameters:
-    - shape: 20
+    - shape: 50
     - rate: 1
   'mu':
     dist: 'gamma'
     hyperparameters:
-    - shape: 20
+    - shape: 50
     - rate: 1
   'alpha':
     dist: 'norm'
