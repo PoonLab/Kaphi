@@ -352,8 +352,11 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     result$theta[[niter]] <- ws$particles
     result$weights[[niter]] <- ws$weights
     result$niter <- niter
-
-    return (result)
+    
+    # pack ws and result into one list to be returned
+    ret <- list(ws, result)
+    
+    return (ret)
 }
 
 
