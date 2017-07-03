@@ -26,7 +26,7 @@ result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', model
 #########################################################################
 # calculate kernel distances for varying N
 x <- seq(1000,10000, 1000)    # (from, to, step)
-res <- sapply(x, function(value) {
+resx <- sapply(x, function(value) {
   theta <- c(t.end=50, N=value, beta=0.1, gamma=1/520., mu=1/3640., alpha=0)
   sim.trees <- compartmental.model(theta, nsim=100, tips=100, model='sir.nondynamic')
   distances <- sapply(sim.trees, function(singletree) {
@@ -38,12 +38,12 @@ res <- sapply(x, function(value) {
 })
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(x, res, type='b', xlab='N', ylab='Mean kernel distance', cex.lab=1.2)
+plot(x, resx, type='b', xlab='N', ylab='Mean kernel distance', cex.lab=1.2)
 
 
 # calculate kernel distances for varying beta
-x <- seq(0.01,0.28, 0.025)    # (from, to, step)
-res <- sapply(x, function(value) {
+y <- seq(0.01,0.26, 0.025)    # (from, to, step)
+resy <- sapply(y, function(value) {
   theta <- c(t.end=50, N=5000, beta=value, gamma=1/520, mu=1/3640, alpha=0)
   sim.trees <- compartmental.model(theta, nsim=100, tips=100, model='sir.nondynamic')
   distances <- sapply(sim.trees, function(singletree) {
@@ -55,7 +55,7 @@ res <- sapply(x, function(value) {
 })
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(x, res, type='b', xlab='beta', ylab='Mean kernel distance', cex.lab=1.2)
+plot(x, resy, type='b', xlab='beta', ylab='Mean kernel distance', cex.lab=1.2)
 
 
 #calculate kernel distances for varying gamma
