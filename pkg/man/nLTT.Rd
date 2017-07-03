@@ -24,7 +24,7 @@ Returns the nLTT statistic.
 Janzen, T., Hohna, S., and Etienne, R. S. (2015). Approximate Bayesian Computation of diversification rates from molecular phylogenies: introducing a new efficient summary statistic, the nLTT. \emph{Methods in Ecology and Evolution}, \bold{6:5}, 566--575.
 }
 \author{
-%%  ~~who you are~~
+Art Poon and Tammy Ng
 }
 \details{
 The normalized lineages-through-time statistic is primarily suited for comparing trees rather than providing information about a single tree. May be used as a substitute for the likelihood. The LTT curve shows the number of lineages in the phylogeny over time. Normalizing two phylogenies in terms of number of lineages and time provides a level of comparison. 
@@ -34,13 +34,6 @@ The normalized lineages-through-time statistic is primarily suited for comparing
 \code{\link{tree.stats}}
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function (x) 
-{
-  }
+####issue #49 not resolved yet
 }
 

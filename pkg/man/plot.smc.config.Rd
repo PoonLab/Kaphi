@@ -30,22 +30,11 @@ User will be prompted to advance onto the next plot in the graphical window by u
 %% ~put references to the literature/web site here ~
 }
 \author{
-%%  ~~who you are~~
+Art Poon and Tammy Ng
 }
 \seealso{
 \code{\link{print.smc.config}}, \code{\link{sample.priors}}
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function (x) 
-{
-  }
+###doesn't work yet, need to check if plot.smc.config works
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

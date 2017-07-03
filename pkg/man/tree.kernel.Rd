@@ -10,7 +10,6 @@ A kernel function maps objects into a high dimensional feature space where the i
 \usage{
 tree.kernel(x, y, lambda, sigma, rho=1.0, normalize=0, label1=NA, label2=NA, gamma=0)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
     An object of class "phylo"
@@ -40,9 +39,6 @@ tree.kernel(x, y, lambda, sigma, rho=1.0, normalize=0, label1=NA, label2=NA, gam
     (Not sure what this parameter does)
   }
 }
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
 \value{
   Returns results of the associated C extension function that computes a tree shaped kernel function
 }
@@ -51,19 +47,16 @@ tree.kernel(x, y, lambda, sigma, rho=1.0, normalize=0, label1=NA, label2=NA, gam
   Moschitti, A. (2006). Making tree kernels practical for natural language learning. \emph{Association for Computational Linguistics - European Chapter}. \bold{24}, 113--120.
 }
 \author{
-%%  ~~who you are~~
+Art Poon and Tammy Ng
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+require(Kaphi, quietly=TRUE)
 
-## The function is currently defined as
-function (x) 
-{
-  }
+#create two trees in Newick format
+t1 <- read.tree(text="((A:0.1,B:0.2):0.1,C:0.3):0;")
+t2 <- read.tree(text="(((A:0.1,B:0.1):0.1,C:0.2):0.1,D:0.3):0;")
+lambda <- 2 
+sigma <- 0.1
+
+tree.kernel(t1, t2, lambda, sigma)
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

@@ -1,6 +1,5 @@
 \name{sample.priors}
 \alias{sample.priors}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Sample the parameters from the prior distribution
 }
@@ -15,9 +14,6 @@ sample.priors(config)
     List of settings configured based on YAML input from the user. A \code{smc.config} object.
 }
 }
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
 \value{
 Returns a named vector of sampled parameters from the prior distributions.
 }
@@ -25,28 +21,19 @@ Returns a named vector of sampled parameters from the prior distributions.
 %% ~put references to the literature/web site here ~
 }
 \author{
-%%  ~~who you are~~
+Art Poon and Tammy Ng
 }
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
 \seealso{
 \code{\link{prior.density}}, \code{\link{propose}}, \code{\link{proposal.density}}
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+require(Kaphi, quietly=TRUE)
 
-## The function is currently defined as
-function (x) 
-{
-  }
+#load configuration file
+setwd('~/git/Kaphi')
+config <- load.config('pkg/examples/example-coalescent.yaml')    # Ne.tau parameter has prior distribution of: rlnorm(n=1,meanlog=5,sdlog=2)
+
+# sample priors of parameter(s)
+theta <- sample.priors(config)
+theta
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
