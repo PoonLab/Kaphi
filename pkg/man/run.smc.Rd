@@ -45,23 +45,30 @@
 \details{}
 
 \value{
-    A list of returned values:
-    \item{niter}{
-        Number of iterations.
+    A list of two lists: the final workspace and the results from the run.
+    \item{workspace}{
+      An smc.workspace object.
     }
-    \item{theta}{
-        A list of matricies containing the theta parameter values
-        for each particle at each iteration.
-    }
-    \item{weights}{
-        A list of vectors containg the weight of each particle at
-        each iteration.
-    }
-    \item{accept.rate}{
-        A vector containing the acceptance rate at each iteration.
-    }
-    \item{epsilons}{
-        A vector containing the value of epsilon at each iteration.
+    \item{result}{
+      A list of returned values:
+      \itemize{
+        \item{niter: }{number of iterations.
+        }
+        \item{theta: }{
+            a list of matricies containing the theta parameter values
+            for each particle at each iteration.
+        }
+        \item{weights: }{
+            a list of vectors containg the weight of each particle at
+            each iteration.
+        }
+        \item{accept.rate: }{
+            a vector containing the acceptance rate at each iteration.
+        }
+        \item{epsilons: }{
+            a vector containing the value of epsilon at each iteration.
+        }
+      }  
     }
 }
 
