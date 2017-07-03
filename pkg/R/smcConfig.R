@@ -236,10 +236,12 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
   # numr = number of rows of plots to be displayed at one time
   # numc = number of columns of plots to be displayed at one time
   # display prior distributions
-  y <- sapply(1:nreps, function(x) sample.priors(config))
+  y <- rbind(sapply(1:nreps, function(x) sample.priors(config)))
+  if (nrow(y) == 1){
+    rownames(y)[1] <- names(config$priors)
+  }
   h <- apply(y, 1, hist, plot=F)
   s <- 1        # counter
-  # x11()
   par(ask=T)    # prompts user to 'Hit <Return> to see next plot'
   n.slides <- ceiling(nrow(y) / (numr*numc)) #determine number of plot slides required according to specified dimensions
   
