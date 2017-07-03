@@ -354,7 +354,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     result$niter <- niter
     
     # pack ws and result into one list to be returned
-    ret <- list(ws, result)
+    ret <- list(workspace=ws, result=result)
     
     return (ret)
 }

@@ -29,8 +29,8 @@ res <- sapply(x, function(val) {
 
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(x, res, type='o', xlab='Lambda', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0,0.5), 
-     main='Identifiability of Lambda (Yule Model)')
+plot(x, res, type='o', xlab='Lambda', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0,0.2), 
+     main='Identifiability of Lambda (Yule Model) - Normalized')
 abline(v=0.1, lty=2)
 
 ## now let's estimate that posterior distribution!
@@ -39,7 +39,7 @@ abline(v=0.1, lty=2)
 ws <- init.workspace(obs.tree, config)
 
 # run ABC-SMC
-result <- run.smc(ws, trace.file='pkg/examples/example-yule2.tsv', model='yule', verbose=F)
+res <- run.smc(ws, trace.file='pkg/examples/example-yule2.tsv', model='yule', verbose=F)
 
 
 # let's examine the contents of the trace file
