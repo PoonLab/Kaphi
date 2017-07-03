@@ -9,7 +9,6 @@ Convenience wrapper for an unlabelled tree shape kernel.
 \usage{
 utk(x, y, config)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
     An object of class "phylo"
@@ -21,9 +20,6 @@ utk(x, y, config)
     A cached object of self-kernel
   }
 }
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
 \value{
 Returns a tree kernel with labelled tree tips.
 }
@@ -31,19 +27,20 @@ Returns a tree kernel with labelled tree tips.
 %% ~put references to the literature/web site here ~
 }
 \author{
-%%  ~~who you are~~
+Art Poon and Tammy Ng
 }
-
 \seealso{
 \code{\link{tree.kernel}}
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+require(Kaphi, quietly=TRUE)
 
-## The function is currently defined as
-function (x) 
-{
-  }
+#load config
+setwd('~/git/Kaphi')
+config <- load.config('pkg/examples/example-compartmental.yaml')
+
+#create tree in Newick format
+t1 <- read.tree(text="((A:0.1,B:0.2):0.1,C:0.3):0;")
+t2 <- read.tree(text="(((A:0.1,B:0.1):0.1,C:0.2):0.1,D:0.3):0;")
+utk(t1, t2, config)
 }

@@ -233,33 +233,33 @@ print.smc.config <- function(config, ...) {
 
 
 plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
-    # numr = number of rows of plots to be displayed at one time
-    # numc = number of columns of plots to be displayed at one time
-    # display prior distributions
-    y <- sapply(1:nreps, function(x) sample.priors(config))
-    h <- apply(y, 1, hist)
-    s <- 1        # counter
-    # x11()
-    par(ask=T)    # prompts user to 'Hit <Return> to see next plot'
-    n.slides <- ceiling(length(x) / (numr*numc)) #determine number of plot slides required according to specified dimensions
-    
-    for (i in 1:n.slides){
-      par(mfrow = c(numr, numc))     # multiple plot display option
-      for (slot in 1:(numr * numc)){
-        if (s <= 1:(numr * numc)) {
-          q <- quantile(y[,s], c(0.05, 0.95))   # 90% of the sample distribution from prior of s-th parameter
-          plot(
-            h[[s]], 
-            xlab=names(h)[1], 
-            main='Sample from prior distribution',
-            xlim=q
-          )  
-          s <- s + 1
-        } else {
-          break
-        }
-      }
+  # numr = number of rows of plots to be displayed at one time
+  # numc = number of columns of plots to be displayed at one time
+  # display prior distributions
+  y <- rbind(sapply(1:nreps, function(x) sample.priors(config)))
+  if (nrow(y) == 1){
+    rownames(y)[1] <- names(config$priors)
+  }
+  h <- apply(y, 1, hist, plot=F)
+  s <- 1        # counter
+  par(ask=T)    # prompts user to 'Hit <Return> to see next plot'
+  n.slides <- ceiling(nrow(y) / (numr*numc)) #determine number of plot slides required according to specified dimensions
+  
+  for (i in 1:n.slides){
+    par(mfrow = c(numr, numc))     # multiple plot display option
+    for (slot in 1:(numr * numc)){
+      if (s <= nrow(y)) {
+        q <- quantile(y[s,], c(0.05, 0.95))   # 90% of the sample distribution from prior of s-th parameter
+        plot(
+          h[[s]], 
+          xlab=names(h)[s], 
+          main='Sample from prior distribution',
+          xlim=q
+        )  
+        s <- s + 1
+      } 
     }
+  }
 }
 
 # parse tip arguments for each model and creates either n tips of zero height if arg is an int 

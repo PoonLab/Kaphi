@@ -21,22 +21,19 @@ print.smc.config(config, ...)
 %% ~put references to the literature/web site here ~
 }
 \author{
-%%  ~~who you are~~
+Art Poon and Tammy Ng
 }
 \seealso{
 \code{\link{plot.smc.config}}
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+require(Kaphi, quietly=TRUE)
+ 
+#load configuration file
+setwd('~/git/Kaphi')
+config <- load.config('pkg/examples/example-coalescent.yaml')
 
-## The function is currently defined as
-function (x) 
-{
-  }
+print.smc.config(config)
+# or it will print when you just write config variable
+# config
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
