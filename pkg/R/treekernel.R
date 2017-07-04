@@ -16,118 +16,117 @@
 require(ape)
 
 .rescale.tree <- function(tree, mode) {
-    #print ('.rescale.tree')
-    mode <- toupper(mode)
-    if (!is.element(mode, c('MEAN', 'MEDIAN', 'MAX', 'NONE'))) {
-        stop("Invalid mode, must be MEAN, MEDIAN, MAX or NONE")
-    }
-    if (mode == 'NONE') {
-        return(tree)
-    }
-    if (mode == 'MEAN') {
-        scale <- mean(tree$edge.length)
-    } else if (mode == 'MEDIAN') {
-        scale <- median(tree$edge.length)
-    } else {
-        scale <- max(tree$edge.length)
-    }
-    tree$edge.length <- tree$edge.length / scale
+  #print ('.rescale.tree')
+  mode <- toupper(mode)
+  if (!is.element(mode, c('MEAN', 'MEDIAN', 'MAX', 'NONE'))) {
+    stop("Invalid mode, must be MEAN, MEDIAN, MAX or NONE")
+  }
+  if (mode == 'NONE') {
     return(tree)
+  }
+  if (mode == 'MEAN') {
+    scale <- mean(tree$edge.length)
+  } else if (mode == 'MEDIAN') {
+    scale <- median(tree$edge.length)
+  } else {
+    scale <- max(tree$edge.length)
+  }
+  tree$edge.length <- tree$edge.length / scale
+  return(tree)
 }
 
 
 # DEPRECATED
 parse.newick <- function(tree) {
-    if (class(tree)=='phylo') {
-        res <- .Call("R_Kaphi_parse_newick", write.tree(tree), PACKAGE="Kaphi")
-    } else if (class(tree) == 'character') {
-        res <- .Call("R_Kaphi_parse_newick", tree, PACKAGE="Kaphi")
-    } else {
-        return (1)
-    }
-    return (res)
+  if (class(tree)=='phylo') {
+    res <- .Call("R_Kaphi_parse_newick", write.tree(tree), PACKAGE="Kaphi")
+  } else if (class(tree) == 'character') {
+    res <- .Call("R_Kaphi_parse_newick", tree, PACKAGE="Kaphi")
+  } else {
+    return (1)
+  }
+  return (res)
 }
 
 
 .preprocess.tree <- function(tree, config) {
-    #print ('preprocess')
-    if (class(tree) == 'character') {
-        tree <- read.tree(text=tree)
-    }
-    if (class(tree) != 'phylo') {
-        stop(".preprocess.tree() requires phylo or character (Newick) object for tree")
-    }
-    tree <- ladderize(tree)
-    tree <- .rescale.tree(tree, config$norm.mode)
-
-    # cache self-kernel score
-    # FIXME:  this won't work for labelled kernel
-    tree$kernel <- tree.kernel(tree, tree,
-        lambda=config$decay.factor,
-        sigma=config$rbf.variance,
-        rho=config$sst.control,
-        normalize=0
-    )
-    return(tree)
+  #print ('preprocess')
+  if (class(tree) == 'character') {
+    tree <- read.tree(text=tree)
+  }
+  if (class(tree) != 'phylo') {
+    stop(".preprocess.tree() requires phylo or character (Newick) object for tree")
+  }
+  tree <- ladderize(tree)
+  tree <- .rescale.tree(tree, config$norm.mode)
+  # cache self-kernel score
+  # FIXME:  this won't work for labelled kernel
+  tree$kernel <- tree.kernel(tree, tree,
+                             lambda=config$decay.factor,
+                             sigma=config$rbf.variance,
+                             rho=config$sst.control,
+                             normalize=0
+                             )
+  return(tree)
 }
 
 .to.newick <- function(tree) {
-    # Make sure that the tree argument is an ape phylo object
-    if (class(tree)=='phylo') {
-        tryCatch({
-          plot(tree, plot=FALSE)
-        }, error = function(e) {
-          stop("Malformed Newick tree string!")
+  # Make sure that the tree argument is an ape phylo object
+  if (class(tree)=='phylo') {
+    tryCatch({
+      plot(tree, plot=FALSE)
+      }, error = function(e) {
+        stop("Malformed Newick tree string!")
         })
-        return (write.tree(tree))
-    } else if (class(tree) == 'character') {
-        # make sure string is standard Newick format
-        tree <- read.tree(text=tree)
-        tryCatch({
-          plot(tree, plot=FALSE)
-        }, error = function(e) {
-          stop("Malformed Newick tree string!")
-        })
-        if (is.null(tree)) {
-            stop(".to.newick(): String failed to parse as Newick tree string")
-        }
-        return (write.tree(tree))
-    } else {
-        stop(".to.newick(): tree argument must be a phylo or character object.")
+    return (write.tree(tree))
+  } else if (class(tree) == 'character') {
+    # make sure string is standard Newick format
+    tree <- read.tree(text=tree)
+    tryCatch({
+      plot(tree, plot=FALSE)
+      }, error = function(e) {
+        stop("Malformed Newick tree string!")
+      })
+    if (is.null(tree)) {
+      stop(".to.newick(): String failed to parse as Newick tree string")
     }
+    return (write.tree(tree))
+  } else {
+    stop(".to.newick(): tree argument must be a phylo or character object.")
+  }
 }
 
 utk <- function(t1, t2, config) {
-    # convenience wrapper for unlabelled tree shape kernel
-    result <- tree.kernel(t1, t2,
-        lambda=config$decay.factor,
-        sigma=config$rbf.variance,
-        rho=as.double(config$sst.control),
-        normalize=0
-    )
-    return(result)
+  # convenience wrapper for unlabelled tree shape kernel
+  result <- tree.kernel(t1, t2,
+                        lambda=config$decay.factor,
+                        sigma=config$rbf.variance,
+                        rho=as.double(config$sst.control),
+                        normalize=0
+                        )
+  return(result)
 }
 
 tree.kernel <- function(tree1, tree2,
-    lambda,        # decay factor
-    sigma,         # RBF variance parameter
-    rho=1.0,         # SST control parameter; 0 = subtree kernel, 1 = subset tree kernel
-    normalize=0,   # normalize kernel score by sqrt(k(t1,t1) * k(t2,t2))
-    label1=NA,     # arguments for labeled tree kernel
-    label2=NA,
-    gamma=0        # label factor
-) {
-    # make labels
-    use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
-        FALSE
-    } else {
-    	tree1$tip.label <- label1
-        tree2$tip.label <- label2
-        TRUE
-    }
+                        lambda,        # decay factor
+                        sigma,         # RBF variance parameter
+                        rho=1.0,         # SST control parameter; 0 = subtree kernel, 1 = subset tree kernel
+                        normalize=0,   # normalize kernel score by sqrt(k(t1,t1) * k(t2,t2))
+                        label1=NA,     # arguments for labeled tree kernel
+                        label2=NA,
+                        gamma=0        # label factor
+                        ) {
+  # make labels
+  use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
+    FALSE
+  } else {
+  	tree1$tip.label <- label1
+    tree2$tip.label <- label2
+    TRUE
+  }
     
-    nwk1 <- .to.newick(tree1)
-    nwk2 <- .to.newick(tree2)
+  nwk1 <- .to.newick(tree1)
+  nwk2 <- .to.newick(tree2)
         
 #    # make labels
 #    if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
@@ -138,93 +137,93 @@ tree.kernel <- function(tree1, tree2,
 #        new_label2 <- sapply(label2, function(x) which(x == label))
 #    }
 		
-    res <- .Call("R_Kaphi_kernel",
+  res <- .Call("R_Kaphi_kernel",
                  nwk1, nwk2, lambda, sigma, as.double(rho), use.label, gamma, normalize,
                  PACKAGE="Kaphi")
-    return (res)
+  return (res)
 }
 
 
 ## Make other tree shape similarity measures and statistics available
 nLTT <- function(t1, t2) {
-    nwk1 <- .to.newick(t1)
-    nwk2 <- .to.newick(t2)
-    res <- .Call("R_Kaphi_nLTT", nwk1, nwk2, PACKAGE="Kaphi")
-    return(res)
+  nwk1 <- .to.newick(t1)
+  nwk2 <- .to.newick(t2)
+  res <- .Call("R_Kaphi_nLTT", nwk1, nwk2, PACKAGE="Kaphi")
+  return(res)
 }
 
 # sum of node depths (branch lengths) from each tip to the root
 sackin <- function(t1, use.branch.lengths=FALSE) {
-    nwk <- .to.newick(t1)
-    res <- .Call("R_Kaphi_sackin", nwk, use.branch.lengths, PACKAGE="Kaphi")
-    return(res)
+  nwk <- .to.newick(t1)
+  res <- .Call("R_Kaphi_sackin", nwk, use.branch.lengths, PACKAGE="Kaphi")
+  return(res)
 }
 
 # sum of absolute differences in numbers of tips that descend from
 #  left and right branches, for all internal nodes
 colless <- function(t1) {
-    nwk <- .to.newick(t1)
-    res <- .Call("R_Kaphi_colless", nwk, PACKAGE="Kaphi")
-    return(res)
+  nwk <- .to.newick(t1)
+  res <- .Call("R_Kaphi_colless", nwk, PACKAGE="Kaphi")
+  return(res)
 }
 
 
 cophenetic <- function(t1, use.branch.lengths=FALSE) {
-    nwk <- .to.newick(t1)
-    res <- .Call("R_Kaphi_cophenetic", nwk, PACKAGE="Kaphi")
-    return(res)
+  nwk <- .to.newick(t1)
+  res <- .Call("R_Kaphi_cophenetic", nwk, PACKAGE="Kaphi")
+  return(res)
 }
 
 ladder.length <- function(t1) {
-    nwk <- .to.newick(t1)
-    res <- .Call("R_Kaphi_ladder_length", nwk, package="Kaphi")
-    return(res)
+  nwk <- .to.newick(t1)
+  res <- .Call("R_Kaphi_ladder_length", nwk, package="Kaphi")
+  return(res)
 }
 
 IL.nodes <- function(t1) {
-    nwk <- .to.newick(t1)
-    res <- .Call("R_Kaphi_il_nodes", nwk, PACKAGE="Kaphi")
-    return(res)
+  nwk <- .to.newick(t1)
+  res <- .Call("R_Kaphi_il_nodes", nwk, PACKAGE="Kaphi")
+  return(res)
 }
 
 tree.width <- function(t1) {
-    nwk <- .to.newick(t1)
-    res <- .Call("R_Kaphi_width", nwk, PACKAGE="Kaphi")
-    return(res)
+  nwk <- .to.newick(t1)
+  res <- .Call("R_Kaphi_width", nwk, PACKAGE="Kaphi")
+  return(res)
 }
 
 max.delta.width <- function(t1) {
-    nwk <- .to.newick(t1)
-    res <- .Call("R_Kaphi_max_delta_width", nwk, PACKAGE="Kaphi")
-    return(res)
+  nwk <- .to.newick(t1)
+  res <- .Call("R_Kaphi_max_delta_width", nwk, PACKAGE="Kaphi")
+  return(res)
 }
 
 n.cherries <- function(t1) {
-    nwk <- .to.newick(t1)
-    res <- .Call("R_Kaphi_cherries", nwk, PACKAGE="Kaphi")
-    return(res)
+  nwk <- .to.newick(t1)
+  res <- .Call("R_Kaphi_cherries", nwk, PACKAGE="Kaphi")
+  return(res)
 }
 
 prop.unbalanced <- function(t1) {
-    nwk <- .to.newick(t1)
-    res <- .Call("R_Kaphi_prop_unbalanced", nwk, PACKAGE="Kaphi")
-    return(res)
+  nwk <- .to.newick(t1)
+  res <- .Call("R_Kaphi_prop_unbalanced", nwk, PACKAGE="Kaphi")
+  return(res)
 }
 
 avg.unbalance <- function(t1) {
-    nwk <- .to.newick(t1)
-    res <- .Call("R_Kaphi_avg_unbalance", nwk, PACKAGE="Kaphi")
-    return(res)
+  nwk <- .to.newick(t1)
+  res <- .Call("R_Kaphi_avg_unbalance", nwk, PACKAGE="Kaphi")
+  return(res)
 }
 
 pybus.gamma <- function(t1) {
-    nwk <- .to.newick(t1)
-    res <- .Call("R_Kaphi_pybus_gamma", nwk, PACKAGE="Kaphi")
-    return(res)
+  nwk <- .to.newick(t1)
+  res <- .Call("R_Kaphi_pybus_gamma", nwk, PACKAGE="Kaphi")
+  return(res)
 }
 
 internal.terminal.ratio <- function(t1) {
-    nwk <- .to.newick(t1)
-    res <- .Call("R_Kaphi_internal_terminal_ratio", nwk, PACKAGE="Kaphi")
-    return(res)
+  nwk <- .to.newick(t1)
+  res <- .Call("R_Kaphi_internal_terminal_ratio", nwk, PACKAGE="Kaphi")
+  return(res)
 }

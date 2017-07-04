@@ -14,14 +14,14 @@
 # along with Kaphi.  If not, see <http://www.gnu.org/licenses/>.
 
 parse.input.tree <- function(obs.tree, config) {
-    # validate config argument
-    required.args <- c('decay.factor', 'rbf.variance', 'sst.control', 'norm.mode')
-    missing.args <- required.args[!is.element(required.args, names(config))]
+  # validate config argument
+  required.args <- c('decay.factor', 'rbf.variance', 'sst.control', 'norm.mode')
+  missing.args <- required.args[!is.element(required.args, names(config))]
 
-    if (length(missing.args)>0) {
-        warning(paste('parse.input.tree() missing argument', missing.args, "\n"))
-        return (NULL)
-    }
+  if (length(missing.args)>0) {
+    warning(paste('parse.input.tree() missing argument', missing.args, "\n"))
+      return (NULL)
+  }
 
 	# check input tree
 	if (class(obs.tree)!='phylo') {
@@ -34,8 +34,8 @@ parse.input.tree <- function(obs.tree, config) {
 		}
 	}
 	# ladderize, rescale, and compute self-kernel for the observed tree
-    obs.tree <- .preprocess.tree(obs.tree, config)
-    return (obs.tree)
+  obs.tree <- .preprocess.tree(obs.tree, config)
+  return (obs.tree)
 }
 
 
@@ -47,11 +47,11 @@ parse.input.tree <- function(obs.tree, config) {
 	return(max(tip.dists)-tip.dists)
 }
 .get.node.heights <- function(phy) {
-    n.tips <- Ntip(phy)
-    n.nodes <- Nnode(phy)
-    tip.dists <- node.depth.edgelength(phy)[1:n.tips]
-    node.dists <- node.depth.edgelength(phy)[(n.tips+1):(n.tips+n.nodes)]
-    return(max(tip.dists)-node.dists)
+  n.tips <- Ntip(phy)
+  n.nodes <- Nnode(phy)
+  tip.dists <- node.depth.edgelength(phy)[1:n.tips]
+  node.dists <- node.depth.edgelength(phy)[(n.tips+1):(n.tips+n.nodes)]
+  return(max(tip.dists)-node.dists)
 }
 
 parse.labels <- function(labels, regex) {
@@ -71,47 +71,47 @@ parse.labels <- function(labels, regex) {
 
 
 init.workspace <- function(obs.tree, config, regex=NA) {
-    nparams <- length(config$params)
-    workspace <- list(
-        # the data!
-        obs.tree=parse.input.tree(obs.tree, config),  # a phylo object
+  nparams <- length(config$params)
+  workspace <- list(
+    # the data!
+    obs.tree=parse.input.tree(obs.tree, config),  # a phylo object
 
-        # store some useful info
-        n.tips=Ntip(obs.tree),
-        tip.heights=.get.tip.heights(obs.tree),
-        tip.labels=ifelse(is.na(regex), NA, parse.labels(obs.tree$tip.label, regex)),
+    # store some useful info
+    n.tips=Ntip(obs.tree),
+    tip.heights=.get.tip.heights(obs.tree),
+    tip.labels=ifelse(is.na(regex), NA, parse.labels(obs.tree$tip.label, regex)),
 
-        # this will hold multiPhylo objects from particles
-        sim.trees=lapply(1:config$nparticle, list),
+    # this will hold multiPhylo objects from particles
+    sim.trees=lapply(1:config$nparticle, list),
 
-        # smc.config S3 object
-        config=config,
+    # smc.config S3 object
+    config=config,
 
-        # each particle is a vector of model parameters
-        particles=matrix(NA, nrow=config$nparticle, ncol=nparams),
+    # each particle is a vector of model parameters
+    particles=matrix(NA, nrow=config$nparticle, ncol=nparams),
 
-        # weights of particles
-        weights=rep(NA, times=config$nparticle),
-        new.weights=rep(NA, times=config$nparticle),
+    # weights of particles
+    weights=rep(NA, times=config$nparticle),
+    new.weights=rep(NA, times=config$nparticle),
 
-        # distances from kernel
-        dists=matrix(NA, nrow=config$nsample, ncol=config$nparticle),
+    # distances from kernel
+    dists=matrix(NA, nrow=config$nsample, ncol=config$nparticle),
 
-        epsilon=.Machine$double.xmax,  # current tolerance (could use Inf)
+    epsilon=.Machine$double.xmax,  # current tolerance (could use Inf)
 
-        accept=0,  # number of accepted proposals
-        alive=0,    # number of live particles
-        seed=NA
-    )
-    class(workspace) <- 'smc.workspace'
-    return(workspace)
+    accept=0,  # number of accepted proposals
+    alive=0,    # number of live particles
+    seed=NA
+  )
+  class(workspace) <- 'smc.workspace'
+  return(workspace)
 }
 
 print.smc.workspace <- function(workspace, ...) {
-    cat('Kaphi SMC workspace\n\n')
-    cat('Target tree:\n')
-    cat(summary(workspace$obs.tree))
-    cat('Configuration:\n')
-    cat(show(workspace$config))
+  cat('Kaphi SMC workspace\n\n')
+  cat('Target tree:\n')
+  cat(summary(workspace$obs.tree))
+  cat('Configuration:\n')
+  cat(show(workspace$config))
 }
 

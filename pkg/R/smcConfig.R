@@ -16,120 +16,120 @@
 require(yaml)
 
 load.config <- function(file) {
-    # default settings
-    config <- list(
-        params=NA,
-        priors=list(),
-        prior.densities=list(),
-        proposals=list(),
-        proposal.densities=list(),
-        model=NA,
+  # default settings
+  config <- list(
+    params=NA,
+    priors=list(),
+    prior.densities=list(),
+    proposals=list(),
+    proposal.densities=list(),
+    model=NA,
 
-        # SMC settings
-        nparticle=1000,
-        nsample=5,
-        ess.tolerance=1.5,
-        final.epsilon=0.01,
-        final.accept.rate=0.015,
-        quality=0.95,
-        step.tolerance=1e-5,
+    # SMC settings
+    nparticle=1000,
+    nsample=5,
+    ess.tolerance=1.5,
+    final.epsilon=0.01,
+    final.accept.rate=0.015,
+    quality=0.95,
+    step.tolerance=1e-5,
 
-        # kernel settings
-        decay.factor=0.2,
-        rbf.variance=2.0,
-        sst.control=1.0,
-        norm.mode='MEAN'
-    )
-    class(config) <- 'smc.config'
-    settings <- yaml.load_file(file)
+    # kernel settings
+    decay.factor=0.2,
+    rbf.variance=2.0,
+    sst.control=1.0,
+    norm.mode='MEAN'
+  )
+  class(config) <- 'smc.config'
+  settings <- yaml.load_file(file)
 
 
-    # parse prior settings
-    config$params <- names(settings$priors)
-    for (par.name in config$params) {
-        sublist <- settings$priors[[par.name]]
+  # parse prior settings
+  config$params <- names(settings$priors)
+  for (par.name in config$params) {
+    sublist <- settings$priors[[par.name]]
 
-        rng.call <- paste('r', sublist$dist, '(n=1,', sep='')
-        arguments <- sapply(sublist[['hyperparameters']], function(x) paste(names(x), x, sep='='))
-        rng.call <- paste(rng.call, paste(arguments, collapse=','), ')', sep='')
-        config$priors[par.name] <- rng.call
+    rng.call <- paste('r', sublist$dist, '(n=1,', sep='')
+    arguments <- sapply(sublist[['hyperparameters']], function(x) paste(names(x), x, sep='='))
+    rng.call <- paste(rng.call, paste(arguments, collapse=','), ')', sep='')
+    config$priors[par.name] <- rng.call
 
-        # need to set (arg.prior) to the desired value before calling this expression
-        den.call <- paste0('d', sublist$dist, '(arg.prior,', paste(arguments, collapse=','), ')')
-        config$prior.densities[par.name] <- den.call
-	}
+    # need to set (arg.prior) to the desired value before calling this expression
+    den.call <- paste0('d', sublist$dist, '(arg.prior,', paste(arguments, collapse=','), ')')
+    config$prior.densities[par.name] <- den.call
+  }
 
-    # parse proposal settings
-    if (any(!is.element(names(settings$proposals), config$params))) {
-        stop("Error in load.config(): variable set in proposals is not a subset of priors")
+  # parse proposal settings
+  if (any(!is.element(names(settings$proposals), config$params))) {
+    stop("Error in load.config(): variable set in proposals is not a subset of priors")
+  }
+  for (par.name in names(settings$proposals)) {
+    sublist <- settings$proposals[[par.name]]
+
+    rng.call <- paste0('r', sublist$dist, '(n=1,')
+    arguments <- sapply(sublist[['parameters']], function(x) paste(names(x), x, sep='='))
+    rng.call <- paste0(rng.call, paste(arguments, collapse=','), ')')
+    config$proposals[par.name] <- rng.call
+
+    # note this assumes that we pass an argument as 'arg.delta' in global namespace
+    den.call <- paste0('d', sublist$dist, '(arg.delta,', paste(arguments, collapse=','), ')')
+    config$proposal.densities[par.name] <- den.call
+  }
+
+  # FIXME: need to write a handler to interpret "1e-5" as float
+
+  # parse SMC settings
+  for (smc.set in names(settings$smc)) {
+    if (!is.element(smc.set, names(config))) {
+      stop("Unrecognized SMC setting in YAML: ", smc.set)
     }
-    for (par.name in names(settings$proposals)) {
-        sublist <- settings$proposals[[par.name]]
+    config[smc.set] <- settings$smc[smc.set]
+  }
 
-        rng.call <- paste0('r', sublist$dist, '(n=1,')
-        arguments <- sapply(sublist[['parameters']], function(x) paste(names(x), x, sep='='))
-        rng.call <- paste0(rng.call, paste(arguments, collapse=','), ')')
-        config$proposals[par.name] <- rng.call
-
-        # note this assumes that we pass an argument as 'arg.delta' in global namespace
-        den.call <- paste0('d', sublist$dist, '(arg.delta,', paste(arguments, collapse=','), ')')
-        config$proposal.densities[par.name] <- den.call
+  # parse kernel settings
+  for (k.set in names(settings$kernel)) {
+    if (!is.element(k.set, names(config))) {
+      stop("Unrecognized kernel setting in YAML: ", k.set)
     }
-
-    # FIXME: need to write a handler to interpret "1e-5" as float
-
-    # parse SMC settings
-    for (smc.set in names(settings$smc)) {
-        if (!is.element(smc.set, names(config))) {
-            stop("Unrecognized SMC setting in YAML: ", smc.set)
-        }
-        config[smc.set] <- settings$smc[smc.set]
-    }
-
-    # parse kernel settings
-    for (k.set in names(settings$kernel)) {
-        if (!is.element(k.set, names(config))) {
-            stop("Unrecognized kernel setting in YAML: ", k.set)
-        }
-        config[k.set] <- settings$kernel[k.set]
-    }
-    return (config)
+    config[k.set] <- settings$kernel[k.set]
+  }
+  return (config)
 }
 
 
 
 set.model <- function(config, generator) {
-    # generator argument can either be function name or object
-    if (is.character(generator)) {
-      if (any(is.element(c('bisse', 'bisseness', 'bd', 'classe', 'geosse', 'musse', 'quasse', 'yule'), tolower(generator)))) {
-        generator <- get('speciation.model', mode='function', envir=parent.frame())
-      }
-      else if (any(is.element(c('sir.nondynamic', 'sir.dynamic', 'sis', 'seir'), tolower(generator)))) {
-        generator <- get('compartmental.model', mode='function', envir=parent.frame())
-      }
-      else if (is.element('const.coalescent', tolower(generator))) {
-        generator <- get(generator, mode='function', envir=parent.frame())
-      }
-      else {
-        stop("Not a Kaphi-compatible model.")
-      }
-
-	  }
-  	# check that function takes the three required arguments
-      # 1. theta = a named vector of parameter values (particle)
-      # 2. nsim = number of simulations to generate per particle
-      # 3. tips = size of tree to simulate
-  	g.args <- names(formals(generator))
-  	if (length(g.args)<3 || any(!is.element(c('theta', 'nsim', 'tips'), g.args))) {
-  		stop("generator is not a Kaphi-compatible model")
-  	}
-    # check that function has name attribute
-    if (is.null(attr(generator, 'name'))) {
-        stop("generator is not a Kaphi-compatible model")
+  # generator argument can either be function name or object
+  if (is.character(generator)) {
+    if (any(is.element(c('bisse', 'bisseness', 'bd', 'classe', 'geosse', 'musse', 'quasse', 'yule'), tolower(generator)))) {
+      generator <- get('speciation.model', mode='function', envir=parent.frame())
+    }
+    else if (any(is.element(c('sir.nondynamic', 'sir.dynamic', 'sis', 'seir'), tolower(generator)))) {
+      generator <- get('compartmental.model', mode='function', envir=parent.frame())
+    }
+    else if (is.element('const.coalescent', tolower(generator))) {
+      generator <- get(generator, mode='function', envir=parent.frame())
+    }
+    else {
+      stop("Not a Kaphi-compatible model.")
     }
 
-    config$model <- generator
-    return(config)
+	}
+  # check that function takes the three required arguments
+    # 1. theta = a named vector of parameter values (particle)
+    # 2. nsim = number of simulations to generate per particle
+    # 3. tips = size of tree to simulate
+  g.args <- names(formals(generator))
+  if (length(g.args)<3 || any(!is.element(c('theta', 'nsim', 'tips'), g.args))) {
+  	stop("generator is not a Kaphi-compatible model")
+  }
+  # check that function has name attribute
+  if (is.null(attr(generator, 'name'))) {
+    stop("generator is not a Kaphi-compatible model")
+  }
+
+  config$model <- generator
+  return(config)
 }
 
 
@@ -138,99 +138,98 @@ set.model <- function(config, generator) {
 #prior distributions.  It should be configured based on YAML input from
 #the user.
 sample.priors <- function(config) {
-    if (class(config) != 'smc.config') {
-        stop('ERROR: argument must be an smc.config object')
+  if (class(config) != 'smc.config') {
+    stop('ERROR: argument must be an smc.config object')
+  }
+  if (length(config$priors)==0) {
+    cat('No prior distributions have been set.')
+  } else {
+    # add 'r' prefix for random deviate generation
+    theta <- sapply(config$priors, function(e) eval(parse(text=e)))
+    if (length(config$params) == length(theta)) {
+      names(theta) <- config$params
     }
-    if (length(config$priors)==0) {
-        cat('No prior distributions have been set.')
-    } else {
-        # add 'r' prefix for random deviate generation
-        theta <- sapply(config$priors, function(e) eval(parse(text=e)))
-        if (length(config$params) == length(theta)) {
-            names(theta) <- config$params
-        }
-        return(theta)  # a named vector
-    }
+    return(theta)  # a named vector
+  }
 }
 
 prior.density <- function(config, theta) {
-    result <- 1.
-    for (par.name in names(theta)) {
-        if (is.element(par.name, names(config$prior.densities))) {
-            arg.prior <- theta[par.name]
-            result <- result * eval(parse(text=config$prior.densities[[par.name]]))
-        }
+  result <- 1.
+  for (par.name in names(theta)) {
+    if (is.element(par.name, names(config$prior.densities))) {
+      arg.prior <- theta[par.name]
+        result <- result * eval(parse(text=config$prior.densities[[par.name]]))
     }
-    return (result)
+  }
+  return (result)
 }
 
 
 propose <- function(config, theta) {
-    # draw new values from the proposal density
-    delta <- sapply(names(config$proposals), function(par.name) {
-        eval(parse(text=config$proposals[[par.name]]))
-    })
-    # apply proposal values to update parameter vector (theta)
-    for (par.name in names(theta)) {
-        if (is.element(par.name, names(delta))) {
-            theta[par.name] <- theta[par.name] + delta[par.name]
-        }
+  # draw new values from the proposal density
+  delta <- sapply(names(config$proposals), function(par.name) {
+    eval(parse(text=config$proposals[[par.name]]))
+  })
+  # apply proposal values to update parameter vector (theta)
+  for (par.name in names(theta)) {
+    if (is.element(par.name, names(delta))) {
+      theta[par.name] <- theta[par.name] + delta[par.name]
     }
-    return(theta)
+  }
+  return(theta)
 }
 
 
 proposal.density <- function(config, theta, new.theta) {
-    # sanity check
-    if (length(intersect(names(theta), names(new.theta))) != length(theta)) {
-        stop("Error in proposal.density(): mismatched named vectors for theta and new.theta")
+  # sanity check
+  if (length(intersect(names(theta), names(new.theta))) != length(theta)) {
+    stop("Error in proposal.density(): mismatched named vectors for theta and new.theta")
+  }
+  result <- 1.
+  for (par.name in names(theta)) {
+    if (is.element(par.name, names(config$proposal.densities))) {
+      arg.delta <- new.theta[par.name] - theta[par.name]
+      result <- result * eval(parse(text=config$proposal.densities[[par.name]]))
     }
-    result <- 1.
-    for (par.name in names(theta)) {
-        if (is.element(par.name, names(config$proposal.densities))) {
-            arg.delta <- new.theta[par.name] - theta[par.name]
-            result <- result * eval(parse(text=config$proposal.densities[[par.name]]))
-        }
-    }
-    return (result)
+  }
+  return (result)
 }
 
 
 print.smc.config <- function(config, ...) {
-    cat('Kaphi SMC configuration\n\n')
+  cat('Kaphi SMC configuration\n\n')
 
-    model.name <- attr(config$model, 'name')
-    cat('Model:\n ', ifelse(is.null(model.name), "No model set.", model.name), '\n')
+  model.name <- attr(config$model, 'name')
+  cat('Model:\n ', ifelse(is.null(model.name), "No model set.", model.name), '\n')
 
-    cat('Priors:\n')
-    for (i in 1:length(config$params)) {
-        cat('  ', names(config$priors)[i], '\t', config$priors[[i]], '\n')
+  cat('Priors:\n')
+  for (i in 1:length(config$params)) {
+    cat('  ', names(config$priors)[i], '\t', config$priors[[i]], '\n')
+  }
+
+  cat('Proposals:\n')
+  for (par.name in config$params) {
+    if (is.element(par.name, names(config$proposals))) {
+      cat('  ', par.name, '\t', config$proposals[[par.name]], '\n')
+    } else {
+      cat('  no proposal set for ', par.name, '\n')
     }
-
-    cat('Proposals:\n')
-    for (par.name in config$params) {
-        if (is.element(par.name, names(config$proposals))) {
-            cat('  ', par.name, '\t', config$proposals[[par.name]], '\n')
-        } else {
-            cat('  no proposal set for ', par.name, '\n')
-        }
-    }
+  }
 
 	cat('SMC settings\n')
 	cat('  Number of particles:', config$nparticle, '\n')
 	cat('  Number of samples per particle:', config$nsample, '\n')
 	cat('  ESS tolerance:', config$ess.tolerance, '\n')
-    cat('  Final epsilon:', config$final.epsilon, '\n')
-    cat('  Quality:', config$quality, '\n')
-    cat('  Step tolerance:', config$step.tolerance, '\n')
+  cat('  Final epsilon:', config$final.epsilon, '\n')
+  cat('  Quality:', config$quality, '\n')
+  cat('  Step tolerance:', config$step.tolerance, '\n')
 
-    cat('Kernel settings\n')
-    cat('  Decay factor:', config$decay.factor, '\n')
-    cat('  RBF variance:', config$rbf.variance, '\n')
-    cat('  SST control:', config$sst.control, '\n')
-    cat('  Normalization:', config$norm.mode, '\n')
+  cat('Kernel settings\n')
+  cat('  Decay factor:', config$decay.factor, '\n')
+  cat('  RBF variance:', config$rbf.variance, '\n')
+  cat('  SST control:', config$sst.control, '\n')
+  cat('  Normalization:', config$norm.mode, '\n')
 }
-
 
 plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
   # numr = number of rows of plots to be displayed at one time
@@ -266,14 +265,14 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
 # or tips of varying heights if arg is a numeric vector of non-negative values
 .parse.tips <- function(tips) {
   if(length(tips) < 1) {
-      stop('tips must have at least one value')
+    stop('tips must have at least one value')
   } else if(length(tips) > 1) {
-      n.tips <- as.integer(length(tips))
-      tip.heights <- tips
+    n.tips <- as.integer(length(tips))
+    tip.heights <- tips
   } else {
-      n.tips <- as.integer(tips)
-      tip.heights <- rep.int(0, n.tips)
-    }
+    n.tips <- as.integer(tips)
+    tip.heights <- rep.int(0, n.tips)
+  }
   tips <- list(n.tips=n.tips, tip.heights=tip.heights)
   return(tips)
 }
@@ -295,8 +294,8 @@ collect.times <- function(tree, delim="|", regexp=FALSE, tsample="after", fieldn
     times <- as.integer(sapply(labels, function(x) {x[[2]]}))   # returns a vector of mode character
   } else if (identical(tolower(tsample), "before")) {
     times <- as.integer(sapply(labels, function(x) {x[[1]]}))
-    } else {
-      stop("Sampling times need to be before or after given delimiter/regexp")
+  } else {
+    stop("Sampling times need to be before or after given delimiter/regexp")
   }
   # modify tip.heights in .parse.tips to reflect field number (number of years since X) -> nodeheights
   ptips <-.parse.tips(times)
