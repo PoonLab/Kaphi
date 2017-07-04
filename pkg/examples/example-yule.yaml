@@ -2,20 +2,20 @@ priors:
   lambda:
     dist: 'gamma'
     hyperparameters:
-    - shape: 1.0  # kappa
+    - shape: 2.0 # kappa
     - rate: 1.0  # theta
 proposals:
   lambda:
     dist: 'norm'
     parameters:
-    - mean: 0
-    - sd: 0.10
+    - mean: 0.0
+    - sd: 0.1
 smc:
-  nparticle: 5
-  nsample: 2
+  nparticle: 100
+  nsample: 5
   ess.tolerance: 50.0
-  final.accept.rate: 0.01
-  final.epsilon: 0.01
+  final.accept.rate: 0.1
+  final.epsilon: 0.1
   quality: 0.95
   step.tolerance: 1.e-4
 kernel:
