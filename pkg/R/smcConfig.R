@@ -34,13 +34,12 @@ load.config <- function(file) {
     quality=0.95,
     step.tolerance=1e-5,
 
-    # kernel settings
-    decay.factor=0.2,
-    rbf.variance=2.0,
-    sst.control=1.0,
-    norm.mode='MEAN'
+    # distance settings
+    # kernel, sackin, tree.width, etc
+    distances=list()
   )
   class(config) <- 'smc.config'
+  
   settings <- yaml.load_file(file)
 
 
@@ -88,14 +87,26 @@ load.config <- function(file) {
 
   # parse composite distance (dist.metric) settings (may or may not include the kernel distance)
   # check if weights/coefficients add to 1?
-  for (d.metric in names(settings$distance)){
-    sublist <- settings$distance[[d.metric]]
+  for (d.metric in names(settings$distances)){
+    sublist <- settings$distances[[d.metric]]
     
-    # written in the format of "0.8:kernel(weight=0.8,decay.factor=0.2,rbf.variance=100,sst.control=1,norm.mode=NONE)" under $kernel call
-    dist.call <- paste0(sublist$weight, ':', d.metric)
+    # written in the format of "0.8*Kaphi::kernel(package=Kaphi,weight=0.8,decay.factor=0.2,rbf.variance=100,sst.control=1,norm.mode=NONE)" under $kernel call
+    dist.call <- paste0(sublist$weight, '*', sublist$package, '::', d.metric)
     arguments <- lapply(seq_along(sublist), function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, y=sublist, n=names(sublist))
     dist.call <- paste0(dist.call, '(', paste(arguments, collapse=','), ')')
-    config$distance[d.metric] <- dist.call
+    config$distances[d.metric] <- dist.call
+  }
+  validate.d.metrics(config$distances)
+}
+
+
+# function to parse and validate expression, checking for functions that aren't present
+validate.d.metrics <- function(distances) {
+  for (metric in distances) {
+    package <- gsub("^.*\\*", "", metric)   # combine these two regex, kinda hack way of doing it
+    package <- gsub("::.*", "", package)
+    #call the package and load it; will throw an error if they haven't downloaded it into their R library
+    require(package, character.only=TRUE, quietly=TRUE)
   }
 }
 
