@@ -55,7 +55,7 @@ resy <- sapply(y, function(value) {
 })
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(x, resy, type='b', xlab='beta', ylab='Mean kernel distance', cex.lab=1.2)
+plot(y, resy, type='b', xlab='beta', ylab='Mean kernel distance', cex.lab=1.2)
 
 
 #calculate kernel distances for varying gamma
