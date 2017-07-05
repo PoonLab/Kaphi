@@ -9,9 +9,9 @@ proposals:
     dist: 'norm'
     parameters:
     - mean: 0.0
-    - sd: 0.1
+    - sd: 1.0
 smc:
-  nparticle: 100
+  nparticle: 1000
   nsample: 5
   ess.tolerance: 50.0
   final.accept.rate: 0.1
