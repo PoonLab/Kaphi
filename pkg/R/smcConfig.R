@@ -86,14 +86,17 @@ load.config <- function(file) {
     config[smc.set] <- settings$smc[smc.set]
   }
 
-  # parse kernel settings
-  for (k.set in names(settings$kernel)) {
-    if (!is.element(k.set, names(config))) {
-      stop("Unrecognized kernel setting in YAML: ", k.set)
-    }
-    config[k.set] <- settings$kernel[k.set]
+  # parse composite distance (dist.metric) settings (may or may not include the kernel distance)
+  # check if weights/coefficients add to 1?
+  for (d.metric in names(settings$distance)){
+    sublist <- settings$distance[[d.metric]]
+    
+    # written in the format of "0.8:kernel(weight=0.8,decay.factor=0.2,rbf.variance=100,sst.control=1,norm.mode=NONE)" under $kernel call
+    dist.call <- paste0(sublist$weight, ':', d.metric)
+    arguments <- lapply(seq_along(sublist), function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, y=sublist, n=names(sublist))
+    dist.call <- paste0(dist.call, '(', paste(arguments, collapse=','), ')')
+    config$distance[d.metric] <- dist.call
   }
-  return (config)
 }
 
 
