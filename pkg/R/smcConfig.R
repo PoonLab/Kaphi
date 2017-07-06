@@ -88,26 +88,30 @@ load.config <- function(file) {
   # parse composite distance (dist.metric) settings (may or may not include the kernel distance)
   # check if weights/coefficients add to 1?
   for (d.metric in names(settings$distances)){
+    
     sublist <- settings$distances[[d.metric]]
     
     # written in the format of "0.8*Kaphi::kernel(package=Kaphi,weight=0.8,decay.factor=0.2,rbf.variance=100,sst.control=1,norm.mode=NONE)" under $kernel call
     dist.call <- paste0(sublist$weight, '*', sublist$package, '::', d.metric)
     arguments <- lapply(seq_along(sublist), function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, y=sublist, n=names(sublist))
     dist.call <- paste0(dist.call, '(', paste(arguments, collapse=','), ')')
-    config$distances[d.metric] <- dist.call
+    validation <- validate.distance(dist.call)
+    if (validation == TRUE) config$distances[d.metric] <- dist.call
+    else cat(validation, "\nMake sure all packages and dependencies are loaded, and that the function exists in specified package.") 
   }
-  validate.d.metrics(config$distances)
 }
 
 
-# function to parse and validate expression, checking for functions that aren't present
-validate.d.metrics <- function(distances) {
-  for (metric in distances) {
-    package <- gsub("^.*\\*", "", metric)   # combine these two regex, kinda hack way of doing it
-    package <- gsub("::.*", "", package)
-    #call the package and load it; will throw an error if they haven't downloaded it into their R library
-    require(package, character.only=TRUE, quietly=TRUE)
-  }
+# function validate expression, checking for functions that aren't present
+validate.distance <- function(distance) {
+  package <- gsub("^.*\\*", "", distance)   # combine these two regex, kinda hack way of doing it
+  package <- gsub("::.*", "", package)
+  func <- gsub("^.*::", "", distance)
+  func <- gsub("\\(.*", "", func)
+  #call the package and load it; will throw an error if they haven't downloaded it into their R library
+  require(package, character.only=TRUE, quietly=TRUE)
+  if (exists(func, where=paste0('package:', package), mode='function')) return (TRUE)
+  else return(paste0(package, "::", func, " does not exist."))
 }
 
 

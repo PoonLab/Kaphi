@@ -47,13 +47,13 @@ distances:
     sst.control: 1.0
     norm.mode: 'NONE'
   'sackin':
-    package: 'ape'
+    package: 'phyloTop'
     weight: 0.05      # making up the rest of these parameters, just for testing purposes
     variance: 1
     rejection: 0.015
     norm.mode: 'NONE'
-  'colless':
-    package: 'Kaphi'
+  'cophenetic.phylo':
+    package: 'ape'
     weight: 0.15
     variance: 2
     norm.mode: 'MEAN'
