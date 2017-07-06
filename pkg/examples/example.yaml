@@ -47,7 +47,7 @@ distances:
     sst.control: 1.0
     norm.mode: 'NONE'
   'sackin':
-    package: 'phyloTop'
+    package: 'Kaphi'
     weight: 0.05      # making up the rest of these parameters, just for testing purposes
     variance: 1
     rejection: 0.015

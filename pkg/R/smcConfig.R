@@ -99,6 +99,7 @@ load.config <- function(file) {
     if (validation == TRUE) config$distances[d.metric] <- dist.call
     else cat(validation, "\nMake sure all packages and dependencies are loaded, and that the function exists in specified package.") 
   }
+  return (config)
 }
 
 
