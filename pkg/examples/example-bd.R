@@ -49,8 +49,11 @@ plot(log(y), res, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2,
      main='Identifiability of Mu (Birth-Death Model)')
 abline(v=log(0.003), lty=2)
 
+
 #--------------------------------------------------------------------
 # Grid search for all pairwise combinations of values {lambda} x {mu}
+
+require(Kaphi)
 
 # load configuration file
 config <- load.config('pkg/examples/example-bd.yaml')
@@ -62,13 +65,14 @@ set.seed(50)
 obs.tree <- speciation.model(theta, nsim=1, tips=50, model='bd')[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
-# set up distance matrix
+# set up matrix
 x <- seq(0.05, 0.3, 0.025)
 y <- seq(0, 0.05, 0.005)
 m <- matrix(nrow=length(x), ncol=length(y), dimnames=list(x,y))
 ind <- 1
 
-# fill columns
+# fill matrix with distances from obs.tree for each pairwise combination 
+#   of lambda and mu.
 for (i in y) {
   cat('mu: ', i, '\n')
   res <- sapply(x, function(val) {
@@ -86,5 +90,16 @@ for (i in y) {
   ind <- ind + 1
 }
 
-# plot -- I'll figure out how to do this correctly tomorrow
-plot(x, y, cex=sqrt(m))
+# plot heat map using gplots
+require(grDevices)
+require(gplots)
+pal <- colorRampPalette(c("red", "yellow", "green"))(n = 100)
+hm1 <- heatmap.2(m, 
+                    Rowv=NA, Colv=NA,
+                    scale="none", na.rm=TRUE,
+                    col=pal,  
+                    margins=c(5,5),
+                    trace='none',
+                    density.info='none',
+                    ylab='Lambda', xlab='Mu', 
+                    main='Distance from obs.tree')
