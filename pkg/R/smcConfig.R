@@ -33,10 +33,11 @@ load.config <- function(file) {
     final.accept.rate=0.015,
     quality=0.95,
     step.tolerance=1e-5,
+    norm.mode='NONE',
 
     # distance settings
     # kernel, sackin, tree.width, etc
-    dist=list()
+    dist=NA
   )
   class(config) <- 'smc.config'
   
@@ -86,34 +87,37 @@ load.config <- function(file) {
   }
 
   # parse composite distance (dist.metric) settings (may or may not include the kernel distance)
-  # check if weights/coefficients add to 1?
-  for (d.metric in names(settings$distances)){
+  # check if character string, or a list of distance metrics
+  if (length(settings$distances)==1 && is.character(names(settings$distances))) {config$dist <- names(settings$distances)}
+  else {
+    for (d.metric in names(settings$distances)){
     
-    sublist <- settings$distances[[d.metric]]
+      sublist <- settings$distances[[d.metric]]
     
-    # format: 'weight*pkg::function(x, ...) + ...'
-    dist.call <- paste0(sublist$weight, '*', sublist$package, '::', d.metric)
-    arguments <- lapply(seq_along(sublist), 
+      # format: 'weight*pkg::function(x, ...) + ...'
+      dist.call <- paste0(sublist$weight, '*', sublist$package, '::', d.metric)
+      arguments <- lapply(seq_along(sublist), 
                         function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, 
                         y=sublist, n=names(sublist))
     
-    # the kernel measure takes two trees, while the others take in one
-    if (d.metric == 'kernel') {
-      dist.call <- paste0(dist.call, '(x, y, ', 
+      # the kernel measure takes two trees, while the others take in one
+      if (d.metric == 'kernel') {
+        dist.call <- paste0(dist.call, '(x, y, ', 
                           paste(arguments[3:length(arguments)], collapse=', '), ')')
-    } else {
-      dist.call <- paste0(dist.call, '(x, ', 
+      } else {
+        dist.call <- paste0(dist.call, '(x, ', 
                           paste(arguments[3:length(arguments)], collapse=', '), ')')
+      }
+    
+      # temporary until validation function complete:
+      # stores list of expressions in config
+      config$dist[d.metric] <- dist.call
+    
+      #validation <- validate.distance(dist.call)
+      #if (validation == TRUE) config$dist[d.metric] <- dist.call
+      #else cat(validation, "\nMake sure all packages and dependencies are loaded, 
+      #         and that the function exists in specified package.") 
     }
-    
-    # temporary until validation function complete:
-    # stores list of expressions in config
-    config$dist[d.metric] <- dist.call
-    
-    #validation <- validate.distance(dist.call)
-    #if (validation == TRUE) config$dist[d.metric] <- dist.call
-    #else cat(validation, "\nMake sure all packages and dependencies are loaded, 
-    #         and that the function exists in specified package.") 
   }
   
   # combines list of expressions into one string
