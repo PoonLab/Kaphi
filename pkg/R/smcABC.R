@@ -48,30 +48,34 @@ simulate.trees <- function(workspace, theta, model, seed=NA, ...) {
 }
 
 
-distance <- function(t1, t2, config) {
+# formally 'distance'
+kernel.dist <- function(t1, t2, config) {
   if (is.null(t1$kernel)) {
     stop("t1 missing self kernel in distance()")
   }
   if (is.null(t2$kernel)) {
     stop("t2 missing self kernel in distance()")
   }
-
+  
+  expr <- config$dist$kernel
+  
+  
   k <- tree.kernel(
-        t1,
-        t2,
-        lambda=config$decay.factor,
-        sigma=config$rbf.variance,
-        rho=config$sst.control
+    t1,
+    t2,
+    lambda=config$decay.factor,
+    sigma=config$rbf.variance,
+    rho=config$sst.control
   )
-
+  
   result <- 1. - k / sqrt(t1$kernel * t2$kernel)
   if (result < 0 || result > 1) {
     stop(
-      cat("ERROR: distance() value outside range [0,1].\n",
-                "k: ", k, "\n",
-                "t1$kernel: ", t1$kernel, "\n",
-                "t2$kernel: ", t2$kernel, "\n"
-          )
+      cat("ERROR: kernel.dist() value outside range [0,1].\n",
+          "k: ", k, "\n",
+          "t1$kernel: ", t1$kernel, "\n",
+          "t2$kernel: ", t2$kernel, "\n"
+      )
     )
   }
   if (is.nan(result)) {
@@ -79,6 +83,30 @@ distance <- function(t1, t2, config) {
     cat("t2$kernel:", t2$kernel, "\n")
   }
   return (result)
+}
+
+
+# Applies config$dist expression to two trees
+# "0.8*Kaphi::kernel(package=Kaphi,weight=0.8,decay.factor=0.2,rbf.variance=100,sst.control=1,norm.mode=NONE)"
+distance <- function(t1, t2, config) {
+  
+  # parse each distance expression
+  dist <- config$dist
+  names <- names(dist)
+  
+  d.expr <- lapply(dist, function(x) {
+    w.match <- regexpr('^[0-9]+\\.[0-9]+', x)
+    weight <- regmatches(x, w.match)[[1]]
+    f.match <- regexpr('[A-Za-z]+::[A-Za-z]+', x)
+    fn <- regmatches(x, f.match)[[1]]
+    a.match <- regexpr('', x)
+    args <- regmatches(x, a.match)[[1]]
+    list(weight=weight, fn=fn)
+  })
+  return (result)
+  
+  expr <- # for fn in names, (name$weight * (name$fn(t1) - name$fn(t2)))
+  
 }
 
 

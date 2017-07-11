@@ -36,7 +36,7 @@ load.config <- function(file) {
 
     # distance settings
     # kernel, sackin, tree.width, etc
-    distances=list()
+    dist=list()
   )
   class(config) <- 'smc.config'
   
@@ -91,12 +91,15 @@ load.config <- function(file) {
     
     sublist <- settings$distances[[d.metric]]
     
+    arguments <- lapply(seq_along(sublist), function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, y=sublist, n=names(sublist))
+    
+    
     # written in the format of "0.8*Kaphi::kernel(package=Kaphi,weight=0.8,decay.factor=0.2,rbf.variance=100,sst.control=1,norm.mode=NONE)" under $kernel call
     dist.call <- paste0(sublist$weight, '*', sublist$package, '::', d.metric)
     arguments <- lapply(seq_along(sublist), function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, y=sublist, n=names(sublist))
     dist.call <- paste0(dist.call, '(', paste(arguments, collapse=','), ')')
     validation <- validate.distance(dist.call)
-    if (validation == TRUE) config$distances[d.metric] <- dist.call
+    if (validation == TRUE) config$dist[d.metric] <- dist.call
     else cat(validation, "\nMake sure all packages and dependencies are loaded, and that the function exists in specified package.") 
   }
   return (config)
@@ -243,11 +246,12 @@ print.smc.config <- function(config, ...) {
   cat('  Quality:', config$quality, '\n')
   cat('  Step tolerance:', config$step.tolerance, '\n')
 
-  cat('Kernel settings\n')
-  cat('  Decay factor:', config$decay.factor, '\n')
-  cat('  RBF variance:', config$rbf.variance, '\n')
-  cat('  SST control:', config$sst.control, '\n')
-  cat('  Normalization:', config$norm.mode, '\n')
+  cat('Distance expression:\n', config$dist, '\n')
+  #cat('Kernel settings\n')
+  #cat('  Decay factor:', config$decay.factor, '\n')
+  #cat('  RBF variance:', config$rbf.variance, '\n')
+  #cat('  SST control:', config$sst.control, '\n')
+  #cat('  Normalization:', config$norm.mode, '\n')
 }
 
 plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
