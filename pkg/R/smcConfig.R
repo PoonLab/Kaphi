@@ -243,11 +243,11 @@ print.smc.config <- function(config, ...) {
   cat('  Quality:', config$quality, '\n')
   cat('  Step tolerance:', config$step.tolerance, '\n')
 
-  cat('Kernel settings\n')
-  cat('  Decay factor:', config$decay.factor, '\n')
-  cat('  RBF variance:', config$rbf.variance, '\n')
-  cat('  SST control:', config$sst.control, '\n')
-  cat('  Normalization:', config$norm.mode, '\n')
+  cat('Distance settings\n')
+  for (dist.metric in config$dists) {
+    cat('  ', dist.metric, '\t', config$dists[[dist.metric]], '\n')
+  }
+
 }
 
 plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
