@@ -4,23 +4,11 @@ priors:
     hyperparameters:
     - rate: 1.0
     - shape: 2.0
-#  mu:
-#    dist: 'gamma'
-#    hyperparameters:
-#    - rate: 2.0
-#    - shape: 1.0
-
-#priors:
-#  lambda:
-#    dist: 'unif'
-#    hyperparameters:
-#    - min: 0.1
-#    - max: 0.1
   mu:
-    dist: 'unif'
+    dist: 'gamma'
     hyperparameters:
-    - min: 0.003
-    - max: 0.003
+    - rate: 1.0
+    - shape: 1.0
 proposals:
   lambda:
     dist: 'norm'
