@@ -42,7 +42,7 @@ plot(x, resx, type='b', xlab='N', ylab='Mean kernel distance', cex.lab=1.2)
 
 
 # calculate kernel distances for varying beta
-y <- seq(0.01,0.26, 0.025)    # (from, to, step)
+y <- seq(0.01,0.235, 0.025)    # (from, to, step)
 resy <- sapply(y, function(value) {
   theta <- c(t.end=50, N=5000, beta=value, gamma=1/520, mu=1/3640, alpha=0)
   sim.trees <- compartmental.model(theta, nsim=100, tips=100, model='sir.nondynamic')
@@ -114,3 +114,56 @@ res <- sapply(x, function(value) {
 # generate a plot
 par(mar=c(5,5,2,2))
 plot(x, res, type='b', xlab='alpha', ylab='Mean kernel distance', cex.lab=1.2)
+
+
+
+#--------------------------------------------------------------------
+# Grid search for all pairwise combinations of values {beta} x {N}
+
+config <- load.config('pkg/examples/example-compartmental.yaml')
+config <- set.model(config, 'sir.nondynamic')
+
+# simulate target tree
+#theta <- c(t.end=30.*52, N=1000, beta=0.01, gamma=1/520, mu=1/3640, alpha=0)
+theta <- c(t.end=50, N=5000, beta=0.1, gamma=1/520, mu=1/3640, alpha=0)
+set.seed(25)
+obs.tree <- compartmental.model(theta, nsim=1, tips=100, model='sir.nondynamic')[[1]]
+obs.tree <- parse.input.tree(obs.tree, config)
+
+x <- seq(1000,10000, 1000)   # N
+y <- seq(0.01,0.235, 0.025)  # beta
+
+m <- matrix(nrow=length(x), ncol=length(y), dimnames=list(x,y))
+ind <- 1
+
+# fill columns
+for (i in y) {
+  cat('beta: ', i, '\n')
+  res <- sapply(x, function(val) {
+    theta <- c(t.end=50, N=val, beta=i, gamma=1/520, mu=1/3640, alpha=0)
+    sim.trees <- compartmental.model(theta, nsim=50, tips=50, model='sir.nondynamic')
+    dists <- sapply(sim.trees, function(st) {
+      pt <- .preprocess.tree(st, config)
+      distance(obs.tree, pt, config)
+    })
+    cat(' N: ', val, "\n")
+    mean(dists)
+  })
+  cat('writing values to col. ', ind, '\n')
+  m[,ind] <- res
+  ind <- ind + 1
+}
+
+# plot heatmap using gplots
+require(grDevices)
+require(gplots)
+pal <- colorRampPalette(c("red", "yellow", "green"))(n = 100)
+hm1 <- heatmap.2(m, 
+                Rowv=NA, Colv=NA,
+                scale="none", na.rm=TRUE,
+                col=pal,  
+                margins=c(5,5),
+                trace='none',
+                density.info='none',
+                ylab='N', xlab='beta', 
+                main='Distance from obs.tree')
