@@ -88,25 +88,11 @@ kernel.dist <- function(t1, t2, config) {
 
 # Applies config$dist expression to two trees
 # "0.8*Kaphi::kernel(package=Kaphi,weight=0.8,decay.factor=0.2,rbf.variance=100,sst.control=1,norm.mode=NONE)"
-distance <- function(t1, t2, config) {
+distance <- function(x, y, config) {
   
-  # parse each distance expression
-  dist <- config$dist
-  names <- names(dist)
+  result <- eval(parse(text=config$dist)) 
   
-  d.expr <- lapply(dist, function(x) {
-    w.match <- regexpr('^[0-9]+\\.[0-9]+', x)
-    weight <- regmatches(x, w.match)[[1]]
-    f.match <- regexpr('[A-Za-z]+::[A-Za-z]+', x)
-    fn <- regmatches(x, f.match)[[1]]
-    a.match <- regexpr('', x)
-    args <- regmatches(x, a.match)[[1]]
-    list(weight=weight, fn=fn)
-  })
-  return (result)
-  
-  expr <- # for fn in names, (name$weight * (name$fn(t1) - name$fn(t2)))
-  
+  return(result)
 }
 
 

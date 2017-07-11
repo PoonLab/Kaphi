@@ -35,6 +35,7 @@ export(init.workspace)
 export(print.smc.workspace)
 
 export(simulate.trees)
+export(kernel.dist)
 export(distance)
 export(initialize.smc)
 export(.ess)

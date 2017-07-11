@@ -91,17 +91,34 @@ load.config <- function(file) {
     
     sublist <- settings$distances[[d.metric]]
     
-    arguments <- lapply(seq_along(sublist), function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, y=sublist, n=names(sublist))
-    
-    
-    # written in the format of "0.8*Kaphi::kernel(package=Kaphi,weight=0.8,decay.factor=0.2,rbf.variance=100,sst.control=1,norm.mode=NONE)" under $kernel call
+    # format: 'weight*pkg::function(x, ...) + ...'
     dist.call <- paste0(sublist$weight, '*', sublist$package, '::', d.metric)
-    arguments <- lapply(seq_along(sublist), function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, y=sublist, n=names(sublist))
-    dist.call <- paste0(dist.call, '(', paste(arguments, collapse=','), ')')
-    validation <- validate.distance(dist.call)
-    if (validation == TRUE) config$dist[d.metric] <- dist.call
-    else cat(validation, "\nMake sure all packages and dependencies are loaded, and that the function exists in specified package.") 
+    arguments <- lapply(seq_along(sublist), 
+                        function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, 
+                        y=sublist, n=names(sublist))
+    
+    # the kernel measure takes two trees, while the others take in one
+    if (d.metric == 'kernel') {
+      dist.call <- paste0(dist.call, '(x, y, ', 
+                          paste(arguments[3:length(arguments)], collapse=', '), ')')
+    } else {
+      dist.call <- paste0(dist.call, '(x, ', 
+                          paste(arguments[3:length(arguments)], collapse=', '), ')')
+    }
+    
+    # temporary until validation function complete:
+    # stores list of expressions in config
+    config$dist[d.metric] <- dist.call
+    
+    #validation <- validate.distance(dist.call)
+    #if (validation == TRUE) config$dist[d.metric] <- dist.call
+    #else cat(validation, "\nMake sure all packages and dependencies are loaded, 
+    #         and that the function exists in specified package.") 
   }
+  
+  # combines list of expressions into one string
+  config$dist <- paste0(config$dist, collapse=' + ')
+  
   return (config)
 }
 
