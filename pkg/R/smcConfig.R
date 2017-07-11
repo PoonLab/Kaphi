@@ -37,7 +37,7 @@ load.config <- function(file) {
 
     # distance settings
     # kernel, sackin, tree.width, etc
-    dist=NA
+    dist=NULL
   )
   class(config) <- 'smc.config'
   
@@ -88,25 +88,27 @@ load.config <- function(file) {
 
   # parse composite distance (dist.metric) settings (may or may not include the kernel distance)
   # check if character string, or a list of distance metrics
-  if (length(settings$distances)==1 && is.character(names(settings$distances))) {config$dist <- names(settings$distances)}
-  else {
+  if (length(settings$distances)==1 && is.character(names(settings$distances))) {
+    config$dist <- names(settings$distances)
+  } else {
     for (d.metric in names(settings$distances)){
     
       sublist <- settings$distances[[d.metric]]
     
       # format: 'weight*pkg::function(x, ...) + ...'
       dist.call <- paste0(sublist$weight, '*', sublist$package, '::', d.metric)
+      fn <- paste0(sublist$package, '::', d.metric)
       arguments <- lapply(seq_along(sublist), 
                         function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, 
                         y=sublist, n=names(sublist))
     
       # the kernel measure takes two trees, while the others take in one
-      if (d.metric == 'kernel') {
+      if (d.metric == 'kernel.dist') {
         dist.call <- paste0(dist.call, '(x, y, ', 
                           paste(arguments[3:length(arguments)], collapse=', '), ')')
       } else {
-        dist.call <- paste0(dist.call, '(x, ', 
-                          paste(arguments[3:length(arguments)], collapse=', '), ')')
+        dist.call <- paste0(sublist$weight, '*', '(', fn, '(x, ', paste(arguments[3:length(arguments)], collapse=', '), 
+                            ') - ', fn, '(y, ', paste(arguments[3:length(arguments)], collapse=', '), '))')
       }
     
       # temporary until validation function complete:
@@ -129,8 +131,9 @@ load.config <- function(file) {
 
 # function validate expression, checking for functions that aren't present
 validate.distance <- function(distance) {
-  package <- gsub("^.*\\*", "", distance)   # combine these two regex, kinda hack way of doing it
+  package <- gsub("^.*\\*", "", distance)   # combine these ~~two~~ (three now) regex, kinda hack way of doing it
   package <- gsub("::.*", "", package)
+  package <- gsub("[^A-Za-z]", "", package)
   func <- gsub("^.*::", "", distance)
   func <- gsub("\\(.*", "", func)
   #call the package and load it; will throw an error if they haven't downloaded it into their R library
@@ -138,7 +141,6 @@ validate.distance <- function(distance) {
   if (exists(func, where=paste0('package:', package), mode='function')) return (TRUE)
   else return(paste0(package, "::", func, " does not exist."))
 }
-
 
 
 set.model <- function(config, generator) {

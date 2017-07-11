@@ -49,7 +49,7 @@ simulate.trees <- function(workspace, theta, model, seed=NA, ...) {
 
 
 # formally 'distance'
-kernel.dist <- function(t1, t2, config) {
+kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control) {
   if (is.null(t1$kernel)) {
     stop("t1 missing self kernel in distance()")
   }
@@ -57,15 +57,12 @@ kernel.dist <- function(t1, t2, config) {
     stop("t2 missing self kernel in distance()")
   }
   
-  expr <- config$dist$kernel
-  
-  
   k <- tree.kernel(
     t1,
     t2,
-    lambda=config$decay.factor,
-    sigma=config$rbf.variance,
-    rho=config$sst.control
+    lambda=decay.factor,
+    sigma=rbf.variance,
+    rho=sst.control
   )
   
   result <- 1. - k / sqrt(t1$kernel * t2$kernel)

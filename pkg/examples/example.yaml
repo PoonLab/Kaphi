@@ -38,22 +38,18 @@ smc:
   final.epsilon: 0.1
   quality: 0.95
   step.tolerance: 1.e-5
+  norm.mode: 'NONE'
 distances:
-  'kernel':
+  'kernel.dist':
     package: 'Kaphi'
     weight: 0.8
     decay.factor: 0.2
     rbf.variance: 100.0
     sst.control: 1.0
-    norm.mode: 'NONE'
   'sackin':
     package: 'Kaphi'
     weight: 0.05      # making up the rest of these parameters, just for testing purposes
-    variance: 1
-    rejection: 0.015
-    norm.mode: 'NONE'
+    use.branch.lengths: FALSE
   'cophenetic.phylo':
     package: 'ape'
     weight: 0.15
-    variance: 2
-    norm.mode: 'MEAN'
