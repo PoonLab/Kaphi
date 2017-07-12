@@ -66,8 +66,8 @@ obs.tree <- speciation.model(theta, nsim=1, tips=50, model='bd')[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
 # set up matrix
-x <- seq(0.05, 0.3, 0.025)
-y <- seq(0, 0.05, 0.005)
+x <- seq(0.05, 0.3, 0.005)
+y <- seq(0, 0.05, 0.001)
 m <- matrix(nrow=length(x), ncol=length(y), dimnames=list(x,y))
 ind <- 1
 
@@ -93,13 +93,16 @@ for (i in y) {
 # plot heat map using gplots
 require(grDevices)
 require(gplots)
+require(ggplot2)
 pal <- colorRampPalette(c("red", "yellow", "green"))(n = 100)
 hm1 <- heatmap.2(m, 
-                    Rowv=NA, Colv=NA,
-                    scale="none", na.rm=TRUE,
-                    col=pal,  
-                    margins=c(5,5),
-                    trace='none',
-                    density.info='none',
-                    ylab='Lambda', xlab='Mu', 
-                    main='Distance from obs.tree')
+                Rowv=NA, Colv=NA,
+                scale="none", na.rm=TRUE,
+                col=pal,  
+                margins=c(5,5),
+                density.info='none',
+                ylab='Lambda', xlab='Mu', 
+                main='Distance from obs.tree',
+                trace='none',
+                #TODO: get the line on the graph, not the key     
+                extrafun = abline(h=0.1, lty=2))
