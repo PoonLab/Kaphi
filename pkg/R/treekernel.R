@@ -76,7 +76,10 @@ parse.newick <- function(tree) {
     tryCatch({
       plot(tree, plot=FALSE)
       }, error = function(e) {
-        stop("Malformed Newick tree string!")
+        e$message <- paste(".to.newick error:", e, sep=' ')
+        stop(e)
+        #stop("Malformed Newick tree string!")
+        #return(write.tree(tree))
         })
     return (write.tree(tree))
   } else if (class(tree) == 'character') {
@@ -86,6 +89,7 @@ parse.newick <- function(tree) {
       plot(tree, plot=FALSE)
       }, error = function(e) {
         stop("Malformed Newick tree string!")
+        #return(write.tree(tree))    
       })
     if (is.null(tree)) {
       stop(".to.newick(): String failed to parse as Newick tree string")
