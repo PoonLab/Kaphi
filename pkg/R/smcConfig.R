@@ -111,14 +111,10 @@ load.config <- function(file) {
                             ') - ', fn, '(y, ', paste(arguments[3:length(arguments)], collapse=', '), '))')
       }
     
-      # temporary until validation function complete:
-      # stores list of expressions in config
-      config$dist[d.metric] <- dist.call
-    
-      #validation <- validate.distance(dist.call)
-      #if (validation == TRUE) config$dist[d.metric] <- dist.call
-      #else cat(validation, "\nMake sure all packages and dependencies are loaded, 
-      #         and that the function exists in specified package.") 
+      validation <- validate.distance(dist.call)
+      if (validation == TRUE) config$dist[d.metric] <- dist.call
+      else cat(validation, "\nMake sure all packages and dependencies are loaded, 
+               and that the function exists in specified package.") 
     }
   }
   
