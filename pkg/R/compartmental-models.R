@@ -33,11 +33,6 @@ require(rcolgem, quietly=TRUE)
     fgyResolution=fgyResolution, 
     integrationMethod=integrationMethod
   )
-  #plot(fgy[[2]], fgy[[1]])
-  #plot(fgy[[3]], fgy[[1]])
-  #plot(fgy[[4]], fgy[[1]])
-  #plot(fgy[[5]], fgy[[1]])
-  #return(fgy)
   
   # simulate tree
   tree <- simulate.binary.dated.tree.fgy(
@@ -50,23 +45,8 @@ require(rcolgem, quietly=TRUE)
     integrationMethod=integrationMethod  #  , n.reps=nreps   --this isn't a parameter in rcolgem's simulate.binary.dated.tree.fgy
   )
   
-  phy <- tree[[1]]
-  class(phy)  <- 'phylo'
-  return(phy)
-  
-  # https://github.com/cran/ape/blob/master/R/rtree.R converting tree result into an ape phylo object phy
-  #phy <- list(edge=tree$edge, edge.length=tree$edge.length)
-  #if (is.null(tree$tip.label))
-  #  tree$tip.label <- paste("t", 1:tree$n)     # n = number of tips
-  #phy$tip.label <- sample(tree$tip.label)
-  #phy$Nnode <- tree$n - 1L
-  #class(phy) <- "phylo"
-  #phy <- reorder(phy)
-  # to avoid crossings when converting with as.hclust
-  #phy$edge[phy$edge[,2] <= tree$n, 2] <- 1:tree$n
-  #phy
-  
-  #return(phy)    # returning an ape phylo object
+  class(tree)  <- 'phylo'
+  return(tree)            # returning an ape phylo object + 20 other things (from rcolgem)
 }
 
 
