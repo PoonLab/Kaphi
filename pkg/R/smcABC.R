@@ -298,9 +298,9 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
   while (ws$epsilon != config$final.epsilon) {
     niter <- niter + 1
 
-    if (verbose) { cat("ws$dists:\n") 
-                       show(ws$dists)
-                       cat("\n\n")}
+    #if (verbose) { cat("ws$dists:\n") 
+    #                   show(ws$dists)
+    #                   cat("\n\n")}
 
     # update epsilon
     ws <- .next.epsilon(ws)
