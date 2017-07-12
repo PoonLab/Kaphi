@@ -59,14 +59,16 @@ parse.newick <- function(tree) {
   }
   tree <- ladderize(tree)
   tree <- .rescale.tree(tree, config$norm.mode)
-  # cache self-kernel score
+  # cache self-kernel score (only if kernel distance is desired for distance metric; specified on user-level)
   # FIXME:  this won't work for labelled kernel
-  tree$kernel <- tree.kernel(tree, tree,
+  if (grep("kernel", config$dist) > 0) {
+    tree$kernel <- tree.kernel(tree, tree,
                              lambda=config$decay.factor,
                              sigma=config$rbf.variance,
                              rho=config$sst.control,
                              normalize=0
                              )
+  }
   return(tree)
 }
 

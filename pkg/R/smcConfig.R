@@ -266,9 +266,7 @@ print.smc.config <- function(config, ...) {
   cat('  Step tolerance:', config$step.tolerance, '\n')
 
   cat('Distance settings\n')
-  for (dist.metric in config$dists) {
-    cat('  ', dist.metric, '\t', config$dists[[dist.metric]], '\n')
-  }
+  cat('  Expression:\t', config$dist, '\n')
 
 }
 
