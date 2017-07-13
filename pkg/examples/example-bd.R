@@ -50,8 +50,8 @@ plot(log(y), res, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2,
 abline(v=log(0.003), lty=2)
 
 
-#--------------------------------------------------------------------
-# Grid search for all pairwise combinations of values {lambda} x {mu}
+#------------------------------------------------------------------------------
+# Grid search + heatmap for all pairwise combinations of values {lambda} x {mu}
 
 require(Kaphi)
 
@@ -93,7 +93,6 @@ for (i in y) {
 # plot heat map using gplots
 require(grDevices)
 require(gplots)
-require(ggplot2)
 pal <- colorRampPalette(c("red", "yellow", "green"))(n = 100)
 hm1 <- heatmap.2(m, 
                 Rowv=NA, Colv=NA,
@@ -104,5 +103,5 @@ hm1 <- heatmap.2(m,
                 ylab='Lambda', xlab='Mu', 
                 main='Distance from obs.tree',
                 trace='none',
-                #TODO: get the line on the graph, not the key     
-                extrafun = abline(h=0.1, lty=2))
+                add.expr=abline(v=c(3.75), h=c(41), lty=2)
+                )
