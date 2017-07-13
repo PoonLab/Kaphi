@@ -37,7 +37,13 @@ load.config <- function(file) {
 
     # distance settings
     # kernel, sackin, tree.width, etc
-    dist=NULL
+    dist=NULL,
+    
+    # cached kernel settings, left alone if not specified in user-provided yaml/distance string
+    # should we leave default settings in?
+    decay.factor=0,
+    rbf.variance=0.0,
+    sst.control=0.0
   )
   class(config) <- 'smc.config'
   
@@ -92,7 +98,6 @@ load.config <- function(file) {
     config$dist <- names(settings$distances)
   } else {
     for (d.metric in names(settings$distances)){
-    
       sublist <- settings$distances[[d.metric]]
     
       # format: 'weight*pkg::function(x, ...) + ...'
@@ -101,15 +106,29 @@ load.config <- function(file) {
       arguments <- lapply(seq_along(sublist), 
                         function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, 
                         y=sublist, n=names(sublist))
-    
+      
       # the kernel measure takes two trees, while the others take in one
+      args <- arguments[3:length(arguments)]
       if (d.metric == 'kernel.dist') {
-        dist.call <- paste0(dist.call, '(x, y, ', 
-                          paste(arguments[3:length(arguments)], collapse=', '), ')')
-      } else {
-        dist.call <- paste0(sublist$weight, '*', '(', fn, '(x, ', paste(arguments[3:length(arguments)], collapse=', '), 
-                            ') - ', fn, '(y, ', paste(arguments[3:length(arguments)], collapse=', '), '))')
-      }
+        dist.call <- paste0(dist.call, '(x, y, ', paste(args, collapse=', '), ')')
+        # cache arguments for any kernel functions that use kernel attributes for later
+        split.args <- sapply(args, function(x){strsplit(x, '=')})
+        for (i in split.args) {assign(i[1], as.numeric(i[2]))}
+        tryCatch({config$decay.factor <- get('decay.factor')
+                 config$rbf.variance <- get('rbf.variance')
+                 config$sst.control <- get('sst.control')},
+                 error= function(e) {e$message <- paste("User-specified kernel distance is missing one or more parameters:", e, sep=" ")
+                 stop(e)})
+    
+        } else {
+        
+          if (length(arguments) <= 2) 
+            dist.call <- paste0(sublist$weight, '*', '(', fn, '(x) - ', fn, '(y))')
+          else  
+            dist.call <- paste0(sublist$weight, '*', '(', fn, '(x, ', paste(args, collapse=', '), 
+                                ') - ', fn, '(y, ', paste(args, collapse=', '), '))')
+        
+        }
     
       validation <- validate.distance(dist.call)
       if (validation == TRUE) config$dist[d.metric] <- dist.call
