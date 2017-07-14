@@ -7,8 +7,8 @@ config <- set.model(config, 'sir.nondynamic')
 
 # simulate target tree
 #theta <- c(t.end=30.*52, N=1000, beta=0.01, gamma=1/520, mu=1/3640, alpha=0)
-theta <- c(t.end=50, N=5000, beta=0.1, gamma=1/520, mu=1/3640, alpha=0)
-set.seed(25)
+theta <- c(t.end=10, N=1500, beta=0.1, gamma=1/520, mu=1/3640, alpha=0)
+set.seed(50)
 obs.tree <- compartmental.model(theta, nsim=1, tips=100, model='sir.nondynamic')[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
@@ -19,7 +19,7 @@ obs.tree <- parse.input.tree(obs.tree, config)
 ws <- init.workspace(obs.tree, config)
 
 # this takes about....idk how long to run
-result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', model="sir.nondynamic")    #require a tsv file here ... find a dataset for this epidemiological model
+result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', model="sir.nondynamic", verbose=TRUE)    #require a tsv file here ... find a dataset for this epidemiological model
 
 
 
