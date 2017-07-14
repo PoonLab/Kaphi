@@ -50,6 +50,10 @@ distances:
     package: 'Kaphi'
     weight: 0.05      # making up the rest of these parameters, just for testing purposes
     use.branch.lengths: FALSE
-  'cophenetic.phylo':
-    package: 'ape'
+  #'cophenetic.phylo':
+  #  package: 'ape'
+  #  weight: 0.15
+  'colless'
+    package: 'Kaphi'
     weight: 0.15
+    

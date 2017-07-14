@@ -40,10 +40,9 @@ load.config <- function(file) {
     dist=NULL,
     
     # cached kernel settings, left alone if not specified in user-provided yaml/distance string
-    # should we leave default settings in?
-    decay.factor=0,
-    rbf.variance=0.0,
-    sst.control=0.0
+    decay.factor=0.2,
+    rbf.variance=100.0,
+    sst.control=1.0
   )
   class(config) <- 'smc.config'
   
@@ -119,24 +118,20 @@ load.config <- function(file) {
                  config$sst.control <- get('sst.control')},
                  error= function(e) {e$message <- paste("User-specified kernel distance is missing one or more parameters:", e, sep=" ")
                  stop(e)})
-    
-        } else {
-        
+      } else {
           if (length(arguments) <= 2) 
             dist.call <- paste0(sublist$weight, '*', '(', fn, '(x) - ', fn, '(y))')
           else  
             dist.call <- paste0(sublist$weight, '*', '(', fn, '(x, ', paste(args, collapse=', '), 
                                 ') - ', fn, '(y, ', paste(args, collapse=', '), '))')
-        
-        }
-    
+      }
+
       validation <- validate.distance(dist.call)
       if (validation == TRUE) config$dist[d.metric] <- dist.call
       else cat(validation, "\nMake sure all packages and dependencies are loaded, 
                and that the function exists in specified package.") 
     }
   }
-  
   # combines list of expressions into one string
   config$dist <- paste0(config$dist, collapse=' + ')
   
