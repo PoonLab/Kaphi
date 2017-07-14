@@ -32,8 +32,8 @@ plot(x, res, type='o', xlab='Lambda', ylab='Mean kernel distance', cex.lab=1.2, 
 abline(v=0.1, lty=2)
 
 # calculate kernel distances for varying mu
-y <- seq(0, 0.1, 0.0034)
-res <- sapply(y, function(val) {
+y <- seq(0, 0.05, 0.001)
+res2 <- sapply(y, function(val) {
   theta <- c(lambda=0.1, mu=val)
   sim.trees <- speciation.model(theta, nsim=100, tips=50, model='bd')
   dists <- sapply(sim.trees, function(st) {
@@ -45,10 +45,13 @@ res <- sapply(y, function(val) {
 })
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(log(y), res, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0.05,0.12),
+plot(log(y), res2, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0.05,0.12),
      main='Identifiability of Mu (Birth-Death Model)')
 abline(v=log(0.003), lty=2)
 
+plot(y, res2, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0.05,0.09),
+     main='Identifiability of Mu (Birth-Death Model)')
+abline(v=0.003, lty=2)
 
 #------------------------------------------------------------------------------
 # Grid search + heatmap for all pairwise combinations of values {lambda} x {mu}

@@ -5,10 +5,10 @@ priors:
     - rate: 1.0
     - shape: 2.0
   mu:
-    dist: 'gamma'
+    dist: 'unif'
     hyperparameters:
-    - rate: 1.0
-    - shape: 1.0
+    - min: 0.0
+    - max: 0.05
 proposals:
   lambda:
     dist: 'norm'
@@ -30,6 +30,6 @@ smc:
   step.tolerance: 1.e-4
 kernel:
   decay.factor: 0.2
-  rbf.variance: 100.0
+  rbf.variance: 1.0
   sst.control: 1.0
   norm.mode: 'NONE'
