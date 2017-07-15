@@ -32,8 +32,8 @@ plot(x, res, type='o', xlab='Lambda', ylab='Mean kernel distance', cex.lab=1.2, 
 abline(v=0.1, lty=2)
 
 # calculate kernel distances for varying mu
-y <- seq(0, 0.1, 0.0034)
-res <- sapply(y, function(val) {
+y <- seq(0, 0.05, 0.001)
+res2 <- sapply(y, function(val) {
   theta <- c(lambda=0.1, mu=val)
   sim.trees <- speciation.model(theta, nsim=100, tips=50, model='bd')
   dists <- sapply(sim.trees, function(st) {
@@ -45,13 +45,16 @@ res <- sapply(y, function(val) {
 })
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(log(y), res, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0.05,0.12),
+plot(log(y), res2, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0.05,0.12),
      main='Identifiability of Mu (Birth-Death Model)')
 abline(v=log(0.003), lty=2)
 
+plot(y, res2, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0.05,0.09),
+     main='Identifiability of Mu (Birth-Death Model)')
+abline(v=0.003, lty=2)
 
-#--------------------------------------------------------------------
-# Grid search for all pairwise combinations of values {lambda} x {mu}
+#------------------------------------------------------------------------------
+# Grid search + heatmap for all pairwise combinations of values {lambda} x {mu}
 
 require(Kaphi)
 
@@ -66,8 +69,8 @@ obs.tree <- speciation.model(theta, nsim=1, tips=50, model='bd')[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
 # set up matrix
-x <- seq(0.05, 0.3, 0.025)
-y <- seq(0, 0.05, 0.005)
+x <- seq(0.05, 0.3, 0.005)
+y <- seq(0, 0.05, 0.001)
 m <- matrix(nrow=length(x), ncol=length(y), dimnames=list(x,y))
 ind <- 1
 
@@ -95,11 +98,13 @@ require(grDevices)
 require(gplots)
 pal <- colorRampPalette(c("red", "yellow", "green"))(n = 100)
 hm1 <- heatmap.2(m, 
-                    Rowv=NA, Colv=NA,
-                    scale="none", na.rm=TRUE,
-                    col=pal,  
-                    margins=c(5,5),
-                    trace='none',
-                    density.info='none',
-                    ylab='Lambda', xlab='Mu', 
-                    main='Distance from obs.tree')
+                Rowv=NA, Colv=NA,
+                scale="none", na.rm=TRUE,
+                col=pal,  
+                margins=c(5,5),
+                density.info='none',
+                ylab='Lambda', xlab='Mu', 
+                main='Distance from obs.tree',
+                trace='none',
+                add.expr=abline(v=c(3.75), h=c(41), lty=2)
+                )

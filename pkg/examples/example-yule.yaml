@@ -9,7 +9,7 @@ proposals:
     dist: 'norm'
     parameters:
     - mean: 0.0
-    - sd: 0.5
+    - sd: 0.1
 smc:
   nparticle: 1000
   nsample: 5
@@ -20,6 +20,6 @@ smc:
   step.tolerance: 1.e-4
 kernel:
   decay.factor: 0.2
-  rbf.variance: 100.0
+  rbf.variance: 1.0
   sst.control: 1.0
   norm.mode: 'NONE'
