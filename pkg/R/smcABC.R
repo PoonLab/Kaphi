@@ -260,13 +260,13 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
 	# @param nthreads: (optional) for running on multiple cores
 	# @param ...: additional arguments to pass to config@generator via
   #   simulate.trees()
-
+  
+  config <- ws$config
+  
   # clear file and write header row
   write.table(t(c(
     'n', 'part.num', 'weight', config$params, paste0('dist.', 1:config$nsample)
     )), file=trace.file, sep='\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
-
-	config <- ws$config
 
   # space for returned values
   result <- list(niter=0, theta=list(), weights=list(), accept.rate={}, epsilons={})

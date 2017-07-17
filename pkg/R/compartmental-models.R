@@ -48,12 +48,12 @@ require(rcolgem, quietly=TRUE)
   # strip out unnecessary attributes from rcolgem returned object
   phy <- list(
     edge=tree$edge,
-    Nnode=tree$Nnode
-    tip.label=tree$tip.label
+    Nnode=tree$Nnode,
+    tip.label=tree$tip.label,
     edge.length=tree$edge.length
   )
-  class(phy)  <- 'phylo'
-  return(phy)            # returning an ape phylo object
+  class(tree)  <- 'phylo'
+  return(tree)            # returning an ape phylo object
 }
 
 
