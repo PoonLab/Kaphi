@@ -239,7 +239,7 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
   if (nrow(y) == 1){
     rownames(y)[1] <- names(config$priors)
   }
-  h <- apply(y, 1, hist, plot=F)
+  h <- apply(y, 1, density)
   s <- 1        # counter
   par(ask=T)    # prompts user to 'Hit <Return> to see next plot'
   n.slides <- ceiling(nrow(y) / (numr*numc)) #determine number of plot slides required according to specified dimensions
