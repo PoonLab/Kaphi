@@ -259,6 +259,7 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
       } 
     }
   }
+  par(ask=F)
 }
 
 # parse tip arguments for each model and creates either n tips of zero height if arg is an int 

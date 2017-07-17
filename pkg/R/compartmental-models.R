@@ -45,8 +45,15 @@ require(rcolgem, quietly=TRUE)
     integrationMethod=integrationMethod  #  , n.reps=nreps   --this isn't a parameter in rcolgem's simulate.binary.dated.tree.fgy
   )
   
+  # strip out unnecessary attributes from rcolgem returned object
+  phy <- list(
+    edge=tree$edge,
+    Nnode=tree$Nnode,
+    tip.label=tree$tip.label,
+    edge.length=tree$edge.length
+  )
   class(tree)  <- 'phylo'
-  return(tree)            # returning an ape phylo object + 20 other things (from rcolgem)
+  return(tree)            # returning an ape phylo object
 }
 
 
