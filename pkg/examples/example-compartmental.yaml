@@ -2,13 +2,13 @@ priors:
   't.end':
     dist: 'norm'
     hyperparameters:
-    - mean: 10
-    - sd: 2
+    - mean: 100
+    - sd: 10
   'N':
     dist: 'norm'
     hyperparameters:
-    - mean: 5000
-    - sd: 100
+    - mean: 1600
+    - sd: 200
   'beta':
     dist: 'gamma'
     hyperparameters:
@@ -33,13 +33,13 @@ proposals:
   't.end':
     dist: 'norm'
     parameters:
-    - mean: 10
-    - sd: 2
+    - mean: 100
+    - sd: 10
   'N':
     dist: 'norm'
     parameters:
-    - mean: 5000
-    - sd: 100
+    - mean: 1600
+    - sd: 200
   'beta':
     dist: 'gamma'
     parameters:
@@ -48,20 +48,20 @@ proposals:
   'gamma':
     dist: 'gamma'
     parameters:
-    - shape: 20
+    - shape: 50
     - rate: 1
   'mu':
     dist: 'gamma'
     parameters:
-    - shape: 20
+    - shape: 50
     - rate: 1
   'alpha':
     dist: 'norm'
     parameters:
-    - mean: 1
+    - mean: 5
     - sd: 0.1
 smc:
-  nparticle: 3
+  nparticle: 2
   nsample: 5
   ess.tolerance: 50.0
   final.accept.rate: 0.01
@@ -69,7 +69,7 @@ smc:
   quality: 0.95
   step.tolerance: 1.e-5
 kernel:
-  decay.factor: 0.2
-  rbf.variance: 500.0
+  decay.factor: 0.02
+  rbf.variance: 100.0
   sst.control: 1.0
   norm.mode: 'NONE'
