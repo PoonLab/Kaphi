@@ -86,31 +86,49 @@ initialize.smc <- function(ws, model, ...) {
   config <- ws$config
   nparams <- length(config$params)
   colnames(ws$particles) <- config$params
-	for (i in 1:config$nparticle) {
-    # sample particle from prior distribution
+  dead <- c()
+  for (i in 1:config$nparticle) {
+    
+	  # sample particle from prior distribution
   	ws$particles[i,] <- sample.priors(config)
-
+    
+  	# drop particle if mu > lambda
+  	#   this will have to be updated when additional speciation
+  	#   models(e.g. bisse) are implemented to include lambda0, 
+  	#   mu0, lambda1, mu1, etc.
+  	if(any(is.element(c('bd'), model)) & 
+  	   all(is.element(c('lambda', 'mu'), config$params))) {
+  	  lambda.ind <- which(config$params == 'lambda')
+  	  mu.ind <- which(config$params == 'mu')
+  	  if (ws$particles[i,lambda.ind] < ws$particles[i,mu.ind]) {
+  	    # Stores indices of invalid particles
+  	    dead <- c(dead, i)
+  	    next
+  	  }
+  	} 
+    
     # assign uniform weights
 		ws$weights[i] <- 1./config$nparticle
-
+    
 		# simulate trees from particle
 		ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], model=model, ...)
-
+    
 		# calculate kernel distances for trees
 		ws$dists[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
       distance(ws$obs.tree, sim.tree, config)
 		})
+
 	}
-  #cat('Initialized SMC workspace.\n')
+  cat('Initialized SMC workspace.\n')
   return(ws)
 }
-
 
 
 .ess <- function(w) {
   # effective sample size
   return(1/sum(w^2))
 }
+
 
 .epsilon.obj.func <- function(ws, epsilon) {
   # unpack some things
