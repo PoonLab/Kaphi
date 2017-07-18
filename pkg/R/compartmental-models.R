@@ -52,8 +52,8 @@ require(rcolgem, quietly=TRUE)
     tip.label=tree$tip.label,
     edge.length=tree$edge.length
   )
-  class(tree)  <- 'phylo'
-  return(tree)            # returning an ape phylo object
+  class(phy)  <- 'phylo'
+  return(phy)            # returning an ape phylo object
 }
 
 
