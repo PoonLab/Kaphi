@@ -33,6 +33,7 @@ require(rcolgem, quietly=TRUE)
     fgyResolution=fgyResolution, 
     integrationMethod=integrationMethod
   )
+  plot(fgy[[1]], fgy[[2]])
   
   # simulate tree
   tree <- simulate.binary.dated.tree.fgy(
@@ -81,7 +82,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   t.end <- theta$t.end  # upper time boundary
   
   # initial population frequencies
-  S <- theta$N#- 1
+  S <- theta$N- 1
   I <- 1  # assume epidemic starts with single infected individual
   # x0 <- c(I=I, R=R, S=S)  #sample vector, removed R=R b/c rcolgem allows only births and ndd 1x1 matrices (checks that length(x0) == m + mm)
   x0 <- c(I=I, S=S)

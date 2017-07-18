@@ -3,13 +3,12 @@ require(Kaphi)
 setwd('~/git/Kaphi')
 
 config <- load.config('pkg/examples/example-compartmental.yaml')
-config <- set.model(config, 'sir.nondynamic')
-
+config <- set.model(config, 'sir.dynamic')
+config$nsample <- 1
 # simulate target tree
-#theta <- c(t.end=30.*52, N=1000, beta=0.01, gamma=1/520, mu=1/3640, alpha=0)
-theta <- c(t.end=100, N=1500, beta=0.1, gamma=1/520, mu=1/3640, alpha=0)
-set.seed(50)
-obs.tree <- compartmental.model(theta, nsim=1, tips=100, model='sir.nondynamic')[[1]]
+theta <- c(t.end=500, N=50000, beta=0.1, gamma=1/520, mu=1/3640, alpha=0)
+set.seed(40)
+obs.tree <- compartmental.model(theta, nsim=1, tips=100, model='sir.dynamic', fgyResolution=2000)[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
 
@@ -18,8 +17,7 @@ obs.tree <- parse.input.tree(obs.tree, config)
 # initialize workspace
 ws <- init.workspace(obs.tree, config)
 
-# this takes about....idk how long to run
-result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', model="sir.nondynamic", verbose=TRUE)    #require a tsv file here ... find a dataset for this epidemiological model
+result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', model="sir.dynamic", verbose=TRUE)   
 
 
 
