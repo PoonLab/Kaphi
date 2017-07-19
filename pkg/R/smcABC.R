@@ -86,7 +86,7 @@ initialize.smc <- function(ws, model, ...) {
   config <- ws$config
   nparams <- length(config$params)
   colnames(ws$particles) <- config$params
-  dead <- c()
+  #dead <- c()
   for (i in 1:config$nparticle) {
     
 	  # sample particle from prior distribution
@@ -98,11 +98,16 @@ initialize.smc <- function(ws, model, ...) {
   	#   mu0, lambda1, mu1, etc.
   	if(any(is.element(c('bd'), model)) & 
   	   all(is.element(c('lambda', 'mu'), config$params))) {
-  	  lambda.ind <- which(config$params == 'lambda')
-  	  mu.ind <- which(config$params == 'mu')
+  	  lambda.ind <- which(config$params == 'lambda')  # lambda index value
+  	  mu.ind <- which(config$params == 'mu')  # mu index value
   	  if (ws$particles[i,lambda.ind] < ws$particles[i,mu.ind]) {
+  	    
+  	    ws$particles[i,] <- 0
+  	    ws$weights[i] <- 1./config$nparticle
+  	    ws$sim.trees[[i]] <- NA
+  	    ws$dists[,i] <- 0.35
   	    # Stores indices of invalid particles
-  	    dead <- c(dead, i)
+  	    #dead <- c(dead, i)
   	    next
   	  }
   	} 
@@ -321,7 +326,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     # resample particles according to their weights
     if (.ess(ws$weights) < config$ess.tolerance) {
       ws <- .resample.particles(ws)
-    }
+}
 
     # perturb particles
     ws$accept <- 0
