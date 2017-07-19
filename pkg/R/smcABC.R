@@ -83,13 +83,19 @@ kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control) {
 }
 
 
-# Applies config$dist expression to two trees
-# "0.8*Kaphi::kernel(package=Kaphi,weight=0.8,decay.factor=0.2,rbf.variance=100,sst.control=1,norm.mode=NONE)"
+# Applies config$dist expression to trees x and y
 distance <- function(x, y, config) {
   
   result <- eval(parse(text=config$dist)) 
   
-  return(result)
+  # One instance of NA or NAN throws error
+  if (is.na(result)==TRUE) {
+    stop("One or more distance metrics returns NA")
+  } else if (is.nan(result)==TRUE) {
+    stop("One or more distance metrics returns NAN")
+  } else {
+    return(result)
+  }
 }
 
 

@@ -53,7 +53,9 @@ distances:
   #'cophenetic.phylo':
   #  package: 'ape'
   #  weight: 0.15
-  'colless'
+  'colless':
     package: 'Kaphi'
-    weight: 0.15
-    
+    weight: 0.10
+  'gammaStat':
+    package: 'ape'
+    weight: 0.05
