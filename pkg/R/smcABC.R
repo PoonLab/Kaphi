@@ -87,8 +87,8 @@ initialize.smc <- function(ws, model, ...) {
   nparams <- length(config$params)
   colnames(ws$particles) <- config$params
 	for (i in 1:config$nparticle) {
-    # sample particle from prior distribution
-	  
+    cat("Initializing particle", i, "\n")
+	  # sample particle from prior distribution
 	  ws$particles[i,] <- sample.priors(config)
 	  
     # assign uniform weights

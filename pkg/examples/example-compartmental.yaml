@@ -2,8 +2,8 @@ priors:
   't.end':
     dist: 'norm'
     hyperparameters:
-    - mean: 600
-    - sd: 200
+    - mean: 300
+    - sd: 100
   'N':
     dist: 'norm'
     hyperparameters:
@@ -12,18 +12,18 @@ priors:
   'beta':
     dist: 'gamma'
     hyperparameters:
-    - shape: 50
-    - rate: 1
+    - shape: 1
+    - rate: 0.2
   'gamma':
     dist: 'gamma'
     hyperparameters:
-    - shape: 50
-    - rate: 1
+    - shape: 1
+    - rate: 0.2
   'mu':
     dist: 'gamma'
     hyperparameters:
-    - shape: 50
-    - rate: 1
+    - shape: 1
+    - rate: 0.2
   'alpha':
     dist: 'norm'
     hyperparameters:
@@ -33,8 +33,8 @@ proposals:
   't.end':
     dist: 'norm'
     parameters:
-    - mean: 600
-    - sd: 200
+    - mean: 300
+    - sd: 100
   'N':
     dist: 'norm'
     parameters:
@@ -43,29 +43,29 @@ proposals:
   'beta':
     dist: 'gamma'
     parameters:
-    - shape: 50
-    - rate: 1
+    - shape: 1
+    - rate: 0.2
   'gamma':
     dist: 'gamma'
     parameters:
-    - shape: 50
-    - rate: 1
+    - shape: 1
+    - rate: 0.2
   'mu':
     dist: 'gamma'
     parameters:
-    - shape: 50
-    - rate: 1
+    - shape: 1
+    - rate: 0.2
   'alpha':
     dist: 'norm'
     parameters:
     - mean: 5
     - sd: 0.1
 smc:
-  nparticle: 1
-  nsample: 5
+  nparticle: 6
+  nsample: 3
   ess.tolerance: 50.0
-  final.accept.rate: 0.01
-  final.epsilon: 0.01
+  final.accept.rate: 0.0001
+  final.epsilon: 0.00001
   quality: 0.95
   step.tolerance: 1.e-5
 kernel:
