@@ -92,7 +92,7 @@ initialize.smc <- function(ws, model, ...) {
 	  # sample particle from prior distribution
 	  ws$particles[i,] <- sample.priors(config)
 	  cat("Parameters for particle", i, ":", ws$particles[i,], "\n")
-	  
+	}
 
   #dead <- c()
   for (i in 1:config$nparticle) {
