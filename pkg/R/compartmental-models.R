@@ -33,11 +33,11 @@ require(rcolgem, quietly=TRUE)
     fgyResolution=fgyResolution, 
     integrationMethod=integrationMethod
   )
-  cat(fgy[[2]][[8]], fgy[[3]][[3]], fgy[[4]][[4]], "\n")
+  #cat(fgy[[2]][[8]], fgy[[3]][[3]], fgy[[4]][[4]], "\n")
   #plot(fgy[[1]], fgy[[2]], type="l", lwd=2, main="Births over time")
   #plot(fgy[[1]], fgy[[3]], type="l", lwd=2, main="Migrations over time")
   #plot(fgy[[1]], fgy[[4]], type="l", lwd=2, main="Deme sizes over time")
-  plot(fgy[[5]], type="l", lwd=2)
+  #plot(fgy[[5]], type="l", lwd=2)
   
   # simulate tree
   tree <- simulate.binary.dated.tree.fgy(

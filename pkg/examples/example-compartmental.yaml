@@ -12,18 +12,18 @@ priors:
   'beta':
     dist: 'gamma'
     hyperparameters:
-    - shape: 1
+    - shape: 0.2
     - rate: 5
   'gamma':
     dist: 'gamma'
     hyperparameters:
-    - shape: 1
-    - rate: 10
+    - shape: 0.2
+    - rate: 5
   'mu':
     dist: 'gamma'
     hyperparameters:
-    - shape: 0.2
-    - rate: 50
+    - shape: 0.1
+    - rate: 10
   'alpha':
     dist: 'norm'
     hyperparameters:
@@ -44,17 +44,17 @@ proposals:
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.01
+    - sd: 0.1
   'gamma':
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.001
+    - sd: 0.01
   'mu':
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.0001
+    - sd: 0.001
   'alpha':
     dist: 'norm'
     parameters:

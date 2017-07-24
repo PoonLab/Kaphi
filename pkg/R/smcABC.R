@@ -88,10 +88,8 @@ initialize.smc <- function(ws, model, ...) {
   colnames(ws$particles) <- config$params
 
 	for (i in 1:config$nparticle) {
-    cat("Initializing particle", i, "\n")
 	  # sample particle from prior distribution
 	  ws$particles[i,] <- sample.priors(config)
-	  cat("Parameters for particle", i, ":", ws$particles[i,], "\n")
 	}
 
   #dead <- c()
@@ -313,7 +311,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     # resample particles according to their weights
     if (.ess(ws$weights) < config$ess.tolerance) {
       ws <- .resample.particles(ws)
-}
+    }
 
     # perturb particles
     ws$accept <- 0
@@ -348,7 +346,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     }
 
     # if acceptance rate is low enough, we're done
-    if (result$accept.rate[niter] <= config$final.accept.rate) {
+    if (niter > 20 && result$accept.rate[niter] <= config$final.accept.rate) {
       ws$epsilon <- config$final.epsilon
       break  # FIXME: this should be redundant given loop condition above
     }
