@@ -33,32 +33,32 @@ proposals:
   't.end':
     dist: 'norm'
     parameters:
-    - mean: 0
-    - sd: 0.1
+    - mean: 2
+    - sd: 1
   'N':
     dist: 'norm'
     parameters:
-    - mean: 0
-    - sd: 0.1
+    - mean: 10
+    - sd: 5
   'beta':
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.1
+    - sd: 0.01
   'gamma':
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.1
+    - sd: 0.001
   'mu':
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 1
+    - sd: 0.0001
   'alpha':
     dist: 'norm'
     parameters:
-    - mean: 0
+    - mean: 5
     - sd: 0.1
 smc:
   nparticle: 20
