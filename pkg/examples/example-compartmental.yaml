@@ -13,17 +13,17 @@ priors:
     dist: 'gamma'
     hyperparameters:
     - shape: 1
-    - rate: 0.2
+    - rate: 5
   'gamma':
     dist: 'gamma'
     hyperparameters:
     - shape: 1
-    - rate: 0.2
+    - rate: 10
   'mu':
     dist: 'gamma'
     hyperparameters:
-    - shape: 1
-    - rate: 0.2
+    - shape: 0.2
+    - rate: 50
   'alpha':
     dist: 'norm'
     hyperparameters:
@@ -33,35 +33,35 @@ proposals:
   't.end':
     dist: 'norm'
     parameters:
-    - mean: 300
-    - sd: 100
+    - mean: 0
+    - sd: 0.1
   'N':
     dist: 'norm'
     parameters:
-    - mean: 5000
-    - sd: 300
+    - mean: 0
+    - sd: 0.1
   'beta':
-    dist: 'gamma'
+    dist: 'norm'
     parameters:
-    - shape: 1
-    - rate: 0.2
+    - mean: 0
+    - sd: 0.1
   'gamma':
-    dist: 'gamma'
+    dist: 'norm'
     parameters:
-    - shape: 1
-    - rate: 0.2
+    - mean: 0
+    - sd: 0.1
   'mu':
-    dist: 'gamma'
+    dist: 'norm'
     parameters:
-    - shape: 1
-    - rate: 0.2
+    - mean: 0
+    - sd: 1
   'alpha':
     dist: 'norm'
     parameters:
-    - mean: 5
+    - mean: 0
     - sd: 0.1
 smc:
-  nparticle: 6
+  nparticle: 20
   nsample: 3
   ess.tolerance: 50.0
   final.accept.rate: 0.0001
