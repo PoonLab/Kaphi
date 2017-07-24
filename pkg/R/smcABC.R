@@ -92,26 +92,6 @@ initialize.smc <- function(ws, model, ...) {
 	  # sample particle from prior distribution
   	ws$particles[i,] <- sample.priors(config)
     
-  	# drop particle if mu > lambda
-  	#   this will have to be updated when additional speciation
-  	#   models(e.g. bisse) are implemented to include lambda0, 
-  	#   mu0, lambda1, mu1, etc.
-  	if(any(is.element(c('bd'), model)) & 
-  	   all(is.element(c('lambda', 'mu'), config$params))) {
-  	  lambda.ind <- which(config$params == 'lambda')  # lambda index value
-  	  mu.ind <- which(config$params == 'mu')  # mu index value
-  	  if (ws$particles[i,lambda.ind] < ws$particles[i,mu.ind]) {
-  	    
-  	    ws$particles[i,] <- 0
-  	    ws$weights[i] <- 1./config$nparticle
-  	    ws$sim.trees[[i]] <- NA
-  	    ws$dists[,i] <- 0.35
-  	    # Stores indices of invalid particles
-  	    #dead <- c(dead, i)
-  	    next
-  	  }
-  	} 
-    
     # assign uniform weights
 		ws$weights[i] <- 1./config$nparticle
     
@@ -122,7 +102,6 @@ initialize.smc <- function(ws, model, ...) {
 		ws$dists[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
       distance(ws$obs.tree, sim.tree, config)
 		})
-
 	}
   cat('Initialized SMC workspace.\n')
   return(ws)
