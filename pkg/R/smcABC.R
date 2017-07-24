@@ -86,33 +86,62 @@ initialize.smc <- function(ws, model, ...) {
   config <- ws$config
   nparams <- length(config$params)
   colnames(ws$particles) <- config$params
+
 	for (i in 1:config$nparticle) {
     cat("Initializing particle", i, "\n")
 	  # sample particle from prior distribution
 	  ws$particles[i,] <- sample.priors(config)
 	  cat("Parameters for particle", i, ":", ws$particles[i,], "\n")
 	  
+
+  #dead <- c()
+  for (i in 1:config$nparticle) {
+    
+	  # sample particle from prior distribution
+  	ws$particles[i,] <- sample.priors(config)
+    
+  	# drop particle if mu > lambda
+  	#   this will have to be updated when additional speciation
+  	#   models(e.g. bisse) are implemented to include lambda0, 
+  	#   mu0, lambda1, mu1, etc.
+  	if(any(is.element(c('bd'), model)) & 
+  	   all(is.element(c('lambda', 'mu'), config$params))) {
+  	  lambda.ind <- which(config$params == 'lambda')  # lambda index value
+  	  mu.ind <- which(config$params == 'mu')  # mu index value
+  	  if (ws$particles[i,lambda.ind] < ws$particles[i,mu.ind]) {
+  	    
+  	    ws$particles[i,] <- 0
+  	    ws$weights[i] <- 1./config$nparticle
+  	    ws$sim.trees[[i]] <- NA
+  	    ws$dists[,i] <- 0.35
+  	    # Stores indices of invalid particles
+  	    #dead <- c(dead, i)
+  	    next
+  	  }
+  	} 
+    
     # assign uniform weights
 		ws$weights[i] <- 1./config$nparticle
-
+    
 		# simulate trees from particle
 		ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], model=model, ...)
-
+    
 		# calculate kernel distances for trees
 		ws$dists[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
       distance(ws$obs.tree, sim.tree, config)
 		})
+
 	}
-  #cat('Initialized SMC workspace.\n')
+  cat('Initialized SMC workspace.\n')
   return(ws)
 }
-
 
 
 .ess <- function(w) {
   # effective sample size
   return(1/sum(w^2))
 }
+
 
 .epsilon.obj.func <- function(ws, epsilon) {
   # unpack some things
@@ -305,7 +334,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     # resample particles according to their weights
     if (.ess(ws$weights) < config$ess.tolerance) {
       ws <- .resample.particles(ws)
-    }
+}
 
     # perturb particles
     ws$accept <- 0

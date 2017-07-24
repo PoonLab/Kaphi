@@ -149,7 +149,7 @@ sample.priors <- function(config) {
     if (length(config$params) == length(theta)) {
       names(theta) <- config$params
     }
-    return(theta)  # a named vector
+  return(theta)  # a named vector
   }
 }
 
