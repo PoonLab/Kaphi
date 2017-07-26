@@ -21,7 +21,7 @@ load.config <- function(file) {
     params=NA,
     priors=list(),
     prior.densities=list(),
-    constraints=NA,
+    constraints=NULL,
     proposals=list(),
     proposal.densities=list(),
     model=NA,
@@ -61,7 +61,7 @@ load.config <- function(file) {
   }
   
   # parse constraints (if present)
-  if (!is.na(settings$constraints)) {
+  if (!is.null(settings$constraints)) {
     elements <- strsplit(settings$constraints, ' ')  # list of param names and operators
     elements <- unlist(elements)
     con <- ''
@@ -166,10 +166,14 @@ sample.priors <- function(config) {
       names(theta) <- config$params
     }
     # apply constraints to prior samples
-    if (eval(parse(text=config$constraints))){  # parse condition string to expr and evaluate
-      return(theta)  # a named vector
+    if (is.null(config$constraints)) {
+      return(theta)
     } else {
-      sample.priors(config)  # if condition is not satisfied, resample
+      if (eval(parse(text=config$constraints))){  # parse condition string to expr and evaluate
+        return(theta)  # a named vector
+      } else {
+        sample.priors(config)  # if condition is not satisfied, resample
+      }
     }
   }
 }
@@ -200,10 +204,14 @@ propose <- function(config, theta) {
     }
   }
   # apply constraints to prior samples
-  if (eval(parse(text=config$constraints))){  # parse condition string to expr and evaluate
-    return(theta)  # a named vector
+  if (is.null(config$constraints)) {
+    return(theta)
   } else {
-    propose(config, old.theta)  # if condition is not satisfied, resample
+    if (eval(parse(text=config$constraints))){  # parse condition string to expr and evaluate
+      return(theta)  # a named vector
+    } else {
+      propose(config, old.theta)  # if condition is not satisfied, resample
+    }
   }
 }
 

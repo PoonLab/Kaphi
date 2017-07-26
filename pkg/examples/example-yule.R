@@ -47,7 +47,7 @@ trace <- read.table('pkg/examples/example-yule2.tsv', header=T, sep='\t')
 
 # trajectory of mean estimate of lambda
 par(mar=c(5,5,2,2))
-png('yule01.png')
+#png('yule01.png')
 plot(
   sapply(split(trace$lambda*trace$weight, trace$n), sum), 
   ylim=c(0, 1.5), 
@@ -60,12 +60,12 @@ plot(
 abline(h=0.1, lty=2)
 #abline(h=0.09, lty=2)
 #abline(h=0.11, lty=2)
-dev.off()
+#dev.off()
 
 # use kernel densities to visualize posterior approximations
 pal <- rainbow(n=6, start=0, end=0.5, v=1, s=1)
 par(mar=c(5,5,2,2))
-png('yule01.png')
+#png('yule01.png')
 plot(density(trace$lambda[trace$n==1], weights=trace$weight[trace$n==1]), xlim=c(0, 2), col=pal[1], lwd=2, main='Yule (gamma: shape=2, rate=1)', xlab='Yule rate parameter (lambda)', cex.lab=1.2, ylim=c(0, 15))
 
 for (i in 1:5) {
@@ -87,5 +87,4 @@ node.heights <- rev(branching.times(obs.tree))
 
 # make a legend
 legend(x=1, y=10, legend=c('prior', 'n=1', 'n=10', 'n=20', 'n=30', 'n=40', 'n=50', 'n=53(final)', 'true lambda(0.1)'), lty=c(5,rep(1,7),3), col=c('black', pal, 'black', 'red'), lwd=c(1,2,rep(1.5,4),2,0.75), seg.len=2)
-dev.off()
-
+#dev.off()
