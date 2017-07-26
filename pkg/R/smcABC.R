@@ -134,6 +134,8 @@ initialize.smc <- function(ws, model, ...) {
   for (i in 1:config$nparticle) {
     num <- sum(ws$dists[,i] < epsilon)
     denom <- sum(ws$dists[,i] < prev.epsilon)
+    #cat("Numerator:", num, "\n")
+    #cat("Denominator:", denom, "\n")
     if (num == denom) {
       # handle case where numerator and denominator are both zero
       ws$new.weights[i] <- ws$weights[i]
@@ -141,6 +143,7 @@ initialize.smc <- function(ws, model, ...) {
       ws$new.weights[i] <- ws$weights[i] * num / denom
     }
   }
+
   # normalize new weights to sum to 1.
   wsum <- sum(ws$new.weights)
   ws$new.weights <- ws$new.weights / wsum
@@ -179,10 +182,12 @@ initialize.smc <- function(ws, model, ...) {
   for (i in 1:config$nparticle) {
     num <- sum(ws$dists[,i] < root)
     denom <- sum(ws$dists[,i] < ws$epsilon)
+    #cat("Numerator:", num, "\n")
+    #cat("Denominator:", denom, "\n")
     ws$weights[i] <- ws$weights[i] * ifelse(num==denom, 1., num/denom)
   }
   ws$weights <- ws$weights / sum(ws$weights)  # renormalize weights
-
+  cat("Weights:", ws$weights, "\n")
   ws$epsilon <- root
   return (ws)
 }
@@ -346,7 +351,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     }
 
     # if acceptance rate is low enough, we're done
-    if (niter > 20 && result$accept.rate[niter] <= config$final.accept.rate) {
+    if (niter > 50 && result$accept.rate[niter] <= config$final.accept.rate) {
       ws$epsilon <- config$final.epsilon
       break  # FIXME: this should be redundant given loop condition above
     }
