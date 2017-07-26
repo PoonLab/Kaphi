@@ -127,7 +127,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
     
     births <- rbind(c('parms$beta * S * I / (S+I)'))
     migrations <- rbind(c('0'))      #in rcolgem manual say this should be omitted if there is only one deme
-    deaths <- rbind(c('-parms$gamma * I'))
+    deaths <- rbind(c('parms$gamma * I'))
     nonDemeDynamics <- c('-parms$beta * S * I / (S+I) + parms$gamma * I')
   }
   

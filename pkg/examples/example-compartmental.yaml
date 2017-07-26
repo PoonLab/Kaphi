@@ -8,12 +8,12 @@ priors:
     dist: 'norm'
     hyperparameters:
     - mean: 10000
-    - sd: 300
+    - sd: 200
   'beta':
     dist: 'gamma'
     hyperparameters:
-    - shape: 1
-    - rate: 10
+    - shape: 0.3
+    - rate: 5
   'gamma':
     dist: 'gamma'
     hyperparameters:
@@ -61,7 +61,7 @@ proposals:
     - mean: 5
     - sd: 0.1
 smc:
-  nparticle: 50
+  nparticle: 500
   nsample: 3
   ess.tolerance: 50.0
   final.accept.rate: 0.0001

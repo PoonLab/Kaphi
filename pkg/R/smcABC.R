@@ -86,13 +86,6 @@ initialize.smc <- function(ws, model, ...) {
   config <- ws$config
   nparams <- length(config$params)
   colnames(ws$particles) <- config$params
-
-	for (i in 1:config$nparticle) {
-	  # sample particle from prior distribution
-	  ws$particles[i,] <- sample.priors(config)
-	}
-
-  #dead <- c()
   for (i in 1:config$nparticle) {
     
 	  # sample particle from prior distribution
@@ -187,7 +180,7 @@ initialize.smc <- function(ws, model, ...) {
     ws$weights[i] <- ws$weights[i] * ifelse(num==denom, 1., num/denom)
   }
   ws$weights <- ws$weights / sum(ws$weights)  # renormalize weights
-  cat("Weights:", ws$weights, "\n")
+  #cat("Weights:", ws$weights, "\n")
   ws$epsilon <- root
   return (ws)
 }
@@ -351,7 +344,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     }
 
     # if acceptance rate is low enough, we're done
-    if (niter > 50 && result$accept.rate[niter] <= config$final.accept.rate) {
+    if (niter > 100 && result$accept.rate[niter] <= config$final.accept.rate) {
       ws$epsilon <- config$final.epsilon
       break  # FIXME: this should be redundant given loop condition above
     }

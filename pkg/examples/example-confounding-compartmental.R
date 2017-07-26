@@ -19,7 +19,7 @@ plot(x, resx, type='b', xlab='N', ylab='Mean kernel distance', cex.lab=1.2)
 # calculate kernel distances for varying beta
 y <- seq(0.01,0.235, 0.025)    # (from, to, step)
 resy <- sapply(y, function(value) {
-  theta <- c(t.end=50, N=5000, beta=value, gamma=1/520, mu=1/3640, alpha=0)
+  theta <- c(t.end=200, N=10000, beta=value, gamma=1/520, mu=1/3640, alpha=0)
   sim.trees <- compartmental.model(theta, nsim=100, tips=100, model='sir.nondynamic')
   distances <- sapply(sim.trees, function(singletree) {
     processtree <- .preprocess.tree(singletree, config)
