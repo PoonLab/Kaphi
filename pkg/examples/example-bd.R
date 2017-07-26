@@ -1,6 +1,7 @@
+## Example of Kaphi with Birth-Death speciation model
 require(Kaphi)
 
-# I need to set this if running from R GUI
+# if running from R GUI
 setwd('~/git/Kaphi')
 
 # load configuration file (assumes R was launched from Kaphi root dir)
@@ -13,52 +14,65 @@ set.seed(50)
 obs.tree <- speciation.model(theta, nsim=1, tips=50, model='bd')[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
-
-#--------------------------------------------------------------------------
 ## now let's estimate that posterior distribution!
-
 # initialize workspace
 ws <- init.workspace(obs.tree, config)
-trace.file='pkg/examples/example-bd2.tsv'
-model='bd'
-verbose=TRUE
+
 # run ABC-SMC
 res <- run.smc(ws, trace.file='pkg/examples/example-bd2.tsv', model='bd', verbose=TRUE)
 
 # let's examine the contents of the trace file
-
 trace <- read.table('pkg/examples/example-bd2.tsv', header=T, sep='\t')
 
-# trajectory of mean estimate of lambda
+
+#------------------------------------------------------------------------------
+# Plot trajectory of mean estimate of lambda and mu
+
 par(mar=c(5,5,2,2))
-#png('bd01.png')
+#png('bd-mean01.png')
 plot(
   sapply(split(trace$lambda*trace$weight, trace$n), sum), 
-  ylim=c(0, 1.5), 
+  ylim=c(0, 1), 
   type='o',
   xlab='Iteration', 
-  ylab='Mean lambda',
+  ylab='Mean Parameter Value',
   cex.lab=1,
-  main='Trajectory of Mean Lambda (Birth-Death Model, 10 particles)'
+  main='Trajectory of Mean Lambda and Mu (Birth-Death Model, 10 particles)'
 )
-abline(h=0.1, lty=2)
-#abline(h=0.09, lty=2)
-#abline(h=0.11, lty=2)
+lines(
+  sapply(split(trace$mu*trace$weight, trace$n), sum),
+  type='o',
+  col='red'
+)
+abline(h=0.1, lty=2, col='black')
+abline(h=0.003, lty=2, col='red')
 #dev.off()
 
-# use kernel densities to visualize posterior approximations
-pal <- rainbow(n=6, start=0, end=0.5, v=1, s=1)
-par(mar=c(5,5,2,2))
-#png('bd01.png')
-plot(density(trace$lambda[trace$n==1], weights=trace$weight[trace$n==1]), xlim=c(0, 2), col=pal[1], lwd=2, main='Birth-Death', xlab='Yule rate parameter (lambda)', cex.lab=1.2, ylim=c(0, 15))
 
-for (i in 1:5) {
+#------------------------------------------------------------------------------
+# use kernel densities to visualize posterior approximations
+pal <- rainbow(n=9, start=0, end=0.5, v=1, s=1)
+par(mar=c(5,5,2,2))
+#png('bd-dist01.png')
+plot(
+  density(trace$lambda[trace$n==1], weights=trace$weight[trace$n==1]), 
+  xlim=c(0, 2), 
+  col=pal[1], 
+  lwd=2, 
+  main='Birth-Death', 
+  xlab='Lambda', 
+  cex.lab=1.2, 
+  ylim=c(0, 15)
+)
+
+for (i in 1:8) {
   temp <- trace[trace$n==i*10,]
-  lines(density(temp$lambda, weights=temp$weight), col=pal[i+1], lwd=1.5)
-  #cat('iter:', i*10, '\n')
-  #Sys.sleep(2)
+  lines(density(temp$lambda, weights=temp$weight), 
+        col=pal[i+1], lwd=1.5)
 }
-lines(density(trace$lambda[trace$n==max(trace$n)], weights=trace$weight[trace$n==max(trace$n)]), col='black', lwd=2)  # final estimates
+# final estimates
+lines(density(trace$lambda[trace$n==max(trace$n)], weights=trace$weight[trace$n==max(trace$n)]), 
+      col='black', lwd=2)  
 abline(v=0.1, lty=3, col='red')
 
 # show the prior distribution
@@ -70,11 +84,64 @@ lines(x, y(x), lty=5)
 node.heights <- rev(branching.times(obs.tree))
 
 # make a legend
-legend(x=1, y=10, legend=c('prior', 'n=1', 'n=10', 'n=20', 'n=30', 'n=40', 'n=50', 'n=53(final)', 'true lambda(0.1)'), lty=c(5,rep(1,7),3), col=c('black', pal, 'black', 'red'), lwd=c(1,2,rep(1.5,4),2,0.75), seg.len=2)
+legend(
+  x=1, y=15, 
+  legend=c('prior', 'n=1', 'n=10', 'n=20', 'n=30', 'n=40', 'n=50', 'n=60', 'n=70', 'n=80', 'n=89(final)', 'true lambda(0.1)'), 
+  lty=c(5,rep(1,10),3), 
+  col=c('black', pal, 'black', 'red'), 
+  lwd=c(1,2,rep(1.5,6),2,0.75), 
+  seg.len=2
+)
 #dev.off()
 
 
-#--------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# use kernel densities to visualize posterior approximations
+pal <- rainbow(n=9, start=0, end=0.5, v=1, s=1)
+par(mar=c(5,5,2,2))
+#png('bd-dist01.png')
+plot(
+  density(trace$mu[trace$n==1], weights=trace$weight[trace$n==1]), 
+  xlim=c(0, 2), 
+  col=pal[1], 
+  lwd=2, 
+  main='Birth-Death', 
+  xlab='Mu', 
+  cex.lab=1.2, 
+  ylim=c(0, 15)
+)
+
+for (i in 1:8) {
+  temp <- trace[trace$n==i*10,]
+  lines(density(temp$mu, weights=temp$weight), 
+        col=pal[i+1], lwd=1.5)
+}
+# final estimates
+lines(density(trace$mu[trace$n==max(trace$n)], weights=trace$weight[trace$n==max(trace$n)]), 
+      col='black', lwd=2)  
+abline(v=0.003, lty=3, col='red')
+
+# show the prior distribution
+x <- seq(0, 2, 0.01)
+y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[["mu"]]))}
+lines(x, y(x), lty=5)
+
+# show posterior distribution (work in progress)
+node.heights <- rev(branching.times(obs.tree))
+
+# make a legend
+legend(
+  x=1, y=15, 
+  legend=c('prior', 'n=1', 'n=10', 'n=20', 'n=30', 'n=40', 'n=50', 'n=60', 'n=70', 'n=80', 'n=89(final)', 'true mu(0.003)'), 
+  lty=c(5,rep(1,10),3), 
+  col=c('black', pal, 'black', 'red'), 
+  lwd=c(1,2,rep(1.5,6),2,0.75), 
+  seg.len=2
+)
+#dev.off()
+
+
+#------------------------------------------------------------------------------
 # Visualize parameter identifiability
 
 # calculate kernel distances for varying lambda
@@ -109,13 +176,13 @@ res2 <- sapply(y, function(val) {
 })
 # generate a plot
 par(mar=c(5,5,2,2))
-#plot(log(y), res2, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0.05,0.12),
-#     main='Identifiability of Mu (Birth-Death Model)')
-#abline(v=log(0.003), lty=2)
-
 plot(y, res2, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0.05,0.09),
      main='Identifiability of Mu (Birth-Death Model)')
 abline(v=0.003, lty=2)
+# log transformed plot
+plot(log(y), res2, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0.05,0.12),
+     main='Identifiability of Mu (Birth-Death Model)')
+abline(v=log(0.003), lty=2)
 
 
 #------------------------------------------------------------------------------
