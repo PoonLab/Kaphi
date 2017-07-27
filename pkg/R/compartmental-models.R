@@ -83,7 +83,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
 
   theta <- as.list(theta)   # convert to list because $ operator is invalid for atomic vectors
   t0 <- 0  # initial time
-  t.end <- theta$t.end  # upper time boundary
+  t.end <- abs(theta$t.end)  # upper time boundary; taking the abs() bc stochastically draws negative t.end sometimes
   
   # initial population frequencies
   S <- theta$N- 1
