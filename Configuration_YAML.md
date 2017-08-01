@@ -32,7 +32,7 @@ priors:
 constraints:
   - 'mu < lambda'
 ```
-####Constraints
+#### Constraints
 The priors are followed by the constraints section. 
 This section allows the user to enter a string containing any conditions that must be upheld during sampling (or will otherwise leave vacant).
 
