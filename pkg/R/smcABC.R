@@ -103,31 +103,32 @@ initialize.smc <- function(ws, model, ...) {
   config <- ws$config
   nparams <- length(config$params)
   colnames(ws$particles) <- config$params
-	for (i in 1:config$nparticle) {
-    # sample particle from prior distribution
+  for (i in 1:config$nparticle) {
+    
+	  # sample particle from prior distribution
   	ws$particles[i,] <- sample.priors(config)
-
+    
     # assign uniform weights
 		ws$weights[i] <- 1./config$nparticle
-
+    
 		# simulate trees from particle
 		ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], model=model, ...)
-
+    
 		# calculate kernel distances for trees
 		ws$dists[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
       distance(ws$obs.tree, sim.tree, config)
 		})
 	}
-  #cat('Initialized SMC workspace.\n')
+  cat('Initialized SMC workspace.\n')
   return(ws)
 }
-
 
 
 .ess <- function(w) {
   # effective sample size
   return(1/sum(w^2))
 }
+
 
 .epsilon.obj.func <- function(ws, epsilon) {
   # unpack some things
@@ -143,6 +144,8 @@ initialize.smc <- function(ws, model, ...) {
   for (i in 1:config$nparticle) {
     num <- sum(ws$dists[,i] < epsilon)
     denom <- sum(ws$dists[,i] < prev.epsilon)
+    #cat("Numerator:", num, "\n")
+    #cat("Denominator:", denom, "\n")
     if (num == denom) {
       # handle case where numerator and denominator are both zero
       ws$new.weights[i] <- ws$weights[i]
@@ -150,6 +153,7 @@ initialize.smc <- function(ws, model, ...) {
       ws$new.weights[i] <- ws$weights[i] * num / denom
     }
   }
+
   # normalize new weights to sum to 1.
   wsum <- sum(ws$new.weights)
   ws$new.weights <- ws$new.weights / wsum
@@ -188,10 +192,12 @@ initialize.smc <- function(ws, model, ...) {
   for (i in 1:config$nparticle) {
     num <- sum(ws$dists[,i] < root)
     denom <- sum(ws$dists[,i] < ws$epsilon)
+    #cat("Numerator:", num, "\n")
+    #cat("Denominator:", denom, "\n")
     ws$weights[i] <- ws$weights[i] * ifelse(num==denom, 1., num/denom)
   }
   ws$weights <- ws$weights / sum(ws$weights)  # renormalize weights
-
+  #cat("Weights:", ws$weights, "\n")
   ws$epsilon <- root
   return (ws)
 }
@@ -276,13 +282,13 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
 	# @param nthreads: (optional) for running on multiple cores
 	# @param ...: additional arguments to pass to config@generator via
   #   simulate.trees()
-
+  
+  config <- ws$config
+  
   # clear file and write header row
   write.table(t(c(
     'n', 'part.num', 'weight', config$params, paste0('dist.', 1:config$nsample)
     )), file=trace.file, sep='\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
-
-	config <- ws$config
 
   # space for returned values
   result <- list(niter=0, theta=list(), weights=list(), accept.rate={}, epsilons={})
@@ -355,7 +361,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     }
 
     # if acceptance rate is low enough, we're done
-    if (result$accept.rate[niter] <= config$final.accept.rate) {
+    if (niter > 100 && result$accept.rate[niter] <= config$final.accept.rate) {
       ws$epsilon <- config$final.epsilon
       break  # FIXME: this should be redundant given loop condition above
     }

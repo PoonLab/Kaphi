@@ -33,6 +33,11 @@ require(rcolgem, quietly=TRUE)
     fgyResolution=fgyResolution, 
     integrationMethod=integrationMethod
   )
+  #cat(fgy[[2]][[8]], fgy[[3]][[3]], fgy[[4]][[4]], "\n")
+  #plot(fgy[[1]], fgy[[2]], type="l", lwd=2, main="Births over time")
+  #plot(fgy[[1]], fgy[[3]], type="l", lwd=2, main="Migrations over time")
+  #plot(fgy[[1]], fgy[[4]], type="l", lwd=2, main="Deme sizes over time")
+  #plot(fgy[[5]], type="l", lwd=2)
   
   # simulate tree
   tree <- simulate.binary.dated.tree.fgy(
@@ -45,12 +50,19 @@ require(rcolgem, quietly=TRUE)
     integrationMethod=integrationMethod  #  , n.reps=nreps   --this isn't a parameter in rcolgem's simulate.binary.dated.tree.fgy
   )
   
-  class(tree)  <- 'phylo'
-  return(tree)            # returning an ape phylo object + 20 other things (from rcolgem)
+  # strip out unnecessary attributes from rcolgem returned object
+  phy <- list(
+    edge=tree$edge,
+    Nnode=tree$Nnode,
+    tip.label=tree$tip.label,
+    edge.length=tree$edge.length
+  )
+  class(phy)  <- 'phylo'
+  return(phy)            # returning an ape phylo object
 }
 
 
-compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=NA, labels=NA, fgyResolution=500, integrationMethod='adams') {
+compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=NA, labels=NA, fgyResolution=1000, integrationMethod='adams') {
   "
   Use rcolgem to simulate coalescent trees under susceptible-infected (SI) 
   model.
@@ -71,10 +83,10 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
 
   theta <- as.list(theta)   # convert to list because $ operator is invalid for atomic vectors
   t0 <- 0  # initial time
-  t.end <- theta$t.end  # upper time boundary
+  t.end <- abs(theta$t.end)  # upper time boundary; taking the abs() bc stochastically draws negative t.end sometimes
   
   # initial population frequencies
-  S <- theta$N - 1
+  S <- theta$N- 1
   I <- 1  # assume epidemic starts with single infected individual
   # x0 <- c(I=I, R=R, S=S)  #sample vector, removed R=R b/c rcolgem allows only births and ndd 1x1 matrices (checks that length(x0) == m + mm)
   x0 <- c(I=I, S=S)
@@ -113,23 +125,23 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
     # non-deme dynamics is describing the subpopulation
     # note replacement of susceptibles with death of infected, for constant population size
     
-    births <- rbind(c('parms$beta * S * I / (S+I) - parms$gamma * I'))
+    births <- rbind(c('parms$beta * S * I / (S+I)'))
     migrations <- rbind(c('0'))      #in rcolgem manual say this should be omitted if there is only one deme
     deaths <- rbind(c('parms$gamma * I'))
-    nonDemeDynamics <- c('-parms$beta * S * I / (S+I)')
+    nonDemeDynamics <- c('-parms$beta * S * I / (S+I) + parms$gamma * I')
   }
   
   # SIR model w/ vital dynamics and constant population
   else if (identical(tolower(model), 'sir.dynamic')) {
-    births <- rbind(c('parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I'))
+    births <- rbind(c('parms$beta * S * I / (S+I)'))
     migrations <- rbind(c('0'))
-    deaths <- rbind(c('parms$gamma * I'))          # removed from the population
-    nonDemeDynamics <- rbind(c('parms$mu * I - parms$beta * S * I / (S+I)'))
+    deaths <- rbind(c('(parms$gamma + parms$mu) * I'))          # removed from the population
+    nonDemeDynamics <- rbind(c('(parms$gamma + parms$mu) * I - parms$beta * S * I / (S+I)'))
   }
   
   # SIS model w/ births and deaths
   else if (identical(tolower(model), 'sis')) {
-    births <- rbind(c('parms$beta * S * I / (S+I) - (parms$gamma + parms$mu) * I'))
+    births <- rbind(c('parms$beta * S * I / (S+I)'))
     migrations <- rbind(c('parms$gamma * I'))       # migrating out of I compartment, but back into S compartment
     deaths <- rbind(c('0'))
     nonDemeDynamics <- rbind(c('-parms$beta * S * I / (S+I)'))

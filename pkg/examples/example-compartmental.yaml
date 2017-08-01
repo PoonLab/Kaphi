@@ -2,28 +2,28 @@ priors:
   't.end':
     dist: 'norm'
     hyperparameters:
-    - mean: 50
-    - sd: 5
+    - mean: 300
+    - sd: 100
   'N':
     dist: 'norm'
     hyperparameters:
-    - mean: 5000
-    - sd: 100
+    - mean: 10000
+    - sd: 200
   'beta':
     dist: 'gamma'
     hyperparameters:
-    - shape: 50
-    - rate: 1
+    - shape: 1
+    - rate: 10
   'gamma':
     dist: 'gamma'
     hyperparameters:
-    - shape: 50
-    - rate: 1
+    - shape: 2
+    - rate: 20
   'mu':
     dist: 'gamma'
     hyperparameters:
-    - shape: 50
-    - rate: 1
+    - shape: 2
+    - rate: 30
   'alpha':
     dist: 'norm'
     hyperparameters:
@@ -33,43 +33,43 @@ proposals:
   't.end':
     dist: 'norm'
     parameters:
-    - mean: 50
-    - sd: 5
+    - mean: 0
+    - sd: 10
   'N':
     dist: 'norm'
     parameters:
-    - mean: 1000
-    - sd: 500
+    - mean: 0
+    - sd: 100
   'beta':
-    dist: 'gamma'
+    dist: 'norm'
     parameters:
-    - shape: 50
-    - rate: 1
+    - mean: 0
+    - sd: 0.001
   'gamma':
-    dist: 'gamma'
+    dist: 'norm'
     parameters:
-    - shape: 20
-    - rate: 1
+    - mean: 0
+    - sd: 0.0001
   'mu':
-    dist: 'gamma'
+    dist: 'norm'
     parameters:
-    - shape: 20
-    - rate: 1
+    - mean: 0
+    - sd: 0.00001
   'alpha':
     dist: 'norm'
     parameters:
-    - mean: 1
+    - mean: 5
     - sd: 0.1
 smc:
-  nparticle: 100
-  nsample: 5
+  nparticle: 500
+  nsample: 3
   ess.tolerance: 50.0
-  final.accept.rate: 0.1
-  final.epsilon: 0.1
+  final.accept.rate: 0.0001
+  final.epsilon: 0.00001
   quality: 0.95
   step.tolerance: 1.e-5
 kernel:
-  decay.factor: 0.2
+  decay.factor: 0.02
   rbf.variance: 100.0
   sst.control: 1.0
   norm.mode: 'NONE'

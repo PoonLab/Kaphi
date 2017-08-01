@@ -21,6 +21,7 @@ load.config <- function(file) {
     params=NA,
     priors=list(),
     prior.densities=list(),
+    constraints=NULL,
     proposals=list(),
     proposal.densities=list(),
     model=NA,
@@ -63,14 +64,29 @@ load.config <- function(file) {
     den.call <- paste0('d', sublist$dist, '(arg.prior,', paste(arguments, collapse=','), ')')
     config$prior.densities[par.name] <- den.call
   }
-
+  
+  # parse constraints (if present)
+  if (!is.null(settings$constraints)) {
+    elements <- strsplit(settings$constraints, ' ')  # list of param names and operators
+    elements <- unlist(elements)
+    con <- ''
+    for (i in elements) {
+      if (grepl('^[A-Za-z]+$', i)) {
+        con <- paste0(con, "theta['", i, "']")
+      } else {
+        con <- paste0(con, i)
+      }
+    }
+  config$constraints <- con
+  }
+  
   # parse proposal settings
   if (any(!is.element(names(settings$proposals), config$params))) {
     stop("Error in load.config(): variable set in proposals is not a subset of priors")
   }
   for (par.name in names(settings$proposals)) {
     sublist <- settings$proposals[[par.name]]
-
+    
     rng.call <- paste0('r', sublist$dist, '(n=1,')
     arguments <- sapply(sublist[['parameters']], function(x) paste(names(x), x, sep='='))
     rng.call <- paste0(rng.call, paste(arguments, collapse=','), ')')
@@ -204,9 +220,19 @@ sample.priors <- function(config) {
     if (length(config$params) == length(theta)) {
       names(theta) <- config$params
     }
-    return(theta)  # a named vector
+    # apply constraints to prior samples
+    if (is.null(config$constraints)) {
+      return(theta)
+    } else {
+      if (eval(parse(text=config$constraints))){  # parse condition string to expr and evaluate
+        return(theta)  # a named vector
+      } else {
+        sample.priors(config)  # if condition is not satisfied, resample
+      }
+    }
   }
 }
+
 
 prior.density <- function(config, theta) {
   result <- 1.
@@ -221,6 +247,7 @@ prior.density <- function(config, theta) {
 
 
 propose <- function(config, theta) {
+  old.theta <- theta
   # draw new values from the proposal density
   delta <- sapply(names(config$proposals), function(par.name) {
     eval(parse(text=config$proposals[[par.name]]))
@@ -231,7 +258,16 @@ propose <- function(config, theta) {
       theta[par.name] <- theta[par.name] + delta[par.name]
     }
   }
-  return(theta)
+  # apply constraints to prior samples
+  if (is.null(config$constraints)) {
+    return(theta)
+  } else {
+    if (eval(parse(text=config$constraints))){  # parse condition string to expr and evaluate
+      return(theta)  # a named vector
+    } else {
+      propose(config, old.theta)  # if condition is not satisfied, resample
+    }
+  }
 }
 
 
@@ -261,7 +297,9 @@ print.smc.config <- function(config, ...) {
   for (i in 1:length(config$params)) {
     cat('  ', names(config$priors)[i], '\t', config$priors[[i]], '\n')
   }
-
+  cat('Constraints:\n')
+  cat(config$constraints, '\n')
+  
   cat('Proposals:\n')
   for (par.name in config$params) {
     if (is.element(par.name, names(config$proposals))) {
@@ -292,7 +330,7 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
   if (nrow(y) == 1){
     rownames(y)[1] <- names(config$priors)
   }
-  h <- apply(y, 1, hist, plot=F)
+  h <- apply(y, 1, density)
   s <- 1        # counter
   par(ask=T)    # prompts user to 'Hit <Return> to see next plot'
   n.slides <- ceiling(nrow(y) / (numr*numc)) #determine number of plot slides required according to specified dimensions
@@ -312,6 +350,7 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
       } 
     }
   }
+  par(ask=F)
 }
 
 # parse tip arguments for each model and creates either n tips of zero height if arg is an int 
