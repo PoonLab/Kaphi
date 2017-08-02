@@ -103,30 +103,30 @@ distances:
 #### Valid Distance Metrics
 | Tree Statistic | Package | Description |
 |----------------|---------|-------------|
-| tree.kernel | Kaphi | |
-| ~~nLTT | Kaphi |~~|
-| sackin | Kaphi | |
-| colless | Kaphi | |
-| ~~cophenetic| Kaphi |~~|
-| ladder.length | Kaphi | |
-| IL.nodes | Kaphi | |
-| tree.width | Kaphi | | 
-| max.delta.width | Kaphi | |
-| n.cherries | Kaphi | |
-| prop.unbalanced | Kaphi | |
-| avg.unbalance | Kaphi | |
-| pybus.gamma | Kaphi | |
-| internal.terminal.ratio | Kaphi | |
-| dist.topo | ape | |
-|~~gammaStat | ape |~~pybus.gamma in Kaphi |
-| avgladder | phyloTop | |
-| ~~cherries | phyloTop |~~n.cherries in Kaphi|
-| ~~colless.phylo | phyloTop |~~colless in Kaphi|
-| getDepths | phyloTop | |
-| ~~ILnumber | phyloTop |~~IL.nodes in Kaphi|
-| ~~maxHeight | phyloTop |~~ladder.length in Kaphi |
-| pitchforks | phyloTop | |
-| ~~sackin.phylo | phyloTop |~~sackin in Kaphi|
+| tree.kernel | Kaphi |The kernel distance between two trees.|
+| ~~nLTT~~| ~~Kaphi~~|*Does not currently work*|
+| sackin | Kaphi |Sackin index.|
+| colless | Kaphi |Colless imbalance number.|
+| ~~cophenetic~~| ~~Kaphi~~ |*Does not currently work*|
+| ladder.length | Kaphi |Max ladder length.|
+| IL.nodes | Kaphi |Number of internal nodes with one leaf.|
+| tree.width | Kaphi |Max width divided by max depth.|
+| max.delta.width | Kaphi |Max difference in in width between two levels.|
+| n.cherries | Kaphi |Number of cherries(node with two leaves).|
+| prop.unbalanced | Kaphi |Proportion of unbalanced subtrees.|
+| avg.unbalance | Kaphi |Average ratio of unbalanced subtrees.|
+| pybus.gamma | Kaphi |Pybus' gamma statistic|
+| internal.terminal.ratio | Kaphi |Ratio of internal to terminal branches.|
+| dist.topo | ape |Topological distance between two trees using the method from Penny & Hendy (1985).|
+| ~~gammaStat~~|~~ape~~|(pybus.gamma in Kaphi)|
+| avgladder | phyloTop |Mean size of ladders in the tree.|
+| ~~cherries~~ | ~~yloTop~~|(n.cherries in Kaphi)|
+| ~~colless.phylo~~ | ~~phyloTop~~|(colless in Kaphi)|
+| getDepths | phyloTop |Returns a list of two vectors: `tipDepths` and `nodeDepths`.|
+| ~~ILnumber~~ | ~~phyloTop~~ |(IL.nodes in Kaphi)|
+| ~~maxHeight~~ | ~~phyloTop~~ |(ladder.length in Kaphi)|
+| pitchforks | phyloTop |Number of clades with three tips. |
+| ~~sackin.phylo~~ | ~~phyloTop~~ |(sackin in Kaphi)|
 
 ## Template
 ```YAML
