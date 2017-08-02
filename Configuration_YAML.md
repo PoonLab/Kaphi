@@ -132,6 +132,7 @@ distances:
 | ~~sackin.phylo~~ | ~~phyloTop~~ |(sackin in Kaphi)|
 
 \* requires two trees.
+
 ** output is non-scalar.
 
 ## Template
