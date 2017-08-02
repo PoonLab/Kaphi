@@ -103,7 +103,7 @@ distances:
 #### Valid Distance Metrics
 | Tree Statistic | Package | Description |
 |----------------|---------|-------------|
-| tree.kernel | Kaphi |The kernel distance between two trees.|
+| tree.kernel*| Kaphi |The kernel distance between two trees.|
 | ~~nLTT~~| ~~Kaphi~~|*Does not currently work*|
 | sackin | Kaphi |Sackin index.|
 | colless | Kaphi |Colless imbalance number.|
@@ -117,16 +117,22 @@ distances:
 | avg.unbalance | Kaphi |Average ratio of unbalanced subtrees.|
 | pybus.gamma | Kaphi |Pybus' gamma statistic|
 | internal.terminal.ratio | Kaphi |Ratio of internal to terminal branches.|
-| dist.topo | ape |Topological distance between two trees using the method from Penny & Hendy (1985).|
+| balance** | ape |For each node of the tree, the numbers of tips on each of its daughter-branches.|
+| cophenetic.phylo** | ape |Pairwise distances between the pairs of tips from a phylogenetic tree using its branch lengths.|
+| dist.nodes** | ape |Like `cophenetic.phylo`, but includes internal nodes.|
+| dist.topo* | ape |Topological distance between two trees using the method from Penny & Hendy (1985).|
 | ~~gammaStat~~|~~ape~~|(pybus.gamma in Kaphi)|
 | avgladder | phyloTop |Mean size of ladders in the tree.|
 | ~~cherries~~ | ~~yloTop~~|(n.cherries in Kaphi)|
 | ~~colless.phylo~~ | ~~phyloTop~~|(colless in Kaphi)|
-| getDepths | phyloTop |Returns a list of two vectors: `tipDepths` and `nodeDepths`.|
+| getDepths** | phyloTop |Returns a list of two vectors: `tipDepths` and `nodeDepths`.|
 | ~~ILnumber~~ | ~~phyloTop~~ |(IL.nodes in Kaphi)|
 | ~~maxHeight~~ | ~~phyloTop~~ |(ladder.length in Kaphi)|
 | pitchforks | phyloTop |Number of clades with three tips. |
 | ~~sackin.phylo~~ | ~~phyloTop~~ |(sackin in Kaphi)|
+
+\* requires two trees.
+** output is non-scalar.
 
 ## Template
 ```YAML
