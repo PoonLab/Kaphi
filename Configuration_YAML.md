@@ -104,10 +104,10 @@ distances:
 | Tree Statistic | Package | Description |
 |----------------|---------|-------------|
 | tree.kernel | Kaphi | |
-| ~~nLTT~~ | ~~Kaphi~~ | |
+| ~~nLTT | Kaphi |~~|
 | sackin | Kaphi | |
 | colless | Kaphi | |
-| ~~cophenetic~~| ~~Kaphi~~ | |
+| ~~cophenetic| Kaphi |~~|
 | ladder.length | Kaphi | |
 | IL.nodes | Kaphi | |
 | tree.width | Kaphi | | 
@@ -118,15 +118,15 @@ distances:
 | pybus.gamma | Kaphi | |
 | internal.terminal.ratio | Kaphi | |
 | dist.topo | ape | |
-| gammaStat | ape | |
+|~~gammaStat | ape |~~pybus.gamma in Kaphi |
 | avgladder | phyloTop | |
-| cherries | phyloTop | |
-| colless.phylo | phyloTop | |
+| ~~cherries | phyloTop |~~n.cherries in Kaphi|
+| ~~colless.phylo | phyloTop |~~colless in Kaphi|
 | getDepths | phyloTop | |
-| ILnumber | phyloTop | |
-| maxHeight | phyloTop | |
+| ~~ILnumber | phyloTop |~~IL.nodes in Kaphi|
+| ~~maxHeight | phyloTop |~~ladder.length in Kaphi |
 | pitchforks | phyloTop | |
-| sackin.phylo | phyloTop | |
+| ~~sackin.phylo | phyloTop |~~sackin in Kaphi|
 
 ## Template
 ```YAML
