@@ -40,5 +40,5 @@ smc:
   step.tolerance: 1.e-5
   norm.mode: 'NONE'
 distances:
-  '0.8*kernel.dist(x,y,decay.factor=0.2,rbf.variance=100.0,sst.control=1.0)+0.1*(sackin(x,use.branch.lengths=TRUE)-sackin(y,use.branch.lengths=TRUE))+0.3*(colless(x)-colless(y))':
+  '0.8*kernel.dist(decay.factor=0.2,rbf.variance=100.0,sst.control=1.0)+0.1*sackin(use.branch.lengths=TRUE)+0.3*colless'
 

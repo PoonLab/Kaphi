@@ -103,7 +103,7 @@ distances:
 #### Valid Distance Metrics
 | Tree Statistic | Package | Description |
 |----------------|---------|-------------|
-| tree.kernel*| Kaphi |The kernel distance between two trees.|
+| kernel.dist*| Kaphi |The kernel distance between two trees.|
 | ~~nLTT~~| ~~Kaphi~~|*Does not currently work*|
 | sackin | Kaphi |Sackin index.|
 | colless | Kaphi |Colless imbalance number.|

@@ -49,7 +49,6 @@ load.config <- function(file) {
   
   settings <- yaml.load_file(file)
 
-
   # parse prior settings
   config$params <- names(settings$priors)
   for (par.name in config$params) {
@@ -106,66 +105,84 @@ load.config <- function(file) {
     }
     config[smc.set] <- settings$smc[smc.set]
   }
-
-  # parse composite distance (dist.metric) settings (may or may not include the kernel distance)
-  # check if character string, or a list of distance metrics
-  if (length(settings$distances)==1 && is.character(names(settings$distances))) {
-    config$dist <- names(settings$distances)
-  } else {
-    for (d.metric in names(settings$distances)){
-      sublist <- settings$distances[[d.metric]]
-    
-      # format: 'weight*pkg::function(x, ...) + ...'
-      dist.call <- paste0(sublist$weight, '*', sublist$package, '::', d.metric)
-      fn <- paste0(sublist$package, '::', d.metric)
-      arguments <- lapply(seq_along(sublist), 
-                        function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, 
-                        y=sublist, n=names(sublist))
-      
-      # the kernel measure takes two trees, while the others take in one
-      args <- arguments[3:length(arguments)]
-      if (d.metric == 'kernel.dist') {
-        dist.call <- paste0(dist.call, '(x, y, ', paste(args, collapse=', '), ')')
-        # cache arguments for any kernel functions that use kernel attributes for later
-        split.args <- sapply(args, function(x){strsplit(x, '=')})
-        for (i in split.args) {assign(i[1], as.numeric(i[2]))}
-        tryCatch({config$decay.factor <- get('decay.factor')
-                 config$rbf.variance <- get('rbf.variance')
-                 config$sst.control <- get('sst.control')},
-                 error= function(e) {e$message <- paste("User-specified kernel distance is missing one or more parameters:", e, sep=" ")
-                 stop(e)})
-      } else {
-          if (length(arguments) <= 2) 
-            dist.call <- paste0(sublist$weight, '*', '(', fn, '(x) - ', fn, '(y))')
-          else  
-            dist.call <- paste0(sublist$weight, '*', '(', fn, '(x, ', paste(args, collapse=', '), 
-                                ') - ', fn, '(y, ', paste(args, collapse=', '), '))')
-      }
-
-      validation <- validate.distance(dist.call)
-      if (validation == TRUE) config$dist[d.metric] <- dist.call
-      else cat(validation, "\nMake sure all packages and dependencies are loaded, 
-               and that the function exists in specified package.") 
-    }
-  }
-  # combines list of expressions into one string
-  config$dist <- paste0(config$dist, collapse=' + ')
+  
+  # Parse & validate distance expression
+  config$dist <- parse.distance(settings$distances)
+  
+  # Parse Kernel Settings
+  #if (length(settings$distances > 1)) {
+  #  if (is.element('kernel.dist', names(settings$distances))) {
+  #    kernel.settings <- settings$distances[['kernel.dist']]
+  #    config$decay.factor <- kernel.settings$decay.factor
+  #    config$rbf.variance <- kernel.settings$rbf.variance
+  #    config$sst.control <- kernel.settings$sst.control
+  #  }
+  #} else if (length(settings$distances == 1)) {
+  #  # parse kernel settings from string
+  #} 
   
   return (config)
 }
 
+parse.distance <- function(distance) {
 
-# function validate expression, checking for functions that aren't present
-validate.distance <- function(distance) {
-  package <- gsub("^.*\\*", "", distance)   # combine these ~~two~~ (three now) regex, kinda hack way of doing it
-  package <- gsub("::.*", "", package)
-  package <- gsub("[^A-Za-z]", "", package)
-  func <- gsub("^.*::", "", distance)
-  func <- gsub("\\(.*", "", func)
-  #call the package and load it; will throw an error if they haven't downloaded it into their R library
-  require(package, character.only=TRUE, quietly=TRUE)
-  if (exists(func, where=paste0('package:', package), mode='function')) return (TRUE)
-  else return(paste0(package, "::", func, " does not exist."))
+  # Lists of accepted tree statistic functions, separated by package
+  kaphi_stats <- list('kernel.dist', 'nLTT', 'sackin', 'colless', 'cophenetic', 'ladder.length', 'IL.nodes', 'tree.width', 
+                      'max.delta.width', 'n.cherries', 'prop.unbalanced', 'avg.unbalance', 'pybus.gamma', 'internal.terminal.ratio')
+  ape_stats <- list('balance', 'cophenetic.phylo', 'dist.nodes', 'dist.topo')
+  phyloTop_stats <- list('avgLadder', 'getDepths', 'pitchforks')
+  
+  # Checks the method used to specify distance expression
+  if (length(distance)==1 && is.character(distance)) {
+    # The user has specified the distance expression as a string (format: "weight*function(args)+...")
+
+  } else {
+    # The user has specified the distance expression as a YAML dictionary
+    # Vector to hold each parsed distance expression
+    dists <- c()
+    
+    for (d.metric in names(distance)){
+      # sublist contains the weight and additional arguments for the function
+      sublist <- distance[[d.metric]]
+      # Add package to function name
+      if (is.element(d.metric, kaphi_stats)) {
+        fn <- paste0('Kaphi::', d.metric)
+      } else if (is.element(d.metric, ape_stats)) {
+        fn <- paste0('ape::', d.metric)
+      } else if (is.element(d.metric, phyloTop_stats)) {
+        fn <- paste0('ape::', d.metric)
+      } else {
+        stop(paste0(d.metric, ' is not a valid choice of distance metric'))
+      }
+      # Pulls the weight value from the list
+      weight <- sublist$weight
+      # Convert list of arguments to strings of the format: "argument=value"
+      arguments <- lapply(seq_along(sublist), 
+                          function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, 
+                          y=sublist, n=names(sublist))
+      # Drop the weight argument
+      args <- arguments[2:length(arguments)]
+  
+      if (d.metric == 'kernel.dist' || d.metric == 'dist.topo') {
+        # These two functions take in two trees instead of one.
+        dist.call <- paste0(weight, "*", fn, '(x, y, ', paste(args, collapse=', '), ')')
+      } else {
+        # The function takes only 1 tree
+        if (length(arguments) < 2) {
+          dist.call <- paste0(weight, '*', 'abs(', fn, '(x) - ', fn, '(y))')
+        } else {
+          dist.call <- paste0(weight, '*', 'abs(', fn, '(x, ', paste(args, collapse=', '), 
+                              ') - ', fn, '(y, ', paste(args, collapse=', '), '))')
+        }
+      }
+      # Stores individual expressions
+      dists <- c(dists, dist.call)
+    }
+    # combines vector of expressions into one string
+    expression <- paste0(dists, collapse=' + ')
+  }
+
+  return(expression)
 }
 
 

@@ -41,21 +41,18 @@ smc:
   norm.mode: 'NONE'
 distances:
   'kernel.dist':
-    package: 'Kaphi'
     weight: 0.8
     decay.factor: 0.2
     rbf.variance: 100.0
     sst.control: 1.0
   'sackin':
-    package: 'Kaphi'
-    weight: 0.05      # making up the rest of these parameters, just for testing purposes
+    weight: 0.05      
     use.branch.lengths: FALSE
-  #'cophenetic.phylo':
+  #'cophenetic.phylo':  # Has matrix output
   #  package: 'ape'
   #  weight: 0.15
   'colless':
-    package: 'Kaphi'
     weight: 0.10
-  'gammaStat':
-    package: 'ape'
-    weight: 0.05
+  #'gammaStat':  # Generates errors for small trees.
+  #  package: 'ape'
+  #  weight: 0.05
