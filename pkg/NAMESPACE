@@ -18,7 +18,7 @@ export(pybus.gamma)
 export(internal.terminal.ratio)
 
 export(load.config)
-export(validate.distance)
+export(parse.distance)
 export(set.model)
 export(sample.priors)
 export(prior.density)

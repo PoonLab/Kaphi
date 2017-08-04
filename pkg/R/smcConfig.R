@@ -135,7 +135,57 @@ parse.distance <- function(distance) {
   # Checks the method used to specify distance expression
   if (length(distance)==1 && is.character(distance)) {
     # The user has specified the distance expression as a string (format: "weight*function(args)+...")
-
+    
+    # List of the distance metrics
+    dist.list <- strsplit(distance, "+", fixed=TRUE)[[1]]
+    # Empty vector to hold parsed expressions
+    dists <- c()
+    for (d.metric in dist.list) {
+      # Break the weight off of the function
+      pop.weight <- strsplit(d.metric, "*", fixed=TRUE)[[1]]
+      weight <- pop.weight[1]
+      # Separate function from the arguments
+      pop.function <- strsplit(pop.weight[2], "(", fixed=TRUE)[[1]]
+      fn <- pop.function[1]
+      arguments <- pop.function[2]
+      arguments <- gsub(")", "", arguments)
+      
+      # Add package to function name
+      if (is.element(fn, kaphi_stats)) {
+        fn <- paste0('Kaphi::', fn)
+      } else if (is.element(fn, ape_stats)) {
+        fn <- paste0('ape::', fn)
+      } else if (is.element(fn, phyloTop_stats)) {
+        fn <- paste0('ape::', fn)
+      } else {
+        stop(paste0(fn, ' is not a valid choice of distance metric'))
+      }
+      
+      # Put it back together
+      if (fn == 'Kaphi::kernel.dist' || fn == 'ape::dist.topo') {
+        # These two functions take in two trees instead of one.
+        if (!is.na(arguments)){
+          dist.call <- paste0(weight, "*", fn, '(x, y, ', arguments, ")")
+        } else {
+          # If only default parameters are being used
+          dist.call <- paste0(weight, "*", fn, "'(x, y)")
+        }
+      } else {
+        # The function takes only 1 tree
+        if (!is.na(arguments)) {
+          dist.call <- paste0(weight, '*', 'abs(', fn, '(x, ', arguments, 
+                              ') - ', fn, '(y, ', arguments, '))')
+        } else { 
+          # If only default parameters are being used
+          dist.call <- paste0(weight, "*", 'abs(', fn, '(x) - ', fn, '(y))')
+        }
+      }
+      
+      dists <- c(dists, dist.call)
+    }
+    # combines vector of expressions into one string
+    expression <- paste0(dists, collapse=' + ')
+    
   } else {
     # The user has specified the distance expression as a YAML dictionary
     # Vector to hold each parsed distance expression

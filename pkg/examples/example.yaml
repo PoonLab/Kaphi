@@ -46,7 +46,7 @@ distances:
     rbf.variance: 100.0
     sst.control: 1.0
   'sackin':
-    weight: 0.05      
+    weight: 0.10      
     use.branch.lengths: FALSE
   #'cophenetic.phylo':  # Has matrix output
   #  package: 'ape'
