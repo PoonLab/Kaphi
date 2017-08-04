@@ -128,9 +128,10 @@ parse.distance <- function(distance) {
 
   # Lists of accepted tree statistic functions, separated by package
   kaphi_stats <- list('kernel.dist', 'nLTT', 'sackin', 'colless', 'cophenetic', 'ladder.length', 'IL.nodes', 'tree.width', 
-                      'max.delta.width', 'n.cherries', 'prop.unbalanced', 'avg.unbalance', 'pybus.gamma', 'internal.terminal.ratio')
-  ape_stats <- list('balance', 'cophenetic.phylo', 'dist.nodes', 'dist.topo')
-  phyloTop_stats <- list('avgLadder', 'getDepths', 'pitchforks')
+                      'max.delta.width', 'n.cherries', 'prop.unbalanced', 'avg.unbalance', 'pybus.gamma', 
+                      'internal.terminal.ratio', 'balance.met', 'cophenetic.phylo.met', 'dist.nodes.met', 'getDepths.met')
+  ape_stats <- list('dist.topo')
+  phyloTop_stats <- list('avgLadder', 'pitchforks')
   
   # Checks the method used to specify distance expression
   if (length(distance)==1 && is.character(distance)) {
@@ -232,6 +233,40 @@ parse.distance <- function(distance) {
     expression <- paste0(dists, collapse=' + ')
   }
   return(expression)
+}
+
+
+## Wrapper functions for the metrics that output non-scalar values:
+balance.met <- function(x){
+  # ape::balance returns a matrix with a row for each node. Each node has two 
+  #   columns which give the # of decendents from each branch. 
+  # This matrix is quantified by taking the difference between the two columns
+  #   for each node and then taking the average of those differences.
+  mat <- balance(x)
+  diff <- abs(mat[,1] - mat[,2])
+  val <- mean(diff)
+  return(val)
+}
+
+cophenetic.phylo.met <- function(x){
+  
+}
+
+dist.nodes.met <- function(x){
+  
+}
+
+getDepths.met <- function(x, type='tips'){
+  # type is one of c('tips', 'nodes')
+  res <- getDepths(x)
+  if (type == 'tips') {
+    val <- res$tipDepths
+  } else if (type == 'nodes') {
+    val <- res$nodeDepths
+  } else {
+    stop("type must be one of c('tips', 'nodes')")
+  }
+  return(val)
 }
 
 
