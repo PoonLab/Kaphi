@@ -135,21 +135,22 @@ parse.distance <- function(distance) {
   # Checks the method used to specify distance expression
   if (length(distance)==1 && is.character(distance)) {
     # The user has specified the distance expression as a string (format: "weight*function(args)+...")
-    
     # List of the distance metrics
     dist.list <- strsplit(distance, "+", fixed=TRUE)[[1]]
     # Empty vector to hold parsed expressions
     dists <- c()
+    
     for (d.metric in dist.list) {
       # Break the weight off of the function
-      pop.weight <- strsplit(d.metric, "*", fixed=TRUE)[[1]]
-      weight <- pop.weight[1]
+      split.weight <- strsplit(d.metric, "*", fixed=TRUE)[[1]]
+      weight <- split.weight[1]
       # Separate function from the arguments
-      pop.function <- strsplit(pop.weight[2], "(", fixed=TRUE)[[1]]
-      fn <- pop.function[1]
-      arguments <- pop.function[2]
+      split.fn <- strsplit(split.weight[2], "(", fixed=TRUE)[[1]]
+      fn <- split.fn[1]
+      arguments <- split.fn[2]
       arguments <- gsub(")", "", arguments)
-      
+      arguments <- strsplit(arguments, ", ", fixed=TRUE)[[1]]
+
       # Add package to function name
       if (is.element(fn, kaphi_stats)) {
         fn <- paste0('Kaphi::', fn)
@@ -164,28 +165,24 @@ parse.distance <- function(distance) {
       # Put it back together
       if (fn == 'Kaphi::kernel.dist' || fn == 'ape::dist.topo') {
         # These two functions take in two trees instead of one.
-        if (!is.na(arguments)){
-          dist.call <- paste0(weight, "*", fn, '(x, y, ', arguments, ")")
-        } else {
-          # If only default parameters are being used
-          dist.call <- paste0(weight, "*", fn, "'(x, y)")
-        }
+        dist.call <- paste0(weight, "*", fn, '(', paste(arguments, collapse=', '), ')')
       } else {
         # The function takes only 1 tree
-        if (!is.na(arguments)) {
-          dist.call <- paste0(weight, '*', 'abs(', fn, '(x, ', arguments, 
-                              ') - ', fn, '(y, ', arguments, '))')
-        } else { 
-          # If only default parameters are being used
-          dist.call <- paste0(weight, "*", 'abs(', fn, '(x) - ', fn, '(y))')
+        if (length(arguments) == 1) {
+          # Default argument values are used
+          dist.call <- paste0(weight, '*', 'abs(', fn, '(', paste(arguments, collapse=', '), 
+                              ') - ', fn, '(y))')
+        } else {
+          # Argument values are specified
+          dist.call <- paste0(weight, '*', 'abs(', fn, '(', paste(arguments, collapse=', '),
+                              ') - ', fn, '(y, ', paste(arguments[2:length(arguments)], collapse=','), '))')
         }
       }
-      
       dists <- c(dists, dist.call)
     }
     # combines vector of expressions into one string
     expression <- paste0(dists, collapse=' + ')
-    
+  
   } else {
     # The user has specified the distance expression as a YAML dictionary
     # Vector to hold each parsed distance expression
@@ -194,6 +191,7 @@ parse.distance <- function(distance) {
     for (d.metric in names(distance)){
       # sublist contains the weight and additional arguments for the function
       sublist <- distance[[d.metric]]
+      
       # Add package to function name
       if (is.element(d.metric, kaphi_stats)) {
         fn <- paste0('Kaphi::', d.metric)
@@ -204,6 +202,7 @@ parse.distance <- function(distance) {
       } else {
         stop(paste0(d.metric, ' is not a valid choice of distance metric'))
       }
+      
       # Pulls the weight value from the list
       weight <- sublist$weight
       # Convert list of arguments to strings of the format: "argument=value"
@@ -231,7 +230,6 @@ parse.distance <- function(distance) {
     # combines vector of expressions into one string
     expression <- paste0(dists, collapse=' + ')
   }
-
   return(expression)
 }
 
