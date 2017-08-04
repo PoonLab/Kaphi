@@ -250,6 +250,9 @@ balance.met <- function(x){
 
 cophenetic.phylo.met <- function(x){
   
+  mat <- cophenetic.phylo(x)
+  corrcoef <- cor(mat, method='pearson')
+  
 }
 
 dist.nodes.met <- function(x){

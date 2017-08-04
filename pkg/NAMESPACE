@@ -19,6 +19,7 @@ export(internal.terminal.ratio)
 
 export(load.config)
 export(parse.distance)
+export(balance.met)
 export(getDepths.met)
 export(set.model)
 export(sample.priors)
