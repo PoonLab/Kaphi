@@ -149,6 +149,7 @@ parse.distance <- function(distance) {
       fn <- split.fn[1]
       arguments <- split.fn[2]
       arguments <- gsub(")", "", arguments)
+      # Convert argument string to list
       arguments <- strsplit(arguments, ", ", fixed=TRUE)[[1]]
 
       # Add package to function name
@@ -157,7 +158,7 @@ parse.distance <- function(distance) {
       } else if (is.element(fn, ape_stats)) {
         fn <- paste0('ape::', fn)
       } else if (is.element(fn, phyloTop_stats)) {
-        fn <- paste0('ape::', fn)
+        fn <- paste0('phyloTop::', fn)
       } else {
         stop(paste0(fn, ' is not a valid choice of distance metric'))
       }
