@@ -160,7 +160,7 @@ colless <- function(t1) {
 }
 
 
-cophenetic <- function(t1, use.branch.lengths=FALSE) {
+cophenetic.index <- function(t1, use.branch.lengths=FALSE) {
   nwk <- .to.newick(t1)
   res <- .Call("R_Kaphi_cophenetic", nwk, PACKAGE="Kaphi")
   return(res)

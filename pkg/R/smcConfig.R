@@ -127,64 +127,65 @@ load.config <- function(file) {
 parse.distance <- function(distance) {
 
   # Lists of accepted tree statistic functions, separated by package
-  kaphi_stats <- list('kernel.dist', 'nLTT', 'sackin', 'colless', 'cophenetic', 'ladder.length', 'IL.nodes', 'tree.width', 
+  kaphi.stats <- list('kernel.dist', 'nLTT', 'sackin', 'colless', 'cophenetic.index', 'ladder.length', 'IL.nodes', 'tree.width', 
                       'max.delta.width', 'n.cherries', 'prop.unbalanced', 'avg.unbalance', 'pybus.gamma', 
                       'internal.terminal.ratio', 'balance.met', 'cophenetic.phylo.met', 'dist.nodes.met', 'getDepths.met')
-  ape_stats <- list('dist.topo')
-  phyloTop_stats <- list('avgLadder', 'pitchforks')
+  ape.stats <- list('dist.topo')
+  phyloTop.stats <- list('avgLadder', 'pitchforks')
   
   # Checks the method used to specify distance expression
   if (length(distance)==1 && is.character(distance)) {
     # The user has specified the distance expression as a string (format: "weight*function(args)+...")
+   
     # List of the distance metrics
     dist.list <- strsplit(distance, "+", fixed=TRUE)[[1]]
     # Empty vector to hold parsed expressions
     dists <- c()
-    
     for (d.metric in dist.list) {
       # Break the weight off of the function
-      split.weight <- strsplit(d.metric, "*", fixed=TRUE)[[1]]
-      weight <- split.weight[1]
+      pop.weight <- strsplit(d.metric, "*", fixed=TRUE)[[1]]
+      weight <- pop.weight[1]
       # Separate function from the arguments
-      split.fn <- strsplit(split.weight[2], "(", fixed=TRUE)[[1]]
-      fn <- split.fn[1]
-      arguments <- split.fn[2]
+      pop.function <- strsplit(pop.weight[2], "(", fixed=TRUE)[[1]]
+      fn <- pop.function[1]
+      arguments <- pop.function[2]
       arguments <- gsub(")", "", arguments)
-      # Convert argument string to list
-      arguments <- strsplit(arguments, ", ", fixed=TRUE)[[1]]
 
       # Add package to function name
-      if (is.element(fn, kaphi_stats)) {
+      if (is.element(fn, kaphi.stats)) {
         fn <- paste0('Kaphi::', fn)
-      } else if (is.element(fn, ape_stats)) {
+      } else if (is.element(fn, ape.stats)) {
         fn <- paste0('ape::', fn)
-      } else if (is.element(fn, phyloTop_stats)) {
+      } else if (is.element(fn, phyloTop.stats)) {
         fn <- paste0('phyloTop::', fn)
       } else {
         stop(paste0(fn, ' is not a valid choice of distance metric'))
       }
-      
+
       # Put it back together
       if (fn == 'Kaphi::kernel.dist' || fn == 'ape::dist.topo') {
-        # These two functions take in two trees instead of one.
-        dist.call <- paste0(weight, "*", fn, '(', paste(arguments, collapse=', '), ')')
-      } else {
-        # The function takes only 1 tree
-        if (length(arguments) == 1) {
-          # Default argument values are used
-          dist.call <- paste0(weight, '*', 'abs(', fn, '(', paste(arguments, collapse=', '), 
-                              ') - ', fn, '(y))')
+      # These two functions take in two trees instead of one.
+        if (!is.na(arguments)){
+          dist.call <- paste0(weight, "*", fn, '(x, y, ', arguments, ")")
         } else {
-          # Argument values are specified
-          dist.call <- paste0(weight, '*', 'abs(', fn, '(', paste(arguments, collapse=', '),
-                              ') - ', fn, '(y, ', paste(arguments[2:length(arguments)], collapse=','), '))')
+        # If only default parameters are being used
+          dist.call <- paste0(weight, "*", fn, "'(x, y)")
+        }
+      } else {
+      # The function takes only 1 tree
+        if (!is.na(arguments)) {
+          dist.call <- paste0(weight, '*', 'abs(', fn, '(x, ', arguments, 
+                              ') - ', fn, '(y, ', arguments, '))')
+        } else { 
+        # If only default parameters are being used
+          dist.call <- paste0(weight, "*", 'abs(', fn, '(x) - ', fn, '(y))')
         }
       }
       dists <- c(dists, dist.call)
     }
     # combines vector of expressions into one string
     expression <- paste0(dists, collapse=' + ')
-  
+
   } else {
     # The user has specified the distance expression as a YAML dictionary
     # Vector to hold each parsed distance expression
@@ -195,11 +196,11 @@ parse.distance <- function(distance) {
       sublist <- distance[[d.metric]]
       
       # Add package to function name
-      if (is.element(d.metric, kaphi_stats)) {
+      if (is.element(d.metric, kaphi.stats)) {
         fn <- paste0('Kaphi::', d.metric)
-      } else if (is.element(d.metric, ape_stats)) {
+      } else if (is.element(d.metric, ape.stats)) {
         fn <- paste0('ape::', d.metric)
-      } else if (is.element(d.metric, phyloTop_stats)) {
+      } else if (is.element(d.metric, phyloTop.stats)) {
         fn <- paste0('ape::', d.metric)
       } else {
         stop(paste0(d.metric, ' is not a valid choice of distance metric'))
@@ -248,15 +249,18 @@ balance.met <- function(x){
   return(val)
 }
 
-cophenetic.phylo.met <- function(x){
+cophenetic.phylo.met <- function(x, y){
   
-  mat <- cophenetic.phylo(x)
-  corrcoef <- cor(mat, method='pearson')
+  matx <- cophenetic.phylo(x)
+  maty <- cophenetic.phylo(y)
+  corrcoef <- cor(matx, maty, method='kendall')
   
 }
 
-dist.nodes.met <- function(x){
+dist.nodes.met <- function(x, y){
   
+  mat <- dist.nodes(x)
+  corrcoef <- cor(mat, method='pearson')
 }
 
 getDepths.met <- function(x, type='tips'){
