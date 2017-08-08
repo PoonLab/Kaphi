@@ -51,22 +51,22 @@ abline(h=0.003, lty=2, col='red')
 
 #------------------------------------------------------------------------------
 # use kernel densities to visualize posterior approximations
-pal <- rainbow(n=9, start=0, end=0.5, v=1, s=1)
+pal <- rainbow(n=5, start=0, end=0.5, v=1, s=1)
 par(mar=c(5,5,2,2))
 #png('bd-dist01.png')
 plot(
   density(trace$lambda[trace$n==1], weights=trace$weight[trace$n==1]), 
-  xlim=c(0, 2), 
+  xlim=c(0, 1.5), 
   col=pal[1], 
   lwd=2, 
   main='Birth-Death', 
   xlab='Lambda', 
   cex.lab=1.2, 
-  ylim=c(0, 15)
+  ylim=c(0, 19)
 )
 
-for (i in 1:8) {
-  temp <- trace[trace$n==i*10,]
+for (i in 1:4) {
+  temp <- trace[trace$n==i*20,]
   lines(density(temp$lambda, weights=temp$weight), 
         col=pal[i+1], lwd=1.5)
 }
@@ -85,11 +85,11 @@ node.heights <- rev(branching.times(obs.tree))
 
 # make a legend
 legend(
-  x=1, y=15, 
-  legend=c('prior', 'n=1', 'n=10', 'n=20', 'n=30', 'n=40', 'n=50', 'n=60', 'n=70', 'n=80', 'n=89(final)', 'true lambda(0.1)'), 
-  lty=c(5,rep(1,10),3), 
+  x=.8, y=19, 
+  legend=c('prior', 'n=1', 'n=20', 'n=40', 'n=60', 'n=80', 'n=101(final)', 'true lambda(0.1)'), 
+  lty=c(5,rep(1,6),3), 
   col=c('black', pal, 'black', 'red'), 
-  lwd=c(1,2,rep(1.5,6),2,0.75), 
+  lwd=c(1,2,rep(1.5,4),2,0.75), 
   seg.len=2
 )
 #dev.off()
@@ -97,22 +97,22 @@ legend(
 
 #------------------------------------------------------------------------------
 # use kernel densities to visualize posterior approximations
-pal <- rainbow(n=9, start=0, end=0.5, v=1, s=1)
+pal <- rainbow(n=5, start=0, end=0.5, v=1, s=1)
 par(mar=c(5,5,2,2))
 #png('bd-dist01.png')
 plot(
   density(trace$mu[trace$n==1], weights=trace$weight[trace$n==1]), 
-  xlim=c(0, 2), 
+  xlim=c(0, 1.5), 
   col=pal[1], 
   lwd=2, 
   main='Birth-Death', 
   xlab='Mu', 
   cex.lab=1.2, 
-  ylim=c(0, 15)
+  ylim=c(0, 22)
 )
 
-for (i in 1:8) {
-  temp <- trace[trace$n==i*10,]
+for (i in 1:4) {
+  temp <- trace[trace$n==i*20,]
   lines(density(temp$mu, weights=temp$weight), 
         col=pal[i+1], lwd=1.5)
 }
@@ -131,11 +131,11 @@ node.heights <- rev(branching.times(obs.tree))
 
 # make a legend
 legend(
-  x=1, y=15, 
-  legend=c('prior', 'n=1', 'n=10', 'n=20', 'n=30', 'n=40', 'n=50', 'n=60', 'n=70', 'n=80', 'n=89(final)', 'true mu(0.003)'), 
-  lty=c(5,rep(1,10),3), 
+  x=0.8, y=22, 
+  legend=c('prior', 'n=1', 'n=20', 'n=40', 'n=60', 'n=80', 'n=101(final)', 'true mu(0.003)'), 
+  lty=c(5,rep(1,6),3), 
   col=c('black', pal, 'black', 'red'), 
-  lwd=c(1,2,rep(1.5,6),2,0.75), 
+  lwd=c(1,2,rep(1.5,2),2,0.75), 
   seg.len=2
 )
 #dev.off()
