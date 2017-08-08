@@ -162,13 +162,13 @@ colless <- function(t1) {
 
 cophenetic.index <- function(t1, use.branch.lengths=FALSE) {
   nwk <- .to.newick(t1)
-  res <- .Call("R_Kaphi_cophenetic", nwk, PACKAGE="Kaphi")
+  res <- .Call("R_Kaphi_cophenetic", nwk, use.branch.lengths, PACKAGE="Kaphi")
   return(res)
 }
 
 ladder.length <- function(t1) {
   nwk <- .to.newick(t1)
-  res <- .Call("R_Kaphi_ladder_length", nwk, package="Kaphi")
+  res <- .Call("R_Kaphi_ladder_length", nwk, PACKAGE="Kaphi")
   return(res)
 }
 
