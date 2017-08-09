@@ -2,8 +2,8 @@ priors:
   't.end':
     dist: 'norm'
     hyperparameters:
-    - mean: 300
-    - sd: 100
+    - mean: 200
+    - sd: 50
   'N':
     dist: 'norm'
     hyperparameters:
@@ -58,14 +58,14 @@ proposals:
   'alpha':
     dist: 'norm'
     parameters:
-    - mean: 5
+    - mean: 0
     - sd: 0.1
 smc:
-  nparticle: 500
+  nparticle: 20
   nsample: 3
   ess.tolerance: 50.0
-  final.accept.rate: 0.0001
-  final.epsilon: 0.00001
+  final.accept.rate: 0.1
+  final.epsilon: 0.1
   quality: 0.95
   step.tolerance: 1.e-5
 kernel:

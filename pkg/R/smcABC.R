@@ -218,19 +218,19 @@ initialize.smc <- function(ws, model, ...) {
     ws$alive <- ws$alive + 1
     old.particle <- ws$particles[i,]
     new.particle <- propose(config, old.particle)
-
+    
     # calculate prior ratio
     mh.ratio <- prior.density(config, new.particle) / prior.density(config, old.particle)
     if (mh.ratio == 0) {
       next  # reject new particle, violates prior assumptions
     }
-
+    
     # calculate proposal ratio
     mh.ratio <- mh.ratio * proposal.density(config, new.particle, old.particle) / proposal.density(config, old.particle, new.particle)
     if (mh.ratio == 0) {
       next  # reject new particle, not possible under proposal distribution
     }
-
+    
     # simulate new trees  # TODO: this is probably a good spot for parallelization
     # retain sim.trees in case we revert to previous particle
     new.trees <- simulate.trees(ws, new.particle, model=model)
@@ -243,7 +243,7 @@ initialize.smc <- function(ws, model, ...) {
     new.nbhd <- sum(new.dists[,i] < ws$epsilon)
     mh.ratio <- mh.ratio * new.nbhd / old.nbhd
 
-    #cat(i, old.particle, new.particle, mh.ratio, "\n")
+    #cat(i, old.particle, new.particle, mh.ratio, "\n")  
 
     # accept or reject the proposal
     if (runif(1) < mh.ratio) {  # always accept if ratio > 1
@@ -315,7 +315,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     ws$accept <- 0
     ws$alive <- 0
     ws <- .perturb.particles(ws, model)  # Metropolis-Hastings sampling
-
+    
     # record everything
     result$theta[[niter]] <- ws$particles
     result$weights[[niter]] <- ws$weights
@@ -345,7 +345,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
 
     # if acceptance rate is low enough, we're done
     # the added niter > 100 is the reason we created a new branch: don't want to interfere with running smc with the speciation models while fixing bugs for compartmental
-    if (niter > 100 && result$accept.rate[niter] <= config$final.accept.rate) {
+    if (result$accept.rate[niter] <= config$final.accept.rate) {
       ws$epsilon <- config$final.epsilon
       break  # FIXME: this should be redundant given loop condition above
     }
