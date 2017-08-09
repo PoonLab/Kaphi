@@ -129,7 +129,7 @@ parse.distance <- function(distance) {
   # Lists of accepted tree statistic functions, separated by package
   kaphi.stats <- list('kernel.dist', 'nLTT', 'sackin', 'colless', 'cophenetic.index', 'ladder.length', 'IL.nodes', 'tree.width', 
                       'max.delta.width', 'n.cherries', 'prop.unbalanced', 'avg.unbalance', 'pybus.gamma', 
-                      'internal.terminal.ratio', 'balance.met', 'cophenetic.phylo.met', 'dist.nodes.met', 'getDepths.met')
+                      'internal.terminal.ratio', 'cophenetic.phylo.met', 'dist.nodes.met', 'getDepths.met')
   ape.stats <- list('dist.topo')
   phyloTop.stats <- list('avgLadder', 'pitchforks')
   
@@ -238,29 +238,26 @@ parse.distance <- function(distance) {
 
 
 ## Wrapper functions for the metrics that output non-scalar values:
-balance.met <- function(x){
-  # ape::balance returns a matrix with a row for each node. Each node has two 
-  #   columns which give the # of decendents from each branch. 
-  # This matrix is quantified by taking the difference between the two columns
-  #   for each node and then taking the average of those differences.
-  mat <- balance(x)
-  diff <- abs(mat[,1] - mat[,2])
-  val <- mean(diff)
-  return(val)
-}
-
 cophenetic.phylo.met <- function(x, y){
-  
   matx <- cophenetic.phylo(x)
   maty <- cophenetic.phylo(y)
-  corrcoef <- cor(matx, maty, method='kendall')
-  
+  if (all(rownames(matx) == rownames(maty))){
+    corrcoef <- cor(c(matx), c(maty), method='kendall')
+    return(corrcoef)
+  } else {
+    stop("cophenetic.phylo.met requires that the two trees being compared have the same tip labels")
+  }
 }
 
 dist.nodes.met <- function(x, y){
-  
-  mat <- dist.nodes(x)
-  corrcoef <- cor(mat, method='pearson')
+  matx <- cophenetic.phylo(x)
+  maty <- cophenetic.phylo(y)
+  if (all(rownames(matx) == rownames(maty))){
+    corrcoef <- cor(c(matx), c(maty), method='kendall')
+    return(corrcoef)
+  } else {
+    stop("dist.nodes.met requires that the two trees being compared have the same tip labels")
+  }
 }
 
 getDepths.met <- function(x, type='tips'){
