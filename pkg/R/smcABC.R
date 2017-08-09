@@ -344,6 +344,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     }
 
     # if acceptance rate is low enough, we're done
+    # the added niter > 100 is the reason we created a new branch: don't want to interfere with running smc with the speciation models while fixing bugs for compartmental
     if (niter > 100 && result$accept.rate[niter] <= config$final.accept.rate) {
       ws$epsilon <- config$final.epsilon
       break  # FIXME: this should be redundant given loop condition above
