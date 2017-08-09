@@ -180,14 +180,10 @@ SEXP R_Kaphi_colless(SEXP nwk) {
 SEXP R_Kaphi_cophenetic(SEXP nwk, SEXP arg_useBL) {
     SEXP result;
 
-    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
-    igraph_t * t1;
     int use_branch_lengths = INTEGER(arg_useBL)[0];
 
-    if (use_branch_lengths) {
-        igraph_i_set_attribute_table(&igraph_cattribute_table);
-    }
-    t1 = R_Kaphi_parse_newick(nwk);
+    igraph_i_set_attribute_table(&igraph_cattribute_table); // <-- inserted
+    igraph_t * t1 = R_Kaphi_parse_newick(nwk);
 
     PROTECT(result = NEW_NUMERIC(1));
     REAL(result)[0] = cophenetic(t1, use_branch_lengths);
