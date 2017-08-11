@@ -42,9 +42,9 @@ smc:
 distances:
   'kernel.dist':
     weight: 0.8
-    decay.factor: 0.2
-    rbf.variance: 100.0
-    sst.control: 1.0
+    decay.factor: 0.9
+    rbf.variance: 123.0
+    sst.control: 5.0
   'sackin':
     weight: 0.10      
     use.branch.lengths: FALSE

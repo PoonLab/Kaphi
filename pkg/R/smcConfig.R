@@ -110,17 +110,38 @@ load.config <- function(file) {
   config$dist <- parse.distance(settings$distances)
   
   # Parse Kernel Settings
-  #if (length(settings$distances > 1)) {
-  #  if (is.element('kernel.dist', names(settings$distances))) {
-  #    kernel.settings <- settings$distances[['kernel.dist']]
-  #    config$decay.factor <- kernel.settings$decay.factor
-  #    config$rbf.variance <- kernel.settings$rbf.variance
-  #    config$sst.control <- kernel.settings$sst.control
-  #  }
-  #} else if (length(settings$distances == 1)) {
-  #  # parse kernel settings from string
-  #} 
-  
+  if (is.list(settings$distances)) {
+    if (is.element('kernel.dist', names(settings$distances))) {
+      kernel.settings <- settings$distances[['kernel.dist']]
+      config$decay.factor <- kernel.settings$decay.factor
+      config$rbf.variance <- kernel.settings$rbf.variance
+      config$sst.control <- kernel.settings$sst.control
+    }
+  } else if (is.character(settings$distances)) {
+    # parse kernel settings from string
+    dist.list <- strsplit(settings$distances, "+", fixed=TRUE)[[1]]
+    for (dist in dist.list) {
+      if (grepl("kernel.dist", dist)) {
+        match <- regexpr("\\(.+\\)", dist, perl=TRUE)
+        args <- regmatches(dist, match)
+        args <- gsub("[( )]", "", args)
+        kernel.settings <- strsplit(args, ",", fixed=TRUE)[[1]]
+        names <- c()
+        values <- c()
+        for (parm in kernel.settings) {
+          split <- strsplit(parm, "=", fixed=TRUE)[[1]]
+          name <- split[1]
+          value <- as.numeric(split[2])
+          names <- c(names, name)
+          values <- c(values, value)
+        }
+        names(values) <- names
+        config$decay.factor <- values["decay.factor"]
+        config$rbf.variance <- values["rbf.variance"]
+        config$sst.control <- values["sst.control"]
+      }
+    }
+  } 
   return (config)
 }
 
@@ -309,7 +330,6 @@ set.model <- function(config, generator) {
 }
 
 
-
 #This method should call a function that samples parameters from the
 #prior distributions.  It should be configured based on YAML input from
 #the user.
@@ -425,7 +445,12 @@ print.smc.config <- function(config, ...) {
   cat('Distance settings\n')
   cat('  Expression:\t', config$dist, '\n')
 
+  cat('Kernel settings\n')
+  cat('  Decay Factor:', config$decay.factor, '\n')
+  cat('  RBF Variance:', config$rbf.variance, '\n')
+  cat('  SST Control:', config$sst.control, '\n')
 }
+
 
 plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
   # numr = number of rows of plots to be displayed at one time
@@ -458,6 +483,7 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
   par(ask=F)
 }
 
+
 # parse tip arguments for each model and creates either n tips of zero height if arg is an int 
 # or tips of varying heights if arg is a numeric vector of non-negative values
 .parse.tips <- function(tips) {
@@ -473,6 +499,7 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
   tips <- list(n.tips=n.tips, tip.heights=tip.heights)
   return(tips)
 }
+
 
 # with a given Newick tree string representation or phylo object in R, 
 # function will extract sample collection times from tip labels
