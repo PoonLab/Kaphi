@@ -142,7 +142,7 @@ smc:
 Distance metrics are used to compare two trees. 
 Kaphi was created to be used with the kernel distance, but many other distances are accepted (see [Distance Metrics](https://github.com/PoonLab/Kaphi/blob/master/DistanceMetrics.md)). Many difference distance metrics may be used in conjunction, as shown in the examples below.
 
-There are two ways to specify distance metrics: as a YAML dictionary (first example) or as a string (second example).
+There are two ways to specify distance metrics: as a YAML dictionary (first example) or as a string indicating a linear combination of distances. (second example).
 
 ```YAML
 distances:
