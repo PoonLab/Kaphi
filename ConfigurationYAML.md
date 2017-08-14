@@ -135,7 +135,7 @@ smc:
 | ess.tolerance     | [Effective Sample Size](https://www.johndcook.com/blog/2017/06/27/effective-sample-size-for-mcmc/) tolerance. |
 | final.accept.rate | The accept rate that will stop the algorithm.                         |
 | final.epsilon     | The value of epsilon that will stop the algorithm.                    |
-| quality           | |
+| quality           | A tuning parameter (alpha) that corresponds to the ratio of current effective sample size (ESS) over previous ESS.  If alpha is near 1, then ESS is held constant over time and particles stay diverse but are slower to converge.  If alpha is near 0, then particles can collapse to a single point that is not necessarily accurate. |
 | step.tolerance    | The convergence tolerance for finding the next epsilon.               |
 
 ### Distance Metric Settings
