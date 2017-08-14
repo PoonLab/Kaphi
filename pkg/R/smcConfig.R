@@ -62,13 +62,16 @@ load.config <- function(file) {
   
   # parse constraints (if present)
   if (!is.null(settings$constraints)) {
-    elements <- strsplit(settings$constraints, ' ')  # list of param names and operators
+    # list of parameters and operators
+    elements <- strsplit(settings$constraints, ' ')
     elements <- unlist(elements)
     con <- ''
     for (i in elements) {
       if (grepl('^[A-Za-z]+$', i)) {
+        # changes param to theta['param']
         con <- paste0(con, "theta['", i, "']")
       } else {
+        # inserts an operator
         con <- paste0(con, i)
       }
     }
