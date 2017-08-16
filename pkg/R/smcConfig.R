@@ -34,7 +34,6 @@ load.config <- function(file) {
     final.accept.rate=0.015,
     quality=0.95,
     step.tolerance=1e-5,
-    norm.mode='NONE',
 
     # distance settings
     # kernel, sackin, tree.width, etc
@@ -43,7 +42,8 @@ load.config <- function(file) {
     # cached kernel settings, left alone if not specified in user-provided yaml/distance string
     decay.factor=0.2,
     rbf.variance=100.0,
-    sst.control=1.0
+    sst.control=1.0,
+    norm.mode='NONE'
   )
   class(config) <- 'smc.config'
   
@@ -116,6 +116,7 @@ load.config <- function(file) {
       config$decay.factor <- kernel.settings$decay.factor
       config$rbf.variance <- kernel.settings$rbf.variance
       config$sst.control <- kernel.settings$sst.control
+      config$norm.mode <- kernel.settings$norm.mode
     }
   } else if (is.character(settings$distances)) {
     # parse kernel settings from string
@@ -131,14 +132,15 @@ load.config <- function(file) {
         for (parm in kernel.settings) {
           split <- strsplit(parm, "=", fixed=TRUE)[[1]]
           name <- split[1]
-          value <- as.numeric(split[2])
+          value <- split[2]
           names <- c(names, name)
           values <- c(values, value)
         }
         names(values) <- names
-        config$decay.factor <- values["decay.factor"]
-        config$rbf.variance <- values["rbf.variance"]
-        config$sst.control <- values["sst.control"]
+        config$decay.factor <- as.numeric(values["decay.factor"])
+        config$rbf.variance <- as.numeric(values["rbf.variance"])
+        config$sst.control <- as.numeric(values["sst.control"])
+        config$norm.mode <- values["norm.mode"]
       }
     }
   } 

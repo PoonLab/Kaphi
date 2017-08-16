@@ -14,6 +14,8 @@ priors:
     hyperparameters:
     - shape: 50
     - rate: 1
+constraints:
+  - ''
 proposals:
   't.end':
     dist: 'norm'
@@ -38,7 +40,5 @@ smc:
   final.epsilon: 0.1
   quality: 0.95
   step.tolerance: 1.e-5
-  norm.mode: 'NONE'
 distances:
-  '0.8*kernel.dist(decay.factor=0.2, rbf.variance=100.0, sst.control=1.0)+0.1*sackin(use.branch.lengths=FALSE)+0.1*colless'
-
+  '0.8*kernel.dist(decay.factor=0.2, rbf.variance=100.0, sst.control=1.0, norm.mode=MEAN)+0.1*sackin(use.branch.lengths=FALSE)+0.1*colless'

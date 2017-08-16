@@ -14,6 +14,8 @@ priors:
     hyperparameters:
     - shape: 50
     - rate: 1
+constraints:
+  - ''
 proposals:
   't.end':
     dist: 'norm'
@@ -38,21 +40,18 @@ smc:
   final.epsilon: 0.1
   quality: 0.95
   step.tolerance: 1.e-5
-  norm.mode: 'NONE'
 distances:
   'kernel.dist':
     weight: 0.8
-    decay.factor: 0.9
-    rbf.variance: 123.0
-    sst.control: 5.0
+    decay.factor: 0.2
+    rbf.variance: 100.0
+    sst.control: 1.0
+    norm.mode: 'MEAN'
   'sackin':
     weight: 0.10      
     use.branch.lengths: FALSE
-  #'cophenetic.phylo':  # Has matrix output
-  #  package: 'ape'
-  #  weight: 0.15
+  'cophenetic.phylo.met':
+    package: 'ape'
+    weight: 0.15
   'colless':
     weight: 0.10
-  #'gammaStat':  # Generates errors for small trees.
-  #  package: 'ape'
-  #  weight: 0.05
