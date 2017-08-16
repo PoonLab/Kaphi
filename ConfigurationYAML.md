@@ -135,14 +135,14 @@ smc:
 | ess.tolerance     | [Effective Sample Size](https://www.johndcook.com/blog/2017/06/27/effective-sample-size-for-mcmc/) tolerance. |
 | final.accept.rate | The accept rate that will stop the algorithm.                         |
 | final.epsilon     | The value of epsilon that will stop the algorithm.                    |
-| quality           | |
+| quality           | A tuning parameter (alpha) that corresponds to the ratio of current effective sample size (ESS) over previous ESS.  If alpha is near 1, then ESS is held constant over time and particles stay diverse but are slower to converge.  If alpha is near 0, then particles can collapse to a single point that is not necessarily accurate. |
 | step.tolerance    | The convergence tolerance for finding the next epsilon.               |
 
 ### Distance Metric Settings
 Distance metrics are used to compare two trees. 
 Kaphi was created to be used with the kernel distance, but many other distances are accepted (see [Distance Metrics](https://github.com/PoonLab/Kaphi/blob/master/DistanceMetrics.md)). Many difference distance metrics may be used in conjunction, as shown in the examples below.
 
-There are two ways to specify distance metrics: as a YAML dictionary (first example) or as a string (second example).
+There are two ways to specify distance metrics: as a YAML dictionary (first example) or as a string indicating a linear combination of distances. (second example).
 
 ```YAML
 distances:
@@ -166,5 +166,5 @@ distances:
 
 ```YAML
 distances:
-  '0.8*kernel.dist(x,y,decay.factor=0.2,rbf.variance=100.0,sst.control=1.0)+0.1*sackin+0.3*colless':
+  '0.8*kernel.dist(x,y,decay.factor=0.2,rbf.variance=100.0,sst.control=1.0)+0.1*sackin+0.3*colless'
 ```
