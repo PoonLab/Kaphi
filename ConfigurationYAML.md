@@ -166,5 +166,5 @@ distances:
 
 ```YAML
 distances:
-  '0.8*kernel.dist(x,y,decay.factor=0.2,rbf.variance=100.0,sst.control=1.0)+0.1*sackin+0.3*colless':
+  '0.8*kernel.dist(x,y,decay.factor=0.2,rbf.variance=100.0,sst.control=1.0)+0.1*sackin+0.3*colless'
 ```
