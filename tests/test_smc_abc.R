@@ -23,6 +23,7 @@ test.simulate.trees <- function() {
         nparticle=10,
         model=const.coalescent,
         nsample=10,
+        dist='Kaphi::kernel.dist(x, y, decay.factor=0.2, rbf.variance=2.0, sst.control=1, norm.mode=NONE)',
         decay.factor=0.2,
         rbf.variance=2.0,
         sst.control=1.0,
@@ -43,6 +44,7 @@ test.simulate.trees <- function() {
 
 test.distance <- function() {
     config <- list(
+        dist='0.8*Kaphi::kernel.dist(x, y, decay.factor=0.5, rbf.variance=1.0, sst.control=1, norm.mode=NONE)',
         decay.factor=0.5,
         rbf.variance=1.0,
         sst.control=1,

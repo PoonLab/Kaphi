@@ -65,7 +65,7 @@ load.config <- function(file) {
   }
   
   # parse constraints (if present)
-  if (!is.null(settings$constraints)) {
+  if (settings$constraints != '') {
     elements <- strsplit(settings$constraints, ' ')  # list of param names and operators
     elements <- unlist(elements)
     con <- ''
