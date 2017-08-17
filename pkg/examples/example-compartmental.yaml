@@ -17,13 +17,13 @@ priors:
   'gamma':
     dist: 'gamma'
     hyperparameters:
-    - shape: 2
-    - rate: 20
+    - shape: 1
+    - rate: 10
   'mu':
     dist: 'gamma'
     hyperparameters:
-    - shape: 2
-    - rate: 30
+    - shape: 1
+    - rate: 10
   'alpha':
     dist: 'norm'
     hyperparameters:
@@ -44,7 +44,7 @@ proposals:
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.001
+    - sd: 0.01
   'gamma':
     dist: 'norm'
     parameters:
@@ -61,7 +61,7 @@ proposals:
     - mean: 0
     - sd: 0.1
 smc:
-  nparticle: 20
+  nparticle: 500
   nsample: 3
   ess.tolerance: 50.0
   final.accept.rate: 0.1
