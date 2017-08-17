@@ -243,8 +243,6 @@ initialize.smc <- function(ws, model, ...) {
     new.nbhd <- sum(new.dists[,i] < ws$epsilon)
     mh.ratio <- mh.ratio * new.nbhd / old.nbhd
 
-    #cat(i, old.particle, new.particle, mh.ratio, "\n")  
-
     # accept or reject the proposal
     if (runif(1) < mh.ratio) {  # always accept if ratio > 1
       ws$accept <- ws$accept + 1
