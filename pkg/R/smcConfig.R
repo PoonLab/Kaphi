@@ -187,7 +187,7 @@ prior.density <- function(config, theta) {
   for (par.name in names(theta)) {
     if (is.element(par.name, names(config$prior.densities))) {
       arg.prior <- theta[par.name]
-        result <- result * eval(parse(text=config$prior.densities[[par.name]]))
+      result <- result * eval(parse(text=config$prior.densities[[par.name]]))
     }
   }
   return (result)
