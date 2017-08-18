@@ -6,7 +6,7 @@ config <- set.model(config, 'sir.dynamic')
 
 # simulate target tree
 theta <- c(t.end=200, N=10000, beta=0.1, gamma=0.002, mu=0.0001, alpha=5)
-set.seed(50)
+set.seed(40)
 obs.tree <- compartmental.model(theta, nsim=1, tips=100, model='sir.dynamic', fgyResolution=1000)[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
@@ -22,7 +22,7 @@ result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', model
 trace <- read.table('pkg/examples/example-compartmental.tsv', header=T, sep='\t')
 
 ########################################################################################################################################################################
-pdf(file='pkg/examples/example-comparmental.pdf')
+pdf(file='pkg/examples/example-compartmental-0.05-seed40.pdf')
 
 # trajectory of mean estimate of beta
 par(mar=c(5,5,2,2))
