@@ -21,3 +21,6 @@
 | avgladder | phyloTop |Mean size of ladders in the tree.|
 | getDepths | phyloTop |Returns a list of two vectors: `tipDepths` and `nodeDepths`.|
 | pitchforks | phyloTop |Number of clades with three tips. |
+| RF.dist | phangorn | Robinson-Foulds distance: number of clades not shared. |
+| KF.dist | phangorn | RF with branch lengths: sums of differences in branch lengths. |
+| path.dist | phangorn | Path distance metric: nodeal distance ("NODE") with k=2. |
