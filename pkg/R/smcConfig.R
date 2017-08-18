@@ -262,43 +262,6 @@ parse.distance <- function(distance) {
 }
 
 
-## Wrapper functions for the metrics that output non-scalar values:
-cophenetic.phylo.met <- function(x, y){
-  matx <- cophenetic.phylo(x)
-  maty <- cophenetic.phylo(y)
-  if (all(rownames(matx) == rownames(maty))){
-    corrcoef <- cor(c(matx), c(maty), method='kendall')
-    return(corrcoef)
-  } else {
-    stop("cophenetic.phylo.met requires that the two trees being compared have the same tip labels")
-  }
-}
-
-dist.nodes.met <- function(x, y){
-  matx <- cophenetic.phylo(x)
-  maty <- cophenetic.phylo(y)
-  if (all(rownames(matx) == rownames(maty))){
-    corrcoef <- cor(c(matx), c(maty), method='kendall')
-    return(corrcoef)
-  } else {
-    stop("dist.nodes.met requires that the two trees being compared have the same tip labels")
-  }
-}
-
-getDepths.met <- function(x, type='tips'){
-  # type is one of c('tips', 'nodes')
-  res <- getDepths(x)
-  if (type == 'tips') {
-    val <- res$tipDepths
-  } else if (type == 'nodes') {
-    val <- res$nodeDepths
-  } else {
-    stop("type must be one of c('tips', 'nodes')")
-  }
-  return(val)
-}
-
-
 set.model <- function(config, generator) {
   # generator argument can either be function name or object
   if (is.character(generator)) {
