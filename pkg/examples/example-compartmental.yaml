@@ -30,7 +30,7 @@ priors:
     - mean: 5
     - sd: 0.1
 constraints:
-  -
+  - ''
 proposals:
   't.end':
     dist: 'norm'

@@ -5,7 +5,7 @@ priors:
     - meanlog: 5
     - sdlog: 2
 constraints:
-  -
+  - ''
 proposals:
   Ne.tau:
     dist: 'norm'

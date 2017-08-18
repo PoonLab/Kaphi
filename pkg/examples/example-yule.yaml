@@ -11,7 +11,7 @@ proposals:
     - mean: 0.0
     - sd: 0.1
 constraints:
-  -
+  - ''
 smc:
   nparticle: 10
   nsample: 5
