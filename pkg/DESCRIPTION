@@ -15,7 +15,8 @@ Depends:
     shiny,
     Rcpp,
     RcppArmadillo,
-    rcolgem
+    rcolgem,
+    phyloTop
 Description: Kaphi is a package for phylodynamic using approximate Bayesian computation 
  (ABC).  It uses a kernel method to compare the shapes of phylogenies, which is the 
  basis for parameter rejection in the context of ABC.  Kaphi implements an adaptive
