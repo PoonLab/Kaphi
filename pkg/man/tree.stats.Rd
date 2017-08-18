@@ -1,7 +1,7 @@
 \name{tree.stats}
 \alias{sackin}
 \alias{colless}
-\alias{cophenetic}
+\alias{cophenetic.index}
 \alias{pybus.gamma}
 \alias{ladder.length}
 \alias{IL.nodes}
@@ -15,7 +15,7 @@
 \description{
 \code{sackin} is a wrapper function that returns the sum of node depths (branch lengths) from each tip to the root. \cr\cr
 \code{colless} is a wrapper function that returns an index between 0 and 1 to represent the level of imbalance in the specified tree.\cr\cr
-\code{cophenetic} is a wrapper function that returns the sum of most-recent common ancestor depths for each pair of tips.\cr\cr
+\code{cophenetic.index} is a wrapper function that returns the sum of most-recent common ancestor depths for each pair of tips.\cr\cr
 \code{pybus.gamma} is a wrapper function that calculates and returns Pybus' gamma-statistic.\cr\cr
 \code{ladder.length} is a wrapper function that computes and returns the maximum ladder length of the specified tree. \cr\cr
 \code{IL.nodes} is a wrapper function that returns the number of internal nodes which have exactly one leaf child. \cr\cr
@@ -29,7 +29,7 @@
 \usage{
 sackin(x, use.branch.lengths=FALSE)
 colless(x)
-cophenetic(x. use.branch.lengths=FALSE)
+cophenetic.index(x. use.branch.lengths=FALSE)
 pybus.gamma(x)
 ladder.length(x)
 IL.nodes(x)
@@ -82,7 +82,7 @@ tree <- read.tree(text="(((A:0.1,B:0.1):0.1,C:0.2):0.1,D:0.3):0;")
 
 sackin(tree, TRUE)   # using branch lengths = TRUE
 colless(tree)
-cophenetic(tree)
+cophenetic.index(tree)
 pybus.gamma(tree)
 ladder.length(tree)
 tree.width(tree)

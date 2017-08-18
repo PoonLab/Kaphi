@@ -48,30 +48,31 @@ simulate.trees <- function(workspace, theta, model, seed=NA, ...) {
 }
 
 
-distance <- function(t1, t2, config) {
+# formally 'distance'
+kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, norm.mode) {
   if (is.null(t1$kernel)) {
     stop("t1 missing self kernel in distance()")
   }
   if (is.null(t2$kernel)) {
     stop("t2 missing self kernel in distance()")
   }
-
+  
   k <- tree.kernel(
-        t1,
-        t2,
-        lambda=config$decay.factor,
-        sigma=config$rbf.variance,
-        rho=config$sst.control
+    t1,
+    t2,
+    lambda=decay.factor,
+    sigma=rbf.variance,
+    rho=sst.control
   )
-
+  
   result <- 1. - k / sqrt(t1$kernel * t2$kernel)
   if (result < 0 || result > 1) {
     stop(
-      cat("ERROR: distance() value outside range [0,1].\n",
-                "k: ", k, "\n",
-                "t1$kernel: ", t1$kernel, "\n",
-                "t2$kernel: ", t2$kernel, "\n"
-          )
+      cat("ERROR: kernel.dist() value outside range [0,1].\n",
+          "k: ", k, "\n",
+          "t1$kernel: ", t1$kernel, "\n",
+          "t2$kernel: ", t2$kernel, "\n"
+      )
     )
   }
   if (is.nan(result)) {
@@ -79,6 +80,22 @@ distance <- function(t1, t2, config) {
     cat("t2$kernel:", t2$kernel, "\n")
   }
   return (result)
+}
+
+
+# Applies config$dist expression to trees x and y
+distance <- function(x, y, config) {
+  
+  result <- eval(parse(text=config$dist)) 
+  
+  # One instance of NA or NAN throws error
+  if (is.na(result)==TRUE) {
+    stop("One or more distance metrics returns NA")
+  } else if (is.nan(result)==TRUE) {
+    stop("One or more distance metrics returns NAN")
+  } else {
+    return(result)
+  }
 }
 
 

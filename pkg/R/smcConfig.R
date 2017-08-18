@@ -35,15 +35,19 @@ load.config <- function(file) {
     quality=0.95,
     step.tolerance=1e-5,
 
-    # kernel settings
+    # distance settings
+    # kernel, sackin, tree.width, etc
+    dist=NULL,
+    
+    # cached kernel settings, left alone if not specified in user-provided yaml/distance string
     decay.factor=0.2,
-    rbf.variance=2.0,
+    rbf.variance=100.0,
     sst.control=1.0,
-    norm.mode='MEAN'
+    norm.mode='NONE'
   )
   class(config) <- 'smc.config'
+  
   settings <- yaml.load_file(file)
-
 
   # parse prior settings
   config$params <- names(settings$priors)
@@ -61,9 +65,8 @@ load.config <- function(file) {
   }
   
   # parse constraints (if present)
-  if (!is.null(settings$constraints)) {
-    # list of parameters and operators
-    elements <- strsplit(settings$constraints, ' ')
+  if (settings$constraints != '') {
+    elements <- strsplit(settings$constraints, ' ')  # list of param names and operators
     elements <- unlist(elements)
     con <- ''
     for (i in elements) {
@@ -104,17 +107,196 @@ load.config <- function(file) {
     }
     config[smc.set] <- settings$smc[smc.set]
   }
-
-  # parse kernel settings
-  for (k.set in names(settings$kernel)) {
-    if (!is.element(k.set, names(config))) {
-      stop("Unrecognized kernel setting in YAML: ", k.set)
+  
+  # Parse & validate distance expression
+  config$dist <- parse.distance(settings$distances)
+  
+  # Parse Kernel Settings
+  if (is.list(settings$distances)) {
+    if (is.element('kernel.dist', names(settings$distances))) {
+      kernel.settings <- settings$distances[['kernel.dist']]
+      config$decay.factor <- kernel.settings$decay.factor
+      config$rbf.variance <- kernel.settings$rbf.variance
+      config$sst.control <- kernel.settings$sst.control
+      config$norm.mode <- kernel.settings$norm.mode
     }
-    config[k.set] <- settings$kernel[k.set]
-  }
+  } else if (is.character(settings$distances)) {
+    # parse kernel settings from string
+    dist.list <- strsplit(settings$distances, "+", fixed=TRUE)[[1]]
+    for (dist in dist.list) {
+      if (grepl("kernel.dist", dist)) {
+        match <- regexpr("\\(.+\\)", dist, perl=TRUE)
+        args <- regmatches(dist, match)
+        args <- gsub("[( )]", "", args)
+        kernel.settings <- strsplit(args, ",", fixed=TRUE)[[1]]
+        names <- c()
+        values <- c()
+        for (parm in kernel.settings) {
+          split <- strsplit(parm, "=", fixed=TRUE)[[1]]
+          name <- split[1]
+          value <- split[2]
+          names <- c(names, name)
+          values <- c(values, value)
+        }
+        names(values) <- names
+        config$decay.factor <- as.numeric(values["decay.factor"])
+        config$rbf.variance <- as.numeric(values["rbf.variance"])
+        config$sst.control <- as.numeric(values["sst.control"])
+        config$norm.mode <- values["norm.mode"]
+      }
+    }
+  } 
   return (config)
 }
 
+parse.distance <- function(distance) {
+
+  # Lists of accepted tree statistic functions, separated by package
+  kaphi.stats <- list('kernel.dist', 'nLTT', 'sackin', 'colless', 'cophenetic.index', 'ladder.length', 'IL.nodes', 'tree.width', 
+                      'max.delta.width', 'n.cherries', 'prop.unbalanced', 'avg.unbalance', 'pybus.gamma', 
+                      'internal.terminal.ratio', 'cophenetic.phylo.met', 'dist.nodes.met', 'getDepths.met')
+  ape.stats <- list('dist.topo')
+  phyloTop.stats <- list('avgLadder', 'pitchforks')
+  
+  # Checks the method used to specify distance expression
+  if (length(distance)==1 && is.character(distance)) {
+    # The user has specified the distance expression as a string (format: "weight*function(args)+...")
+   
+    # List of the distance metrics
+    dist.list <- strsplit(distance, "+", fixed=TRUE)[[1]]
+    # Empty vector to hold parsed expressions
+    dists <- c()
+    for (d.metric in dist.list) {
+      # Break the weight off of the function
+      pop.weight <- strsplit(d.metric, "*", fixed=TRUE)[[1]]
+      weight <- pop.weight[1]
+      # Separate function from the arguments
+      pop.function <- strsplit(pop.weight[2], "(", fixed=TRUE)[[1]]
+      fn <- pop.function[1]
+      arguments <- pop.function[2]
+      arguments <- gsub(")", "", arguments)
+
+      # Add package to function name
+      if (is.element(fn, kaphi.stats)) {
+        fn <- paste0('Kaphi::', fn)
+      } else if (is.element(fn, ape.stats)) {
+        fn <- paste0('ape::', fn)
+      } else if (is.element(fn, phyloTop.stats)) {
+        fn <- paste0('phyloTop::', fn)
+      } else {
+        stop(paste0(fn, ' is not a valid choice of distance metric'))
+      }
+
+      # Put it back together
+      if (fn == 'Kaphi::kernel.dist' || fn == 'ape::dist.topo') {
+      # These two functions take in two trees instead of one.
+        if (!is.na(arguments)){
+          dist.call <- paste0(weight, "*", fn, '(x, y, ', arguments, ")")
+        } else {
+        # If only default parameters are being used
+          dist.call <- paste0(weight, "*", fn, "'(x, y)")
+        }
+      } else {
+      # The function takes only 1 tree
+        if (!is.na(arguments)) {
+          dist.call <- paste0(weight, '*', 'abs(', fn, '(x, ', arguments, 
+                              ') - ', fn, '(y, ', arguments, '))')
+        } else { 
+        # If only default parameters are being used
+          dist.call <- paste0(weight, "*", 'abs(', fn, '(x) - ', fn, '(y))')
+        }
+      }
+      dists <- c(dists, dist.call)
+    }
+    # combines vector of expressions into one string
+    expression <- paste0(dists, collapse=' + ')
+
+  } else {
+    # The user has specified the distance expression as a YAML dictionary
+    # Vector to hold each parsed distance expression
+    dists <- c()
+    
+    for (d.metric in names(distance)){
+      # sublist contains the weight and additional arguments for the function
+      sublist <- distance[[d.metric]]
+      
+      # Add package to function name
+      if (is.element(d.metric, kaphi.stats)) {
+        fn <- paste0('Kaphi::', d.metric)
+      } else if (is.element(d.metric, ape.stats)) {
+        fn <- paste0('ape::', d.metric)
+      } else if (is.element(d.metric, phyloTop.stats)) {
+        fn <- paste0('ape::', d.metric)
+      } else {
+        stop(paste0(d.metric, ' is not a valid choice of distance metric'))
+      }
+      
+      # Pulls the weight value from the list
+      weight <- sublist$weight
+      # Convert list of arguments to strings of the format: "argument=value"
+      arguments <- lapply(seq_along(sublist), 
+                          function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, 
+                          y=sublist, n=names(sublist))
+      # Drop the weight argument
+      args <- arguments[2:length(arguments)]
+  
+      if (d.metric == 'kernel.dist' || d.metric == 'dist.topo') {
+        # These two functions take in two trees instead of one.
+        dist.call <- paste0(weight, "*", fn, '(x, y, ', paste(args, collapse=', '), ')')
+      } else {
+        # The function takes only 1 tree
+        if (length(arguments) < 2) {
+          dist.call <- paste0(weight, '*', 'abs(', fn, '(x) - ', fn, '(y))')
+        } else {
+          dist.call <- paste0(weight, '*', 'abs(', fn, '(x, ', paste(args, collapse=', '), 
+                              ') - ', fn, '(y, ', paste(args, collapse=', '), '))')
+        }
+      }
+      # Stores individual expressions
+      dists <- c(dists, dist.call)
+    }
+    # combines vector of expressions into one string
+    expression <- paste0(dists, collapse=' + ')
+  }
+  return(expression)
+}
+
+
+## Wrapper functions for the metrics that output non-scalar values:
+cophenetic.phylo.met <- function(x, y){
+  matx <- cophenetic.phylo(x)
+  maty <- cophenetic.phylo(y)
+  if (all(rownames(matx) == rownames(maty))){
+    corrcoef <- cor(c(matx), c(maty), method='kendall')
+    return(corrcoef)
+  } else {
+    stop("cophenetic.phylo.met requires that the two trees being compared have the same tip labels")
+  }
+}
+
+dist.nodes.met <- function(x, y){
+  matx <- cophenetic.phylo(x)
+  maty <- cophenetic.phylo(y)
+  if (all(rownames(matx) == rownames(maty))){
+    corrcoef <- cor(c(matx), c(maty), method='kendall')
+    return(corrcoef)
+  } else {
+    stop("dist.nodes.met requires that the two trees being compared have the same tip labels")
+  }
+}
+
+getDepths.met <- function(x, type='tips'){
+  # type is one of c('tips', 'nodes')
+  res <- getDepths(x)
+  if (type == 'tips') {
+    val <- res$tipDepths
+  } else if (type == 'nodes') {
+    val <- res$nodeDepths
+  } else {
+    stop("type must be one of c('tips', 'nodes')")
+  }
+  return(val)
+}
 
 
 set.model <- function(config, generator) {
@@ -150,7 +332,6 @@ set.model <- function(config, generator) {
   config$model <- generator
   return(config)
 }
-
 
 
 #This method should call a function that samples parameters from the
@@ -265,12 +446,15 @@ print.smc.config <- function(config, ...) {
   cat('  Quality:', config$quality, '\n')
   cat('  Step tolerance:', config$step.tolerance, '\n')
 
+  cat('Distance settings\n')
+  cat('  Expression:\t', config$dist, '\n')
+
   cat('Kernel settings\n')
-  cat('  Decay factor:', config$decay.factor, '\n')
-  cat('  RBF variance:', config$rbf.variance, '\n')
-  cat('  SST control:', config$sst.control, '\n')
-  cat('  Normalization:', config$norm.mode, '\n')
+  cat('  Decay Factor:', config$decay.factor, '\n')
+  cat('  RBF Variance:', config$rbf.variance, '\n')
+  cat('  SST Control:', config$sst.control, '\n')
 }
+
 
 plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
   # numr = number of rows of plots to be displayed at one time
@@ -303,6 +487,7 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
   par(ask=F)
 }
 
+
 # parse tip arguments for each model and creates either n tips of zero height if arg is an int 
 # or tips of varying heights if arg is a numeric vector of non-negative values
 .parse.tips <- function(tips) {
@@ -318,6 +503,7 @@ plot.smc.config <- function(config, nreps=1000, numr=1, numc=1) {
   tips <- list(n.tips=n.tips, tip.heights=tip.heights)
   return(tips)
 }
+
 
 # with a given Newick tree string representation or phylo object in R, 
 # function will extract sample collection times from tip labels

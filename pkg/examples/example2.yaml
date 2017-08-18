@@ -41,17 +41,4 @@ smc:
   quality: 0.95
   step.tolerance: 1.e-5
 distances:
-  'kernel.dist':
-    weight: 0.8
-    decay.factor: 0.2
-    rbf.variance: 100.0
-    sst.control: 1.0
-    norm.mode: 'MEAN'
-  'sackin':
-    weight: 0.10      
-    use.branch.lengths: FALSE
-  'cophenetic.phylo.met':
-    package: 'ape'
-    weight: 0.15
-  'colless':
-    weight: 0.10
+  '0.8*kernel.dist(decay.factor=0.2, rbf.variance=100.0, sst.control=1.0, norm.mode=MEAN)+0.1*sackin(use.branch.lengths=FALSE)+0.1*colless'
