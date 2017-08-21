@@ -11,7 +11,8 @@
   * [Shiny](https://shiny.rstudio.com/)
   * [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html)
   * [RcppArmadillo](https://cran.r-project.org/web/packages/RcppArmadillo/index.html)
-  * [phyloTop](https://cran.r-project.org/web/packages/phyloTop/index.html)
+  * [phyloTop](https://cran.r-project.org/web/packages/phyloTop/index.html) (optional)
+  * [phangorn](https://cran.r-project.org/web/packages/phangorn/index.html) (optional)
 * GNU tools: 
   * [bison](https://www.gnu.org/software/bison/)
   * [flex](https://github.com/westes/flex)
@@ -49,7 +50,6 @@
 	   install.packages("shiny") 
 	   install.packages("Rcpp")
 	   install.packages("RcppArmadillo")
-	   install.packages("phyloTop")
 	   quit() 
     ```
 4. Installing GNU tools and C libraries
@@ -95,7 +95,6 @@
 	   install.packages("shiny") 
 	   install.packages("Rcpp")
 	   install.packages("RcppArmadillo")
-	   install.packages("phyloTop")
 	   quit() 
     ```
 4. Installing GNU tools and C libraries
