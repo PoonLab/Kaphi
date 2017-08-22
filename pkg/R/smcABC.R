@@ -217,11 +217,34 @@ initialize.smc <- function(ws, model, ...) {
 }
 
 
-.perturb.particles <- function(ws, model) {
+.perturb.particles <- function(ws, model, n.threads=1) {
   ##  This implements the Metropolis-Hastings acceptance/rejection step
+  ##  @param ws: workspace
+  ##  @param model: reference to an R function that will simulate trees
+  ##  @param n.threads:  number of threads to run in parallel, defaults to 1 (serial)
+  if (n.threads < 1) {
+    stop("User requested less than 1 thread in call to .perturb.particles")
+  }
+
   config <- ws$config
   nparticle <- config$nparticle
   new.dists <- matrix(NA, nrow=config$nsample, ncol=nparticle)
+
+  if (n.threads > 1) {
+    require(parallel, quietly=TRUE)  # load parallel library if not already present
+
+    # iterate over live particles
+    alive <- which(ws$weights > 0)
+    ws$alive <- length(alive)
+    . <- mclapply(alive, function (i) {
+      # TODO: return value should be a list of particle, dist, and tree entries to go into ws
+    }, mc.cores=n.threads)  # TODO: is there an issue with cores to threads?
+
+    # TODO: use return values to update ws
+    return (ws)
+  }
+
+  # else run serially
 
   # loop over particles
   # TODO: multi-threaded implementation
@@ -229,7 +252,7 @@ initialize.smc <- function(ws, model, ...) {
     if (ws$weights[i] == 0) {
       next  # ignore dead particles
     }
-    ws$alive <- ws$alive + 1
+    ws$alive <- ws$alive + 1  # was reset to zero in run.smc()
     old.particle <- ws$particles[i,]
     new.particle <- propose(config, old.particle)
     
