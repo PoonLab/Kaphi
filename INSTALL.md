@@ -11,6 +11,8 @@
   * [Shiny](https://shiny.rstudio.com/)
   * [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html)
   * [RcppArmadillo](https://cran.r-project.org/web/packages/RcppArmadillo/index.html)
+  * [phyloTop](https://cran.r-project.org/web/packages/phyloTop/index.html) (optional)
+  * [phangorn](https://cran.r-project.org/web/packages/phangorn/index.html) (optional)
 * GNU tools: 
   * [bison](https://www.gnu.org/software/bison/)
   * [flex](https://github.com/westes/flex)

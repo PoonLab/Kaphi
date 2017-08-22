@@ -29,6 +29,8 @@ priors:
     hyperparameters:
     - mean: 5
     - sd: 0.1
+constraints:
+  - ''
 proposals:
   't.end':
     dist: 'norm'
@@ -68,8 +70,9 @@ smc:
   final.epsilon: 0.05
   quality: 0.95
   step.tolerance: 1.e-5
-kernel:
-  decay.factor: 0.02
-  rbf.variance: 100.0
-  sst.control: 1.0
-  norm.mode: 'NONE'
+distances:
+  'kernel.dist':
+    weight: 1.0
+    decay.factor: 0.02
+    rbf.variance: 100.0
+    sst.control: 1.0

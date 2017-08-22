@@ -164,6 +164,7 @@ test.kernel.label <- function() {
 test.issue.22 <- function() {
     # load configuration
     config <- list(
+        dist='Kaphi::kernel.dist(x, y, decay.factor=0.5, rbf.variance=2.5, sst.control=1, norm.mode=NONE)',
         decay.factor=0.5,
         rbf.variance=2.5,
         sst.control=1.0,

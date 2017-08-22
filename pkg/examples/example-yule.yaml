@@ -11,6 +11,7 @@ proposals:
     - mean: 0.0
     - sd: 0.1
 constraints:
+  - ''
 smc:
   nparticle: 10
   nsample: 5
@@ -19,8 +20,9 @@ smc:
   final.epsilon: 0.05
   quality: 0.95
   step.tolerance: 1.e-4
-kernel:
-  decay.factor: 0.2
-  rbf.variance: 1000.0
-  sst.control: 1.0
-  norm.mode: 'NONE'
+distances:
+  'kernel.dist':
+    weight: 1.0
+    decay.factor: 0.2
+    rbf.variance: 100.0
+    sst.control: 1.0
