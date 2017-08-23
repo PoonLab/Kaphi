@@ -22,7 +22,7 @@ result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', model
 trace <- read.table('pkg/examples/example-compartmental.tsv', header=T, sep='\t')
 
 ########################################################################################################################################################################
-pdf(file='pkg/examples/example-comparmental.pdf')
+pdf(file='pkg/examples/example-compartmental-changed-seed50.pdf')
 
 # trajectory of mean estimate of beta
 par(mar=c(5,5,2,2))
@@ -255,7 +255,7 @@ plot(density
        weights=trace$weight[trace$n==1]), 
      col=pal[1], 
      lwd=2, 
-     main='SIRD (norm: mean=10000, sd=200)', 
+     main='SIRD (norm: mean=15000, sd=1000)', 
      xlab='SIRD rate parameter (N)', 
      cex.lab=1.2
 )
