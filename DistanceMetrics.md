@@ -23,4 +23,4 @@
 | pitchforks | phyloTop |Number of clades with three tips. |
 | RF.dist | phangorn | Robinson-Foulds distance: number of clades not shared. |
 | KF.dist | phangorn | RF with branch lengths: sums of differences in branch lengths. |
-| path.dist | phangorn | Path distance metric: nodeal distance ("NODE") with k=2. |
+| path.dist | phangorn | Path distance metric: nodal distance ("NODE") with k=2. |
