@@ -7,8 +7,8 @@ priors:
   'N':
     dist: 'norm'
     hyperparameters:
-    - mean: 15000
-    - sd: 1000
+    - mean: 10000
+    - sd: 200
   'beta':
     dist: 'gamma'
     hyperparameters:
@@ -66,8 +66,8 @@ smc:
   nparticle: 500
   nsample: 3
   ess.tolerance: 50.0
-  final.accept.rate: 0.05
-  final.epsilon: 0.05
+  final.accept.rate: 0.1
+  final.epsilon: 0.1
   quality: 0.95
   step.tolerance: 1.e-5
 distances:
@@ -76,3 +76,4 @@ distances:
     decay.factor: 0.02
     rbf.variance: 100.0
     sst.control: 1.0
+    norm.mode: 'NONE'

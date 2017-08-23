@@ -230,65 +230,55 @@ initialize.smc <- function(ws, model, ...) {
   nparticle <- config$nparticle
   new.dists <- matrix(NA, nrow=config$nsample, ncol=nparticle)
 
-  if (n.threads > 1) {
-    require(parallel, quietly=TRUE)  # load parallel library if not already present
+  require(parallel, quietly=TRUE)  # load parallel library if not already present
 
-    # iterate over live particles
-    alive <- which(ws$weights > 0)
-    ws$alive <- length(alive)
-    . <- mclapply(alive, function (i) {
-      # TODO: return value should be a list of particle, dist, and tree entries to go into ws
-    }, mc.cores=n.threads)  # TODO: is there an issue with cores to threads?
-
-    # TODO: use return values to update ws
-    return (ws)
-  }
-
-  # else run serially
-
-  # loop over particles
-  # TODO: multi-threaded implementation
-  for (i in 1:nparticle) {
+  # iterate over live particles
+  alive <- which(ws$weights > 0)
+  ws$alive <- length(alive)
+  . <- mclapply(alive, function (i) {
+    # TODO: return value should be a list of particle, dist, and tree entries to go into ws
     if (ws$weights[i] == 0) {
-      next  # ignore dead particles
+      next   # ignore dead particles
     }
-    ws$alive <- ws$alive + 1  # was reset to zero in run.smc()
     old.particle <- ws$particles[i,]
     new.particle <- propose(config, old.particle)
     
     # calculate prior ratio
     mh.ratio <- prior.density(config, new.particle) / prior.density(config, old.particle)
     if (mh.ratio == 0) {
-      next  # reject new particle, violates prior assumptions
+      next    # reject new particle, violates prior assumptions
     }
     
     # calculate proposal ratio
     mh.ratio <- mh.ratio * proposal.density(config, new.particle, old.particle) / proposal.density(config, old.particle, new.particle)
     if (mh.ratio == 0) {
-      next  # reject new particle, not possible under proposal distribution
+      next    # reject new particle, not possible under proposal distribution
     }
     
-    # simulate new trees  # TODO: this is probably a good spot for parallelization
+    # simulate new trees
     # retain sim.trees in case we revert to previous particle
     new.trees <- simulate.trees(ws, new.particle, model=model)
     new.dists[,i] <- sapply(new.trees, function(sim.tree) {
       distance(ws$obs.tree, sim.tree, config)
-		})
-
+    })
+    
     # SMC approximation to likelihood ratio
-    old.nbhd <- sum(ws$dists[,i] < ws$epsilon)  # how many samples are in neighbourhood of data?
+    old.nbhd <- sum(ws$dists[,i] < ws$epsilon)    # how many samples are in the neighbourhood of data?
     new.nbhd <- sum(new.dists[,i] < ws$epsilon)
     mh.ratio <- mh.ratio * new.nbhd / old.nbhd
-
+    
     # accept or reject the proposal
-    if (runif(1) < mh.ratio) {  # always accept if ratio > 1
-      ws$accept <- ws$accept + 1
+    if (runif(1) < mh.ratio) {     # always accept if ratio > 1
+      ws$accept[i] <- TRUE
       ws$particles[i,] <- new.particle
       ws$dists[,i] <- new.dists[,i]
       ws$sim.trees[[i]] <- new.trees
     }
-  }
-  return(ws)
+  }, mc.cores=n.threads)  # TODO: is there an issue with cores to threads?
+
+  ws$accepted <- length(which(ws$accept==TRUE))     # creating new attribute ws$accepted in workspace; didn't want dual vector and int behaviour of ws$accept from parallelization
+  # TODO: use return values to update ws
+  return (ws)
 }
 
 
@@ -347,15 +337,15 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     }
 
     # perturb particles
-    ws$accept <- 0
+    ws$accept <- vector()    # vector to keep track of which particles were accepted through parallelization in .perturb.particles
     ws$alive <- 0
-    ws <- .perturb.particles(ws, model)  # Metropolis-Hastings sampling
+    ws <- .perturb.particles(ws, model, nthreads)  # Metropolis-Hastings sampling
     
     # record everything
     result$theta[[niter]] <- ws$particles
     result$weights[[niter]] <- ws$weights
     result$epsilons <- c(result$epsilons, ws$epsilon)
-    result$accept.rate <- c(result$accept.rate, ws$accept / ws$alive)
+    result$accept.rate <- c(result$accept.rate, ws$accepted / ws$alive)      # changed ws$accept to ws$accepted; didn't want dual behaviour of ws$accept switching back and forth between vector and int
 
     # write output to file if specified
     for (i in 1:config$nparticle) {

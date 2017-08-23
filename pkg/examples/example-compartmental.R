@@ -15,14 +15,14 @@ obs.tree <- parse.input.tree(obs.tree, config)
 
 # initialize workspace
 ws <- init.workspace(obs.tree, config)
-result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', model="sir.dynamic", seed=NA, verbose=TRUE)   
+result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthreads=6, model="sir.dynamic", seed=NA, verbose=TRUE)   
 
 
 # let's examine the contents of the trace file
 trace <- read.table('pkg/examples/example-compartmental.tsv', header=T, sep='\t')
 
 ########################################################################################################################################################################
-pdf(file='pkg/examples/example-compartmental-changed-seed50.pdf')
+pdf(file='pkg/examples/example-compartmental-parallelization.pdf')
 
 # trajectory of mean estimate of beta
 par(mar=c(5,5,2,2))
@@ -203,7 +203,7 @@ plot(density
        weights=trace$weight[trace$n==1]), 
      col=pal[1], 
      lwd=2, 
-     main='SIRD (normal: mean=200, sd=50)', 
+     main='SIRD (norm: mean=200, sd=50)', 
      xlab='SIRD rate parameter (t.end)', 
      cex.lab=1.2
 )
@@ -255,7 +255,7 @@ plot(density
        weights=trace$weight[trace$n==1]), 
      col=pal[1], 
      lwd=2, 
-     main='SIRD (norm: mean=15000, sd=1000)', 
+     main='SIRD (norm: mean=10000, sd=200)', 
      xlab='SIRD rate parameter (N)', 
      cex.lab=1.2
 )
