@@ -161,6 +161,9 @@ Trip <- function(x, y){
   namelist <- x$tip.label
   # iterate through all pairs and get to MRCA
   pairdict <- list()
+  combinations <- combn(namelist, 2)
+  
+  
   for (pair in combn(namelist, 2)){
     # Need equivalent R function for get_common_ancestor
     # and timefromtips
