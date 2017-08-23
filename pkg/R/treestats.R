@@ -159,19 +159,25 @@ Trip <- function(x, y){
   score <- 0.0
   count <- 0
   namelist <- x$tip.label
+  
   # iterate through all pairs and get to MRCA
-  pairdict <- list()
   combinations <- combn(namelist, 2)
+  npairs <- length(combinations) / 2
+  pairdict <- list()
   
-  
-  for (pair in combn(namelist, 2)){
-    # Need equivalent R function for get_common_ancestor
-    # and timefromtips
+  for (i in 1:npairs){
+    pair <- combinations[,i]
+    pairname <- paste(pair, collapse='')
+    
+    # Need equivalent R function for timefromtips:
     # (tree1.get_common_ancestor(pair).timefromtips,
     #  tree2.get_common_ancestor(pair).timefromtips)
-    mrca <- c(,)
-    pair <- # format of pair (character?)
-    pairdict[[pair]] <- mrca
+    mrca.x <- getMRCA(x, pair)
+    mrca.y <- getMRCA(y, pair)
+    
+    # idea: use node.depth(x)[mrca.x] to get timefromtips?
+    time2mrca <- c(mrca.x, mrca.y)
+    pairdict[[pairname]] <- time2mrca
   }
   # iterate through all triplets
   for (i in combn(namelist, 3)){
