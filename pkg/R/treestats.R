@@ -147,11 +147,17 @@ getDepths.met <- function(x, type='tips'){
 ##-----------------------------------------------------------------------------
 ## Tree Comparison Metrics from Kuhner & Yamato (2014)
 
+# Node (Williams & Clifford, 1971)
+# - just use cophenetic.phylo in ape.
+
 # RF (Robinson & Flouds, 1981)
-# RF.dist in phangorn.
+# - RF.dist in phangorn.
 
 # RFL (Robinson & Flouds, 1979; Kuhner & Felsenstein, 1994)
-# KF.dist in phangorn
+# - KF.dist in phangorn.
+
+# Path Distance Metric (Penny et al., 1982)
+# - path.dist in phangorn.
 
 # Trip (Critchlow et al., 1996)
 Trip <- function(x, y){
@@ -220,15 +226,83 @@ Trip <- function(x, y){
   return(score/count)
 }
 
-# TripL (Kuhner & Yamato, 2014)
+# Triplet Length Distance (Kuhner & Yamato, 2014)
+TripL <- function(x, y){
+  # The trees are assumed to contain identical tips (same number and labels)
+  score <- 0.0
+  count <- 0
+  namelist <- x$tip.label
+  
+  # iterate through all pairs and get to MRCA
+  combinations <- combn(namelist, 2)
+  npairs <- length(combinations) / 2
+  pairdict <- list()
+  
+  for (i in 1:npairs){
+    pair <- combinations[,i]
+    pairname <- paste(pair, collapse='')
+    # most recent common ancestor (mrca) in tree x, y.
+    mrcax <- getMRCA(x, pair)
+    mrcay <- getMRCA(y, pair)
+    # time from tips (in # edges) to mrca in tree x, y.
+    #   this assumes that timefromtips in the python implementation meant
+    #   the time from the node of interest to the tips level.
+    timex <- node.depth(x)[mrcax] - 1
+    timey <- node.depth(x)[mrcay] - 1
+    # create dictionary of pairs and their mrca depths in x and y:
+    #   ex. AB: 1 2
+    time2mrca <- c(timex, timey)
+    pairdict[[pairname]] <- time2mrca
+  }
+  
+  # iterate through all triplets
+  triples <- combn(namelist, 3)
+  ntrips <- length(triples) / 3
+  
+  for (i in 1:ntrips){
+    trip <- triples[,i]
+    count <- count + 1
+    pairs <- c()
+    
+    pairs.from.trip <- combn(trip, 2)
+    npairs.from.trip <- length(pairs.from.trip) / 2
+    
+    for (j in 1:npairs.from.trip){
+      pair <- pairs.from.trip[,j]
+      pairname <- paste(pair, collapse='')
+      pairs <- c(pairs, pairname)
+    }
+    times1 <- list()
+    times2 <- list()
+    for (pair in pairs){
+      times1[[pair]] <- pairdict[[pair]][1]
+      times2[[pair]] <- pairdict[[pair]][2]
+    }
+    x1 <- min(unlist(times1))
+    x2 <- min(unlist(times2))
+    y1 <- # work on these two lines
+    y2 <- 
+    
+    matches <- FALSE
+    
+    for (pair in pairs){
+      if (times1[pair] == x1 && times2[pair] == x2){
+        matches <- TRUE
+        score <- score + ((abs(x1-x2) + abs(y1-y2)) * 2)
+      }
+    }
+    if (matches == FALSE){
+      score <- score + (x1 + x2 + y1 + y2)
+    }
+  }
+  return(score/count)
+}
 
 # MAST (Gordon, 1980)
 
+
 # Align (Nye et al., 2006)
 
-# Node (Williams & Clifford, 1971)
-
-# Path Distance Metric (Penny et al., 1982)
-# path.dist in phangorn
 
 # Sim (Hein et al., 2005)
+
