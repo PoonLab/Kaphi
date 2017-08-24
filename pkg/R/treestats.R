@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Kaphi.  If not, see <http://www.gnu.org/licenses/>.
 
+require(Kaphi)
+
+
 ##-----------------------------------------------------------------------------
 ## Kaphi Tree Statistics
 
@@ -165,23 +168,36 @@ Trip <- function(x, y){
   for (i in 1:npairs){
     pair <- combinations[,i]
     pairname <- paste(pair, collapse='')
-    
-    # Need equivalent R function for timefromtips:
-    # (tree1.get_common_ancestor(pair).timefromtips,
-    #  tree2.get_common_ancestor(pair).timefromtips)
-    mrca.x <- getMRCA(x, pair)
-    mrca.y <- getMRCA(y, pair)
-    
-    # idea: use node.depth(x)[mrca.x] to get timefromtips?
-    time2mrca <- c(mrca.x, mrca.y)
+    # most recent common ancestor (mrca) in tree x, y.
+    mrcax <- getMRCA(x, pair)
+    mrcay <- getMRCA(y, pair)
+    # time from tips (in # edges) to mrca in tree x, y.
+    #   this assumes that timefromtips in the python implementation meant
+    #   the time from the node of interest to the tips level.
+    timex <- node.depth(x)[mrcax] - 1
+    timey <- node.depth(x)[mrcay] - 1
+    # create dictionary of pairs and their mrca depths in x and y:
+    #   ex. AB: 1 2
+    time2mrca <- c(timex, timey)
     pairdict[[pairname]] <- time2mrca
   }
+  
   # iterate through all triplets
-  for (i in combn(namelist, 3)){
+  triples <- combn(namelist, 3)
+  ntrips <- length(triples) / 3
+  
+  for (i in 1:ntrips){
+    trip <- triples[,i]
     count <- count + 1
     pairs <- c()
-    for (j in combn(i, 2)){
-      pairs <- c(pairs, j)
+    
+    pairs.from.trip <- combn(trip, 2)
+    npairs.from.trip <- length(pairs.from.trip) / 2
+    
+    for (j in 1:npairs.from.trip){
+      pair <- pairs.from.trip[,j]
+      pairname <- paste(pair, collapse='')
+      pairs <- c(pairs, pairname)
     }
     times1 <- list()
     times2 <- list()
@@ -189,8 +205,8 @@ Trip <- function(x, y){
       times1[[pair]] <- pairdict[[pair]][1]
       times2[[pair]] <- pairdict[[pair]][2]
     }
-    short1 <- min()
-    short2 <- min()
+    short1 <- min(unlist(times1))
+    short2 <- min(unlist(times2))
     matches <- FALSE
     for (pair in pairs){
       if (times1[[pair]] == short1 && times2[[pair]] == short2){
