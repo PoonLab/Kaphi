@@ -13,9 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Kaphi.  If not, see <http://www.gnu.org/licenses/>.
 
-require(Kaphi)
-
-
 ##-----------------------------------------------------------------------------
 ## Kaphi Tree Statistics
 
@@ -280,8 +277,12 @@ TripL <- function(x, y){
     }
     x1 <- min(unlist(times1))
     x2 <- min(unlist(times2))
-    y1 <- # work on these two lines
-    y2 <- 
+    mrcax <- getMRCA(x, trip)
+    mrcay <- getMRCA(y, trip)
+    timex <- node.depth(x)[mrcax] - 1
+    timey <- node.depth(x)[mrcay] - 1
+    y1 <- timex - x1
+    y2 <- timey - x2
     
     matches <- FALSE
     
