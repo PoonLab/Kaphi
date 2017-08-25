@@ -24,7 +24,25 @@ res <- run.smc(ws, trace.file='pkg/examples/example-bd2.tsv', model='bd', verbos
 # let's examine the contents of the trace file
 trace <- read.table('pkg/examples/example-bd2.tsv', header=T, sep='\t')
 
+ratios <- c()
 
+for (i in 1:nrow(trace)){
+  if (trace[i,1] == "Final"){
+    ratio <- unname(trace[i,4] / trace[i,5])
+    ratios <- c(ratios, ratio)
+  }
+}
+
+mean(ratios)
+
+true.ratio <- unname(theta[1] / theta[2])
+
+ratio.dist <- lapply(ratios, function(x){
+  true.ratio - x
+})
+
+rd <- unlist(ratio.dist)
+mean(rd)
 #------------------------------------------------------------------------------
 # Plot trajectory of mean estimate of lambda and mu
 
