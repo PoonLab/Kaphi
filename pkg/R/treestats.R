@@ -13,9 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Kaphi.  If not, see <http://www.gnu.org/licenses/>.
 
-require(Kaphi)
-
-
 ##-----------------------------------------------------------------------------
 ## Kaphi Tree Statistics
 
@@ -278,13 +275,19 @@ TripL <- function(x, y){
       times1[[pair]] <- pairdict[[pair]][1]
       times2[[pair]] <- pairdict[[pair]][2]
     }
+    # x1 and x2 are the min values of times1 and times2
     x1 <- min(unlist(times1))
     x2 <- min(unlist(times2))
-    y1 <- # work on these two lines
-    y2 <- 
+    
+    # y1 and y2 are the time from tips for the mrca minus x1 and x2
+    mrcax <- getMRCA(x, trip)
+    mrcay <- getMRCA(y, trip)
+    timex <- node.depth(x)[mrcax] - 1
+    timey <- node.depth(x)[mrcay] - 1
+    y1 <- timex - x1
+    y2 <- timey - x2
     
     matches <- FALSE
-    
     for (pair in pairs){
       if (times1[pair] == x1 && times2[pair] == x2){
         matches <- TRUE
@@ -305,4 +308,18 @@ TripL <- function(x, y){
 
 
 # Sim (Hein et al., 2005)
-
+Sim <- function(x, y){
+  score = 0.0
+  ab1 = 0.0
+  ab2 = 0.0
+  aa1 = 0.0
+  aa2 = 0.0
+  c1len = 0.0
+  c2len = 0.0
+  # find length of each tree
+  
+  # compute sum(a*b) for branches in both trees
+  # compute sum(a*a) for banches in each tree
+  
+  
+}
