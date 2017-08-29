@@ -234,25 +234,35 @@ initialize.smc <- function(ws, model, ...) {
 
   # iterate over live particles
   alive <- which(ws$weights > 0)
+  for (i in alive) {
+    write.table(
+      x=c(ws$weights[i], i),
+      file="trace.file.tsv",
+      append=TRUE,
+      sep="\t",
+      row.names=FALSE,
+      col.names=FALSE
+      )
+    }
   ws$alive <- length(alive)
   . <- mclapply(alive, function (i) {
     # TODO: return value should be a list of particle, dist, and tree entries to go into ws
-    if (ws$weights[i] == 0) {
-      next   # ignore dead particles
-    }
+    #if (ws$weights[i] == 0) {
+    #  return(NULL)   # ignore dead particles
+    #}
     old.particle <- ws$particles[i,]
     new.particle <- propose(config, old.particle)
     
     # calculate prior ratio
     mh.ratio <- prior.density(config, new.particle) / prior.density(config, old.particle)
     if (mh.ratio == 0) {
-      next    # reject new particle, violates prior assumptions
+      return(NULL)    # reject new particle, violates prior assumptions
     }
     
     # calculate proposal ratio
     mh.ratio <- mh.ratio * proposal.density(config, new.particle, old.particle) / proposal.density(config, old.particle, new.particle)
     if (mh.ratio == 0) {
-      next    # reject new particle, not possible under proposal distribution
+      return(NULL)    # reject new particle, not possible under proposal distribution
     }
     
     # simulate new trees
@@ -339,7 +349,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     # perturb particles
     ws$accept <- vector()    # vector to keep track of which particles were accepted through parallelization in .perturb.particles
     ws$alive <- 0
-    ws <- .perturb.particles(ws, model, nthreads)  # Metropolis-Hastings sampling
+    ws <- .perturb.particles(ws, model, n.threads=nthreads)  # Metropolis-Hastings sampling
     
     # record everything
     result$theta[[niter]] <- ws$particles
