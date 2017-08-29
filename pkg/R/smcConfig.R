@@ -70,7 +70,7 @@ load.config <- function(file) {
     elements <- unlist(elements)
     con <- ''
     for (i in elements) {
-      if (grepl('^[A-Za-z]+$', i)) {
+      if (grepl('^[A-Za-z]+', i)) {
         # changes param to theta['param']
         con <- paste0(con, "theta['", i, "']")
       } else {
