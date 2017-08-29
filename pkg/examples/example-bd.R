@@ -9,7 +9,7 @@ config <- load.config('pkg/examples/example-bd.yaml')
 config <- set.model(config, 'bd')
 
 # simulate target tree
-theta <- c(lambda=0.1, mu=0.003)  # this is the true value
+theta <- c(lambda=0.05, mu=0.01)  # this is the true value
 set.seed(50)
 obs.tree <- speciation.model(theta, nsim=1, tips=50, model='bd')[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
@@ -24,6 +24,18 @@ res <- run.smc(ws, trace.file='pkg/examples/example-bd2.tsv', model='bd', verbos
 # let's examine the contents of the trace file
 trace <- read.table('pkg/examples/example-bd2.tsv', header=T, sep='\t')
 
+ratios <- c()
+for (i in 1:nrow(trace)){
+  if (trace[i,1] == (res$result$niter + 1)){
+    ratio <- unname(trace[i,4] / trace[i,5])
+    ratios <- c(ratios, ratio)
+  }
+}
+
+avg.ratio <- mean(ratios)
+true.ratio <- unname(theta[1] / theta[2])
+ratio.diff <- true.ratio - avg.ratio
+print(ratio.diff)
 
 #------------------------------------------------------------------------------
 # Plot trajectory of mean estimate of lambda and mu
@@ -37,15 +49,15 @@ plot(
   xlab='Iteration', 
   ylab='Mean Parameter Value',
   cex.lab=1,
-  main='Trajectory of Mean Lambda and Mu (Birth-Death Model, 10 particles)'
+  main='Trajectory of Mean Lambda and Mu (Birth-Death Model, 1000 particles)'
 )
 lines(
   sapply(split(trace$mu*trace$weight, trace$n), sum),
   type='o',
   col='red'
 )
-abline(h=0.1, lty=2, col='black')
-abline(h=0.003, lty=2, col='red')
+abline(h=0.05, lty=2, col='black')
+abline(h=0.001, lty=2, col='red')
 #dev.off()
 
 

@@ -37,7 +37,7 @@ load.config <- function(file) {
 
     # distance settings
     # kernel, sackin, tree.width, etc
-    dist=NULL,
+    dist="kernel.dist(x, y, decay.factor=0.2, rbf.variance=100.0, sst.control=1.0)",
     
     # cached kernel settings, left alone if not specified in user-provided yaml/distance string
     decay.factor=0.2,
@@ -70,7 +70,7 @@ load.config <- function(file) {
     elements <- unlist(elements)
     con <- ''
     for (i in elements) {
-      if (grepl('^[A-Za-z]+$', i)) {
+      if (grepl('^[A-Za-z]+', i)) {
         # changes param to theta['param']
         con <- paste0(con, "theta['", i, "']")
       } else {

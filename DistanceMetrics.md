@@ -24,3 +24,4 @@
 | RF.dist | phangorn | Robinson-Foulds distance: number of clades not shared. |
 | KF.dist | phangorn | RF with branch lengths: sums of differences in branch lengths. |
 | path.dist | phangorn | Path distance metric: nodal distance ("NODE") with k=2. |
+| Trip | Triples distance from Crtichlow et al. (1996): Proportion of triplets not shared between trees. |

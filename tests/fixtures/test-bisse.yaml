@@ -1,73 +1,73 @@
 priors:
   lambda0:
-    dist: 'unif'
+    dist: 'gamma'
     hyperparameters:
-    - min: 0.1
-    - max: 0.1
+      - rate: 2.0
+      - shape: 1.0
   lambda1:
-    dist: 'unif'
+    dist: 'gamma'
     hyperparameters:
-    - min: 0.2
-    - max: 0.2
+      - rate: 2.0
+      - shape: 1.0
   mu0:
-    dist: 'unif'
+    dist: 'gamma'
     hyperparameters:
-    - min: 0.003
-    - max: 0.003
+      - rate: 2.0
+      - shape: 1.0
   mu1:
-    dist: 'unif'
+    dist: 'gamma'
     hyperparameters:
-    - min: 0.003
-    - max: 0.003
+      - rate: 2.0
+      - shape: 1.0
   q01:
-    dist: 'unif'
+    dist: 'gamma'
     hyperparameters:
-    - min: 0.01
-    - max: 0.01
+      - rate: 2.0
+      - shape: 1.0
   q10:
-    dist: 'unif'
+    dist: 'gamma'
     hyperparameters:
-    - min: 0.01
-    - max: 0.01
+      - rate: 2.0
+      - shape: 1.0
 constraints:
-  - ''
+  - 'mu0 < lambda0 && mu1 < lambda1'
 proposals:
   lambda0:
-    dist: 'unif'
+    dist: 'norm'
     parameters:
-    - min: 0.1
-    - max: 0.1
+    - mean: 0
+    - sd: 0.1
   lambda1:
-    dist: 'unif'
+    dist: 'norm'
     parameters:
-    - min: 0.2
-    - max: 0.2
+    - mean: 0
+    - sd: 0.1
   mu0:
-    dist: 'unif'
+    dist: 'norm'
     parameters:
-    - min: 0.003
-    - max: 0.003
+    - mean: 0
+    - sd: 0.1
   mu1:
-    dist: 'unif'
+    dist: 'norm'
     parameters:
-    - min: 0.003
-    - max: 0.003
+    - mean: 0
+    - sd: 0.1
   q01:
-    dist: 'unif'
+    dist: 'norm'
     parameters:
-    - min: 0.01
-    - max: 0.01
+    - mean: 0
+    - sd: 0.1
   q10:
-    dist: 'unif'
+    dist: 'norm'
     parameters:
-    - min: 0.01
-    - max: 0.01
+    - mean: 0
+    - sd: 0.1
 smc:
-  nparticle: 100
-  nsample: 10
+  nparticle: 1000
+  nsample: 5
   ess.tolerance: 50.0
-  final.accept.rate: 0.1
-  final.epsilon: 0.1
+  final.accept.rate: 0.01
+  final.epsilon: 0.01
   quality: 0.95
   step.tolerance: 1.e-4
 distances:
@@ -77,4 +77,3 @@ distances:
     rbf.variance: 100.0
     sst.control: 1.0
     norm.mode: 'NONE'
-

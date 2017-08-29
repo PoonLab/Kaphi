@@ -390,7 +390,17 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
   result$theta[[niter]] <- ws$particles
   result$weights[[niter]] <- ws$weights
   result$niter <- niter
-    
+  
+  for (i in 1:config$nparticle) {
+    write.table(
+      x=t(c((niter + 1), i, round(ws$weights[i],10), round(ws$particles[i,],5), round(ws$dists[,i], 5))),
+      file=trace.file,
+      append=TRUE,
+      sep="\t",
+      row.names=FALSE,
+      col.names=FALSE
+    )
+  }  
   # pack ws and result into one list to be returned
   ret <- list(workspace=ws, result=result)
     

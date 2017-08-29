@@ -12,7 +12,6 @@ Depends:
     RUnit,
     diversitree,
     inline,
-    shiny,
     Rcpp,
     RcppArmadillo,
     rcolgem

@@ -23,7 +23,7 @@ proposals:
       - mean: 0
       - sd: 0.1
 smc:
-  nparticle: 10
+  nparticle: 1000
   nsample: 5
   ess.tolerance: 50.0
   final.accept.rate: 0.05

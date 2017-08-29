@@ -50,14 +50,14 @@ par(mar=c(5,5,2,2))
 #png('yule01.png')
 plot(
   sapply(split(trace$lambda*trace$weight, trace$n), sum), 
-  ylim=c(0, 1.5), 
+  ylim=c(0, 2), 
   type='o',
   xlab='Iteration', 
   ylab='Mean lambda',
   cex.lab=1,
   main='Trajectory of Mean Lambda (Yule Model, 1000 particles)'
 )
-abline(h=0.1, lty=2)
+abline(h=0.05, lty=2)
 #abline(h=0.09, lty=2)
 #abline(h=0.11, lty=2)
 #dev.off()
