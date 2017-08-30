@@ -171,14 +171,14 @@ Trip <- function(x, y){
   for (i in 1:npairs){
     pair <- combinations[,i]
     pairname <- paste(pair, collapse='')
-    # most recent common ancestor (mrca) in tree x, y.
+    # most recent common ancestor (mrca) for the pair in tree x, y.
     mrcax <- getMRCA(x, pair)
     mrcay <- getMRCA(y, pair)
     # time from tips (in # edges) to mrca in tree x, y.
     #   this assumes that timefromtips in the python implementation meant
     #   the time from the node of interest to the tips level.
     timex <- node.depth(x)[mrcax] - 1
-    timey <- node.depth(x)[mrcay] - 1
+    timey <- node.depth(y)[mrcay] - 1
     # create dictionary of pairs and their mrca depths in x and y:
     #   ex. AB: 1 2
     time2mrca <- c(timex, timey)
@@ -216,12 +216,14 @@ Trip <- function(x, y){
         matches <- TRUE
       }
     }
-    if (matches == TRUE){
+    if (matches == FALSE){
       score <- score + 1.0
     }
+    cat(trip, ":", matches, "\n")
   }
   return(score/count)
 }
+
 
 # Triplet Length Distance (Kuhner & Yamato, 2014)
 TripL <- function(x, y){
@@ -245,7 +247,7 @@ TripL <- function(x, y){
     #   this assumes that timefromtips in the python implementation meant
     #   the time from the node of interest to the tips level.
     timex <- node.depth(x)[mrcax] - 1
-    timey <- node.depth(x)[mrcay] - 1
+    timey <- node.depth(y)[mrcay] - 1
     # create dictionary of pairs and their mrca depths in x and y:
     #   ex. AB: 1 2
     time2mrca <- c(timex, timey)
@@ -283,7 +285,7 @@ TripL <- function(x, y){
     mrcax <- getMRCA(x, trip)
     mrcay <- getMRCA(y, trip)
     timex <- node.depth(x)[mrcax] - 1
-    timey <- node.depth(x)[mrcay] - 1
+    timey <- node.depth(y)[mrcay] - 1
     y1 <- timex - x1
     y2 <- timey - x2
     
@@ -297,6 +299,7 @@ TripL <- function(x, y){
     if (matches == FALSE){
       score <- score + (x1 + x2 + y1 + y2)
     }
+    cat(trip, ":", matches, "\n")
   }
   return(score/count)
 }
