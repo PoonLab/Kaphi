@@ -234,18 +234,9 @@ initialize.smc <- function(ws, model, ...) {
 
   # iterate over live particles
   alive <- which(ws$weights > 0)
-  for (i in alive) {
-    write.table(
-      x=c(ws$weights[i], i),
-      file="trace.file.tsv",
-      append=TRUE,
-      sep="\t",
-      row.names=FALSE,
-      col.names=FALSE
-      )
-    }
   ws$alive <- length(alive)
-  . <- mclapply(alive, function (i) {
+  
+  . <- mclapply(1:length(alive), function (i) {
     # TODO: return value should be a list of particle, dist, and tree entries to go into ws
     #if (ws$weights[i] == 0) {
     #  return(NULL)   # ignore dead particles
@@ -284,9 +275,12 @@ initialize.smc <- function(ws, model, ...) {
       ws$dists[,i] <- new.dists[,i]
       ws$sim.trees[[i]] <- new.trees
     }
+    else {
+      ws$accept[i] <- FALSE
+    }
   }, mc.cores=n.threads)  # TODO: is there an issue with cores to threads?
-
-  ws$accepted <- length(which(ws$accept==TRUE))     # creating new attribute ws$accepted in workspace; didn't want dual vector and int behaviour of ws$accept from parallelization
+  
+  ws$accepted <- length(which(ws$accept == TRUE))     # creating new attribute ws$accepted in workspace; didn't want dual vector and int behaviour of ws$accept from parallelization
   # TODO: use return values to update ws
   return (ws)
 }
@@ -355,6 +349,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     result$theta[[niter]] <- ws$particles
     result$weights[[niter]] <- ws$weights
     result$epsilons <- c(result$epsilons, ws$epsilon)
+    cat(ws$accept, ws$accepted, ws$alive)
     result$accept.rate <- c(result$accept.rate, ws$accepted / ws$alive)      # changed ws$accept to ws$accepted; didn't want dual behaviour of ws$accept switching back and forth between vector and int
 
     # write output to file if specified

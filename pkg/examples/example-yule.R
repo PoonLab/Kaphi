@@ -14,32 +14,13 @@ set.seed(51)
 obs.tree <- speciation.model(theta, nsim=1, tips=50, model='yule')[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
-# calculate kernel distances for varying lambda
-x <- seq(0.01, 0.5, 0.01)
-res <- sapply(x, function(val) {
-  theta <- c(lambda=val)
-  sim.trees <- speciation.model(theta, nsim=50, tips=100, model='yule')
-  dists <- sapply(sim.trees, function(st) {
-    pt <- .preprocess.tree(st, config)
-    distance(obs.tree, pt, config)
-  })
-  cat(val, "\n")
-  mean(dists)
-})
-
-# generate a plot
-par(mar=c(5,5,2,2))
-plot(x, res, type='o', xlab='Lambda', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0,1), 
-     main='Identifiability of Lambda (Yule Model)')
-abline(v=0.1, lty=2)
-
 ## now let's estimate that posterior distribution!
 
 # initialize workspace
 ws <- init.workspace(obs.tree, config)
 
 # run ABC-SMC
-res <- run.smc(ws, trace.file='pkg/examples/example-yule2.tsv', model='yule', verbose=TRUE)
+res <- run.smc(ws, trace.file='pkg/examples/example-yule2.tsv', nthreads = 1, model='yule', verbose=TRUE)
 
 # let's examine the contents of the trace file
 
