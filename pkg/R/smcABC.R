@@ -245,14 +245,14 @@ initialize.smc <- function(ws, model, ...) {
     new.particle <- propose(config, old.particle)
     
     # calculate prior ratio
-    mh.ratio <- prior.density(config, new.particle) / prior.density(config, old.particle)
-    if (mh.ratio == 0) {
+    mh.ratio1 <- prior.density(config, new.particle) / prior.density(config, old.particle)
+    if (mh.ratio1 == 0) {
       return(NULL)    # reject new particle, violates prior assumptions
     }
     
     # calculate proposal ratio
-    mh.ratio <- mh.ratio * proposal.density(config, new.particle, old.particle) / proposal.density(config, old.particle, new.particle)
-    if (mh.ratio == 0) {
+    mh.ratio2 <- mh.ratio1 * proposal.density(config, new.particle, old.particle) / proposal.density(config, old.particle, new.particle)
+    if (mh.ratio2 == 0) {
       return(NULL)    # reject new particle, not possible under proposal distribution
     }
     
@@ -266,19 +266,34 @@ initialize.smc <- function(ws, model, ...) {
     # SMC approximation to likelihood ratio
     old.nbhd <- sum(ws$dists[,i] < ws$epsilon)    # how many samples are in the neighbourhood of data?
     new.nbhd <- sum(new.dists[,i] < ws$epsilon)
-    mh.ratio <- mh.ratio * new.nbhd / old.nbhd
+    mh.ratio3 <- mh.ratio2 * new.nbhd / old.nbhd
     
-    # accept or reject the proposal
-    if (runif(1) < mh.ratio) {     # always accept if ratio > 1
-      ws$accept[i] <- TRUE
-      ws$particles[i,] <- new.particle
-      ws$dists[,i] <- new.dists[,i]
-      ws$sim.trees[[i]] <- new.trees
+    
+    output <- list(i, mh.ratio3, new.particle, new.trees, new.dists[,i], mh.ratio1, mh.ratio2, old.nbhd, new.nbhd)
+    output
+    
+  }, mc.cores=n.threads)  # TODO: is there an issue with cores to threads?
+
+  
+  # accept or reject the proposal
+  for (i in .) {
+    if (length(i) == 0) { 
+      next
     }
     else {
-      ws$accept[i] <- FALSE
+      cat(i[[1]], i[[6]], i[[7]], i[[8]], i[[9]], i[[2]], i[[3]], '\n')
+      if (runif(1) < i[[2]]) {     # always accept if ratio > 1     # mh.ratio
+        ws$accept[i[[1]]] <- TRUE
+        ws$particles[i[[1]],] <- i[[3]]               # new.particle
+        ws$dists[,i[[1]]] <- i[[5]]
+        cat(ws$dists[,i[[1]]], '\n')
+        ws$sim.trees[[i[[1]]]] <- i[[4]]              # new.trees
+      }
+      else {
+        ws$accept[i[[1]]] <- FALSE
+      }
     }
-  }, mc.cores=n.threads)  # TODO: is there an issue with cores to threads?
+  }
   
   ws$accepted <- length(which(ws$accept == TRUE))     # creating new attribute ws$accepted in workspace; didn't want dual vector and int behaviour of ws$accept from parallelization
   # TODO: use return values to update ws
@@ -349,7 +364,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     result$theta[[niter]] <- ws$particles
     result$weights[[niter]] <- ws$weights
     result$epsilons <- c(result$epsilons, ws$epsilon)
-    cat(ws$accept, ws$accepted, ws$alive)
+    cat(ws$accept, ws$accepted, ws$alive, '\n')
     result$accept.rate <- c(result$accept.rate, ws$accepted / ws$alive)      # changed ws$accept to ws$accepted; didn't want dual behaviour of ws$accept switching back and forth between vector and int
 
     # write output to file if specified
