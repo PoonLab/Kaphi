@@ -236,11 +236,11 @@ initialize.smc <- function(ws, model, ...) {
   alive <- which(ws$weights > 0)
   ws$alive <- length(alive)
   
-  . <- mclapply(1:length(alive), function (i) {
+  . <- mclapply(alive, function (i) {
     # TODO: return value should be a list of particle, dist, and tree entries to go into ws
-    #if (ws$weights[i] == 0) {
-    #  return(NULL)   # ignore dead particles
-    #}
+    if (ws$weights[i] == 0) {
+      return(NULL)   # ignore dead particles
+    }
     old.particle <- ws$particles[i,]
     new.particle <- propose(config, old.particle)
     
@@ -277,16 +277,19 @@ initialize.smc <- function(ws, model, ...) {
   
   # accept or reject the proposal
   for (i in .) {
-    if (length(i) == 0) { 
+    if (length(i) == 0) {     #checking for any items that are a returned NULL ?
+      next
+    }
+    if (NaN %in% i) {
       next
     }
     else {
-      cat(i[[1]], i[[6]], i[[7]], i[[8]], i[[9]], i[[2]], i[[3]], '\n')
+      #cat(i[[1]], i[[6]], i[[7]], i[[8]], i[[9]], i[[2]], i[[3]], '\n')
       if (runif(1) < i[[2]]) {     # always accept if ratio > 1     # mh.ratio
         ws$accept[i[[1]]] <- TRUE
         ws$particles[i[[1]],] <- i[[3]]               # new.particle
         ws$dists[,i[[1]]] <- i[[5]]
-        cat(ws$dists[,i[[1]]], '\n')
+        #cat(ws$dists[,i[[1]]], '\n')
         ws$sim.trees[[i[[1]]]] <- i[[4]]              # new.trees
       }
       else {
@@ -364,7 +367,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     result$theta[[niter]] <- ws$particles
     result$weights[[niter]] <- ws$weights
     result$epsilons <- c(result$epsilons, ws$epsilon)
-    cat(ws$accept, ws$accepted, ws$alive, '\n')
+    #cat(ws$accept, ws$accepted, ws$alive, '\n')
     result$accept.rate <- c(result$accept.rate, ws$accepted / ws$alive)      # changed ws$accept to ws$accepted; didn't want dual behaviour of ws$accept switching back and forth between vector and int
 
     # write output to file if specified
