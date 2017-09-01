@@ -245,14 +245,14 @@ initialize.smc <- function(ws, model, ...) {
     new.particle <- propose(config, old.particle)
     
     # calculate prior ratio
-    mh.ratio1 <- prior.density(config, new.particle) / prior.density(config, old.particle)
-    if (mh.ratio1 == 0) {
+    mh.ratio <- prior.density(config, new.particle) / prior.density(config, old.particle)
+    if (mh.ratio == 0) {
       return(NULL)    # reject new particle, violates prior assumptions
     }
     
     # calculate proposal ratio
-    mh.ratio2 <- mh.ratio1 * proposal.density(config, new.particle, old.particle) / proposal.density(config, old.particle, new.particle)
-    if (mh.ratio2 == 0) {
+    mh.ratio <- mh.ratio * proposal.density(config, new.particle, old.particle) / proposal.density(config, old.particle, new.particle)
+    if (mh.ratio == 0) {
       return(NULL)    # reject new particle, not possible under proposal distribution
     }
     
@@ -266,10 +266,9 @@ initialize.smc <- function(ws, model, ...) {
     # SMC approximation to likelihood ratio
     old.nbhd <- sum(ws$dists[,i] < ws$epsilon)    # how many samples are in the neighbourhood of data?
     new.nbhd <- sum(new.dists[,i] < ws$epsilon)
-    mh.ratio3 <- mh.ratio2 * new.nbhd / old.nbhd
+    mh.ratio <- mh.ratio * new.nbhd / old.nbhd
     
-    
-    output <- list(i, mh.ratio3, new.particle, new.trees, new.dists[,i], mh.ratio1, mh.ratio2, old.nbhd, new.nbhd)
+    output <- list(i, mh.ratio, new.particle, new.trees, new.dists[,i])
     output
     
   }, mc.cores=n.threads)  # TODO: is there an issue with cores to threads?
@@ -277,6 +276,13 @@ initialize.smc <- function(ws, model, ...) {
   
   # accept or reject the proposal
   for (i in .) {
+    
+    i <- i[[1]]
+    mh.ratio <- i[[2]]
+    new.particle <- i[[3]]
+    new.trees <- i[[4]]
+    new.dists <- i[[5]]
+    
     if (length(i) == 0) {     #checking for any items that are a returned NULL ?
       next
     }
@@ -284,16 +290,14 @@ initialize.smc <- function(ws, model, ...) {
       next
     }
     else {
-      #cat(i[[1]], i[[6]], i[[7]], i[[8]], i[[9]], i[[2]], i[[3]], '\n')
-      if (runif(1) < i[[2]]) {     # always accept if ratio > 1     # mh.ratio
-        ws$accept[i[[1]]] <- TRUE
-        ws$particles[i[[1]],] <- i[[3]]               # new.particle
-        ws$dists[,i[[1]]] <- i[[5]]
-        #cat(ws$dists[,i[[1]]], '\n')
-        ws$sim.trees[[i[[1]]]] <- i[[4]]              # new.trees
+      if (runif(1) < mh.ratio) {     # always accept if ratio > 1     # mh.ratio
+        ws$accept[i] <- TRUE
+        ws$particles[i,] <- new.particle
+        ws$dists[,i] <- new.dists             
+        ws$sim.trees[[i]] <- new.trees
       }
       else {
-        ws$accept[i[[1]]] <- FALSE
+        ws$accept[i] <- FALSE
       }
     }
   }

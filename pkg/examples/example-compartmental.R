@@ -17,8 +17,4 @@ obs.tree <- parse.input.tree(obs.tree, config)
 ws <- init.workspace(obs.tree, config)
 result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthreads=1, model="sir.dynamic", seed=NA, verbose=TRUE)   
 
-
-# let's examine the contents of the trace file
-trace <- read.table('pkg/examples/example-compartmental.tsv', header=T, sep='\t')
-
 ########################################################################################################################################################################
