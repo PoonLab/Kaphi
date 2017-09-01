@@ -276,13 +276,6 @@ initialize.smc <- function(ws, model, ...) {
   
   # accept or reject the proposal
   for (i in .) {
-    
-    i <- i[[1]]
-    mh.ratio <- i[[2]]
-    new.particle <- i[[3]]
-    new.trees <- i[[4]]
-    new.dists <- i[[5]]
-    
     if (length(i) == 0) {     #checking for any items that are a returned NULL ?
       next
     }
@@ -290,6 +283,11 @@ initialize.smc <- function(ws, model, ...) {
       next
     }
     else {
+      i <- i[[1]]
+      mh.ratio <- i[[2]]
+      new.particle <- i[[3]]
+      new.trees <- i[[4]]
+      new.dists <- i[[5]]
       if (runif(1) < mh.ratio) {     # always accept if ratio > 1     # mh.ratio
         ws$accept[i] <- TRUE
         ws$particles[i,] <- new.particle

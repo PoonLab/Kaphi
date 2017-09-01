@@ -15,6 +15,6 @@ obs.tree <- parse.input.tree(obs.tree, config)
 
 # initialize workspace
 ws <- init.workspace(obs.tree, config)
-result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthreads=1, model="sir.dynamic", seed=NA, verbose=TRUE)   
+result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthreads=10, model="sir.dynamic", seed=NA, verbose=TRUE)   
 
 ########################################################################################################################################################################
