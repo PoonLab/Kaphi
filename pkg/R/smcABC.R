@@ -283,19 +283,19 @@ initialize.smc <- function(ws, model, ...) {
       next
     }
     else {
-      i <- i[[1]]
+      iter <- i[[1]]
       mh.ratio <- i[[2]]
       new.particle <- i[[3]]
       new.trees <- i[[4]]
       new.dists <- i[[5]]
       if (runif(1) < mh.ratio) {     # always accept if ratio > 1     # mh.ratio
-        ws$accept[i] <- TRUE
-        ws$particles[i,] <- new.particle
-        ws$dists[,i] <- new.dists             
-        ws$sim.trees[[i]] <- new.trees
+        ws$accept[iter] <- TRUE
+        ws$particles[iter,] <- new.particle
+        ws$dists[,iter] <- new.dists             
+        ws$sim.trees[[iter]] <- new.trees
       }
       else {
-        ws$accept[i] <- FALSE
+        ws$accept[iter] <- FALSE
       }
     }
   }
