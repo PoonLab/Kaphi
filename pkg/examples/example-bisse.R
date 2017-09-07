@@ -27,7 +27,7 @@ trace <- read.table('pkg/examples/example-bisse2.tsv', header=T, sep='\t')
 #------------------------------------------------------------------------------
 # Plot trajectory of mean estimate of lambda and mu
 
-pal <- rainbow(n=6, start=0, end=0.5, v=1, s=1)
+pal <- rainbow(n=6, start=0, end=0.75, v=1, s=1)
 par(mar=c(5,5,2,2))
 #png('bd-mean01.png')
 
@@ -73,7 +73,15 @@ abline(h=0.003, lty=2, col=pal[4])
 abline(h=0.01, lty=2, col=pal[5])
 abline(h=0.01, lty=2, col=pal[6])
 #dev.off()
-
+legend(
+  x=4, y=1.02, 
+  legend=c('lambda0', 'mu0', 'lambda1', 'mu1', 'q01', 'q10'), 
+  lty=c(rep(1,6)), 
+  col=pal, 
+  lwd=c(rep(1,6)), 
+  seg.len=2,
+  cex=0.8
+)
 
 # calculate kernel distances for varying lambda0
 x <- seq(0.01, 0.3, 0.01)
