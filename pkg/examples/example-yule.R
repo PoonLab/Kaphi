@@ -20,7 +20,7 @@ obs.tree <- parse.input.tree(obs.tree, config)
 ws <- init.workspace(obs.tree, config)
 
 # run ABC-SMC
-res <- run.smc(ws, trace.file='pkg/examples/example-yule2.tsv', nthreads = 1, model='yule', verbose=TRUE)
+res <- run.smc(ws, trace.file='pkg/examples/example-yule2.tsv', nthreads = 10, model='yule', verbose=TRUE)
 
 # let's examine the contents of the trace file
 

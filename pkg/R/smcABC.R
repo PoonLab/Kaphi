@@ -228,7 +228,6 @@ initialize.smc <- function(ws, model, ...) {
 
   config <- ws$config
   nparticle <- config$nparticle
-  new.dists <- matrix(NA, nrow=config$nsample, ncol=nparticle)
 
   require(parallel, quietly=TRUE)  # load parallel library if not already present
 
@@ -236,11 +235,8 @@ initialize.smc <- function(ws, model, ...) {
   alive <- which(ws$weights > 0)
   ws$alive <- length(alive)
   
-  . <- mclapply(alive, function (i) {
+  res <- mclapply(alive, function (i) {
     # TODO: return value should be a list of particle, dist, and tree entries to go into ws
-    if (ws$weights[i] == 0) {
-      return(NULL)   # ignore dead particles
-    }
     old.particle <- ws$particles[i,]
     new.particle <- propose(config, old.particle)
     
@@ -259,36 +255,34 @@ initialize.smc <- function(ws, model, ...) {
     # simulate new trees
     # retain sim.trees in case we revert to previous particle
     new.trees <- simulate.trees(ws, new.particle, model=model)
-    new.dists[,i] <- sapply(new.trees, function(sim.tree) {
+    new.dists <- sapply(new.trees, function(sim.tree) {
       distance(ws$obs.tree, sim.tree, config)
     })
     
     # SMC approximation to likelihood ratio
     old.nbhd <- sum(ws$dists[,i] < ws$epsilon)    # how many samples are in the neighbourhood of data?
-    new.nbhd <- sum(new.dists[,i] < ws$epsilon)
+    new.nbhd <- sum(new.dists < ws$epsilon)
     mh.ratio <- mh.ratio * new.nbhd / old.nbhd
     
-    output <- list(i, mh.ratio, new.particle, new.trees, new.dists[,i])
+    output <- list(i, mh.ratio, new.particle, new.trees, new.dists)
     output
     
   }, mc.cores=n.threads)  # TODO: is there an issue with cores to threads?
 
   
   # accept or reject the proposal
-  for (i in .) {
+  for (i in res) {
     if (length(i) == 0) {     #checking for any items that are a returned NULL ?
-      next
-    }
-    if (NaN %in% i) {
       next
     }
     else {
       iter <- i[[1]]
       mh.ratio <- i[[2]]
-      new.particle <- i[[3]]
-      new.trees <- i[[4]]
-      new.dists <- i[[5]]
       if (runif(1) < mh.ratio) {     # always accept if ratio > 1     # mh.ratio
+        new.particle <- i[[3]]
+        new.trees <- i[[4]]
+        new.dists <- i[[5]]
+        
         ws$accept[iter] <- TRUE
         ws$particles[iter,] <- new.particle
         ws$dists[,iter] <- new.dists             

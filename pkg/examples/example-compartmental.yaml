@@ -2,7 +2,7 @@ priors:
   't.end':
     dist: 'unif'
     hyperparameters:
-    - min: 190
+    - min: 175
     - max: 200
   'N':
     dist: 'norm'
