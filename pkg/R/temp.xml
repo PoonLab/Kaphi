@@ -6,35 +6,33 @@
               <run spec='InheritanceTrajectory'
                    samplePopulationSizes='true'
                    verbosity='2'
-                   simulationTime='10'
+                   simulationTime='40'
                    seed='42'>
             
                 <model spec='Model' id='model'>
-                  <population spec='Population' id='V' populationName='V' />
+                  <population spec='Population' id='S' populationName='S' />
+                  <population spec='Population' id='I' populationName='I' />
+                  <population spec='Population' id='R' populationName='R' />
+                  <population spec='Population' id='I_sample' populationName='I_sample' />
             
-                  <reaction spec='Reaction' reactionName='birth' rate='1.0'>
-                    V -> V + V
+                  <reaction spec='Reaction' reactionName='Infection' rate='0.001'>
+                    S + I -> 2I
+                  </reaction>
+                  <reaction spec='Reaction' reactionName='Recovery' rate='0.2'>
+                    I -> R
+                  </reaction>
+                  <reaction spec='Reaction' reactionName='Sampling' rate='0.01'>
+                    I -> I_sample
                   </reaction>
                 </model>
             
                 <initialState spec='InitState'>
-                  <lineageSeed spec='Individual' population='@V' />
+                  <populationSize spec='PopulationSize' population='@S' size='999'/>
+                  <lineageSeed spec='Individual' population='@I'/>
                 </initialState>
             
-                <inheritancePostProcessor spec='LineageSampler' reverseTime='false' noClean='false' nSamples='10'>
-            <!--
-                  <populationSize spec='PopulationSize' size='10'>
-                    <population spec='Population' populationName='T'/>
-                  </populationSize>
-             -->
-            <!--
-                  <populationSize spec='PopulationSize' size='10'>
-                    <population spec='Population' populationName='V'/>
-                  </populationSize>
-             -->
-                </inheritancePostProcessor>
-            
-                <output spec='NexusOutput' fileName='test.nexus' collapseSingleChildNodes='false' />
-                <output spec='JsonOutput' fileName='test.json' />
+                <output spec='NexusOutput' fileName='test.nexus' collapseSingleChildNodes='false'/>
+                <output spec='JsonOutput' fileName='test.json'/>
+                <output spec='NewickOutput' fileName='test.newick'/>
               </run>
             </beast>
