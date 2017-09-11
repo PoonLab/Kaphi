@@ -274,6 +274,9 @@ set.model <- function(config, generator) {
     else if (is.element('const.coalescent', tolower(generator))) {
       generator <- get(generator, mode='function', envir=parent.frame())
     }
+    else if (is.element('epidemic', tolower(generator))) {
+      generator <- get('epidem.model', mode='function', envir=parent.frame())
+    }
     else {
       stop("Not a Kaphi-compatible model.")
     }

@@ -14,13 +14,19 @@
 # along with Kaphi.  If not, see <http://www.gnu.org/licenses/>.
 
 
-epidem.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=NA, labels=NA) {
-  theta <- as.list(theta)
-  if (!is.na(seed)) {
-    set.seed(seed)
+epidem.model <- function(theta, nsim, tips, model='epidemic', seed=NA, labels=NA) {
+  th.args <- names(theta)
+  if (length(th.args) < 4 || any(!is.element(c('t.end', 'N', 'beta', 'gamma', 'phi'), th.args))) {
+    stop("'theta' does not hold Kaphi-compatible parameters")
   }
+  theta <- as.list(theta)
   
-  trees <- replicate(nsim, # num of simulations
+  # check if there are tip labels (dates and states) to incorporate
+  tips <- .parse.tips(tips)                   # function is written in smcConfig.R
+  if (!is.na(seed)) { set.seed(seed) }
+  
+  
+  trees <- replicate(nsim,                    # num of simulations
                      .call.master(theta),
                      simplify=FALSE
                      )
@@ -28,7 +34,7 @@ epidem.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=NA, lab
   class(trees) <- "multiPhylo"
   return(trees)
 }
-attr(compartmental.model, 'name') <- "epidem.model"  # satisfies requirement in smcConfig.R set.model() function
+attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConfig.R set.model() function
 
 
 
@@ -78,7 +84,6 @@ attr(compartmental.model, 'name') <- "epidem.model"  # satisfies requirement in 
                     <lineageSeed spec='Individual' population='@I'/>
                   </initialState>
               
-                  <output spec='JsonOutput' fileName='temp.json'/>
                   <output spec='NewickOutput' fileName='temp.newick'/>
                 </run>
               </beast>"
@@ -101,13 +106,4 @@ attr(compartmental.model, 'name') <- "epidem.model"  # satisfies requirement in 
   setwd('~/git/Kaphi/')
   tree
 }
-
-
-
-## plotting simulation from json file
-require(rjson)
-df <- fromJSON(file='test.json')
-plot(df$t, df$S, 's', col='green', xlab='Time', ylab='Population size')
-points(df$t, df$I, 's', col='red', xlab='Time', ylab='Population size')
-points(df$t, df$R, 's', col='blue', xlab='Time', ylab='Population size')
 

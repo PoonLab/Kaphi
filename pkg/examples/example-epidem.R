@@ -1,0 +1,18 @@
+require(Kaphi)
+setwd('~/git/Kaphi')
+
+config <- load.config('pkg/examples/example-epidem.yaml')
+config <- set.model(config, 'epidemic')
+
+# simulate target tree
+theta <- c(t.end=200, N=10000, beta=0.1, gamma=0.002, phi=0.0001)
+set.seed(50)
+obs.tree <- compartmental.model(theta, nsim=1, tips=100, model='epidemic')[[1]]
+obs.tree <- parse.input.tree(obs.tree, config)
+
+
+## estimate posterior distribution
+
+# initialize workspace
+ws <- init.workspace(obs.tree, config)
+result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthreads=10, model="sir.dynamic", seed=NA, verbose=TRUE)   
