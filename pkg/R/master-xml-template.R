@@ -33,7 +33,7 @@ attr(compartmental.model, 'name') <- "epidem.model"  # satisfies requirement in 
 
 
 .call.master <- function(theta) {
-  setwd('~/git/Kaphi/')
+  setwd('~/git/Kaphi/pkg/R')
   require(whisker)
 
   ## hash
@@ -91,11 +91,10 @@ attr(compartmental.model, 'name') <- "epidem.model"  # satisfies requirement in 
   
   ## generate temporary XML
   text <- whisker.render(template, data)
-  write(text, file='pkg/R/temp.xml')
+  write(text, file='temp.xml')
   
   ## system call to MASTER with temporarily generated XML
-  setwd('~/git/MASTER-5.1.1')
-  system2('java', args=c('-jar MASTER-5.1.1.jar', '../Kaphi/pkg/R/temp.xml'), stdout=F, stderr=F)
+  system2('java', args=c('-jar ../../../MASTER-5.1.1/MASTER-5.1.1.jar', 'temp.xml'), stdout=F, stderr=F)
   
   ## read Newick, reset to Kaphi directory, and send tree back to user
   tree <- read.tree(file='temp.newick')
