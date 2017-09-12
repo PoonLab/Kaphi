@@ -5,9 +5,9 @@ config <- load.config('pkg/examples/example-epidem.yaml')
 config <- set.model(config, 'epidemic')
 
 # simulate target tree
-theta <- c(t.end=200, N=10000, beta=0.1, gamma=0.002, phi=0.0001)
+theta <- c(t.end=0.2, N=10000, beta=0.0135, gamma=10, phi=10)
 set.seed(50)
-obs.tree <- compartmental.model(theta, nsim=1, tips=100, model='epidemic')[[1]]
+obs.tree <- epidem.model(theta, nsim=1, tips=100, tsample=0.1, model='epidemic')[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
 

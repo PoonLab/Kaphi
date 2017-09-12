@@ -56,6 +56,7 @@ export(run.smc)
 export(const.coalescent)
 export(compartmental.model)
 export(speciation.model)
+export(epidem.model)
 
 export(parse.ode)
 export(.get.times)
