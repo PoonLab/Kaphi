@@ -17,13 +17,13 @@ priors:
   'gamma':
     dist: 'gamma'
     hyperparameters:
-    - shape: 1
-    - rate: 10
+    - shape: 10
+    - rate: 1
   'phi':
     dist: 'gamma'
     hyperparameters:
-    - shape: 1
-    - rate: 10
+    - shape: 10
+    - rate: 1
 constraints:
   - ''
 proposals:
@@ -31,7 +31,7 @@ proposals:
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.1
+    - sd: 0.01
   'N':
     dist: 'norm'
     parameters:
@@ -46,12 +46,12 @@ proposals:
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.0001
+    - sd: 1
   'phi':
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.00001
+    - sd: 1
 smc:
   nparticle: 10
   nsample: 5
