@@ -117,6 +117,7 @@ initialize.smc <- function(ws, model, tsample=NA, ...) {
 		# calculate kernel distances for trees
 		ws$dists[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
       distance(ws$obs.tree, sim.tree, config)
+		  cat(distance(ws$obs.tree, sim.tree, config))
 		})
 	}
   cat('Initialized SMC workspace.\n')

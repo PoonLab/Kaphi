@@ -6,7 +6,7 @@
               <run spec='InheritanceTrajectory'
                    samplePopulationSizes='true'
                    verbosity='1'
-                   simulationTime='0.101526796576757'>
+                   simulationTime='0.126976580522023'>
             
                 <model spec='Model' id='model'>
                   <population spec='Population' id='S' populationName='S' />
@@ -14,19 +14,19 @@
                   <population spec='Population' id='R' populationName='R' />
                   <population spec='Population' id='I_sample' populationName='I_sample' />
             
-                  <reaction spec='Reaction' reactionName='Infection' rate='0.0087425688092977'>
+                  <reaction spec='Reaction' reactionName='Infection' rate='0.0169456183830679'>
                     S + I -> 2I
                   </reaction>
-                  <reaction spec='Reaction' reactionName='Recovery' rate='6.57713389599251'>
+                  <reaction spec='Reaction' reactionName='Recovery' rate='8.46264069967412'>
                     I -> R
                   </reaction>
-                  <reaction spec='Reaction' reactionName='Sampling' rate='10.8941403565413'>
+                  <reaction spec='Reaction' reactionName='Sampling' rate='10.4316751475527'>
                     I:1 -> I_sample:1
                   </reaction>
                 </model>
             
                 <initialState spec='InitState'>
-                  <populationSize spec='PopulationSize' population='@S' size='10143.5078975141'/>
+                  <populationSize spec='PopulationSize' population='@S' size='10035.0828443694'/>
                   <populationSize spec='PopulationSize' population='@I_sample' size='0'/>
                   <populationSize spec='PopulationSize' population='@R' size='0'/>
                   <lineageSeed spec='Individual' population='@I'/>
