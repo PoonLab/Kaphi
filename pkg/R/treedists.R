@@ -183,7 +183,7 @@ Align <- function(x, y) {
   
   # count the tips
   numtips <- len(tree1$tip.label)
-  if numtips != len(tree2$tip.label) { stop('Tree 1 and Tree 2 must be the same size to compute Align metric.') }
+  if (numtips != len(tree2$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to compute Align metric.') }
   internals <- numtips - 2    # why are the number of interanl nodes subtracted by 2? Nnode is subtracted by 1 in R's phylo trees
   
   
@@ -205,7 +205,9 @@ Align <- function(x, y) {
   
   # now label interal nodes, tarting with tips+1
   nodeno <- numtips           # why would node number go up to the number of tips? Shouldn't it be internals?
-  for (node in tree1)
+  for (node in tree1){
+    cat(node)
+  }
   
 }
 
