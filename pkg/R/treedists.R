@@ -204,12 +204,40 @@ Align <- function(x, y) {
   }
   
   # now label interal nodes, tarting with tips+1
-  nodeno <- numtips           # why would node number go up to the number of tips? Shouldn't it be internals?
-  for (node in tree1){
-    cat(node)
+  nodeno <- numtips + 1          # for some reason in their code they did NOT add 1 to numtips
+  edges <- tree1$edge
+  for (node in edges){
+    append(tree1$node.label, nodeno)
   }
   
 }
+
+
+
+## post order tree traversal
+postorder.traversal <- function(node, root, tree) {
+  indices <- which(node == tree$edge[,1])                   # track down the node in column 1
+  options <- sapply(indices, function(x){tree$edge[x,2]})   # record the descendant nodes of given node/edge
+  
+  # if one of the tips' descendants == NULL, return
+  
+  if (node == root) {
+    node <- root
+    
+    # traverse down the 'left' side, the side that has the lowest node number in the recorded descendant nodes
+    
+    postorder.traversal(left.node, node, tree$edge)
+    
+    # traverse down the 'right' side, with the highest node number in the recorded descendant nodes
+    right.node <- max(options)
+    postorder.traversal(right.node, node, tree$edge)
+    
+    # label the root
+    append(tree$node.label, node)
+  }
+}
+
+
 
 
 
