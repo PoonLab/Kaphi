@@ -187,62 +187,41 @@ Align <- function(x, y) {
   internals <- numtips - 2    # why are the number of interanl nodes subtracted by 2? Nnode is subtracted by 1 in R's phylo trees
   
   
-  ## label nodes
-  # first, relabel tips as 0 to (numtips-1). This has to be done all at once as there might already have been tips with those names
-  tipnames <- tree1$tip.label
-  tiplist <- list()
-  tipno <- 0
-  for (tip in tipnames) {
-    tiplist[tip] <- tipno
-    tipno <- tipno + 1
-  }
-  for (leaf in tree1$tip.label){
-    tree1$tip.label[leaf] <- tiplist[[leaf]]
-  }
-  for (leaf in tree2$tip.label){
-    tree2$tip.label[leaf] <- tiplist[[leaf]]
-  }
-  
-  # now label interal nodes, starting with tips+1
-  nodeno <- numtips + 1          # for some reason in their code they did NOT add 1 to numtips
-  edges <- tree1$edge
-  for (node in edges){
-    append(tree1$node.label, nodeno)
-  }
-  
 }
 
+## MUST be bifurcating trees to use this distance metric (for the moment)
+separate.node.subsets <- function(edge, tree) {
+  edges <- tree$edge
+  children <- sapply(which(edge == tree$edge[,1]), function(x){tree$edge[x,2]})
+  empties <- vector()
+  left.subset  <- preorder.traversal(min(children), empties, tree)    # vector of all descendants in left.node
+  right.subset <- preorder.traversal(max(children), empties, tree)    # vector of all descendants in right.node
+  
+  return(list(left.subset, right.subset))
+}
 
-
-## post order tree traversal
-postorder.traversal <- function(node, root, tree) {
-  indices <- which(node == tree$edge[,1])                   # track down the node in column 1
-  options <- sapply(indices, function(x){tree$edge[x,2]})   # record the descendant nodes of given node/edge
-  
-  # if one of the tips' descendants == NULL, return
-  
-  
-  left.node <- min(options)
-  right.node <- max(options)
-  if (left.node == NULL) {
-    return(NULL)
+preorder.traversal <- function(child, empties, tree) {
+  if (is.null(child)) {
+    return(empties)
   }
-  if (right.node == NULL) {
-    return(NULL)
+  
+  # store the node in a list
+  empties <- append(empties, child)
+  
+  children <- sapply(which(child == tree$edge[,1]), function(x){tree$edge[x,2]})
+  if(length(children) == 0) {
+    return(empties)
   }
-  if (node == root) {
-    node <- root
-    
-    # traverse down the 'left' side, the side that has the lowest node number in the recorded descendant nodes
-    postorder.traversal(left.node, node, tree$edge)
-    
-    # traverse down the 'right' side, with the highest node number in the recorded descendant nodes
-    postorder.traversal(right.node, node, tree$edge)
-    
-    # label the root
-    append(tree$node.label, node)
-  }
-  tree
+  
+  # traverse left side
+  left.child <- min(children)
+  left.empties <- preorder.traversal(left.child, empties, tree)
+  
+  # traverse right side
+  right.child <- max(children)
+  right.empties <- preorder.traversal(right.child, empties, tree)
+  
+  return(union(left.empties, right.empties))
 }
 
 
