@@ -14,7 +14,7 @@
 # along with Kaphi.  If not, see <http://www.gnu.org/licenses/>.
 
 
-epidem.model <- function(theta, nsim, tips, tsample, model='epidemic', seed=NA, labels=NA) {
+epidem.model <- function(theta, nsim, tips, model='epidemic', seed=NA, labels=NA) {
   th.args <- names(theta)
   if (length(th.args) < 5 || any(!is.element(c('t.end', 'N', 'beta', 'gamma', 'phi'), th.args))) {
     stop("'theta' does not hold Kaphi-compatible parameters")
@@ -26,7 +26,7 @@ epidem.model <- function(theta, nsim, tips, tsample, model='epidemic', seed=NA, 
   if (!is.na(seed)) { set.seed(seed) }
   
   trees <- replicate(nsim,                    # num of simulations
-                     .call.master(theta, tips=tips, seed=seed, tsample=tsample),
+                     .call.master(theta, tips=tips, seed=seed),
                      simplify=FALSE
                      )
   # cast result as a multiPhylo object
@@ -37,7 +37,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
 
 
 
-.call.master <- function(theta, tips, seed=NA, tsample) {
+.call.master <- function(theta, tips, seed=NA) {
   setwd('~/git/Kaphi/pkg/R')
   require(whisker, quietly=TRUE)
 
@@ -49,7 +49,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                N = as.character(theta$N - 1),
                #seed = as.character(NA),
                ntips = as.character(tips),
-               tsampl = as.character(tsample))
+               tsampl = as.character(0.1))
   
   ## XML template
   template <- 
@@ -111,6 +111,9 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   
   ## read Newick, reset to Kaphi directory, and send tree back to user
   tree <- read.tree(file='temp.newick')
+  
+  # remove temporary files, restore to parent Kaphi working directory, and return tree
+  system2('rm', args=c('temp.newick', 'temp.xml'), stdout=F, stderr=F)
   setwd('~/git/Kaphi/')
   tree
 }
