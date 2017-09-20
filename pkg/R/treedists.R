@@ -203,7 +203,7 @@ Align <- function(x, y) {
     tree2$tip.label[leaf] <- tiplist[[leaf]]
   }
   
-  # now label interal nodes, tarting with tips+1
+  # now label interal nodes, starting with tips+1
   nodeno <- numtips + 1          # for some reason in their code they did NOT add 1 to numtips
   edges <- tree1$edge
   for (node in edges){
@@ -221,20 +221,28 @@ postorder.traversal <- function(node, root, tree) {
   
   # if one of the tips' descendants == NULL, return
   
+  
+  left.node <- min(options)
+  right.node <- max(options)
+  if (left.node == NULL) {
+    return(NULL)
+  }
+  if (right.node == NULL) {
+    return(NULL)
+  }
   if (node == root) {
     node <- root
     
     # traverse down the 'left' side, the side that has the lowest node number in the recorded descendant nodes
-    
     postorder.traversal(left.node, node, tree$edge)
     
     # traverse down the 'right' side, with the highest node number in the recorded descendant nodes
-    right.node <- max(options)
     postorder.traversal(right.node, node, tree$edge)
     
     # label the root
     append(tree$node.label, node)
   }
+  tree
 }
 
 

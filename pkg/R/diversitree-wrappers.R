@@ -16,7 +16,7 @@
 require(diversitree)
 
 ## Standard Speciation Models
-speciation.model <- function(theta, nsim, tips, model, seed=NA, labels=NA, ...) {
+speciation.model <- function(theta, nsim, tips, model, tsample=NA, seed=NA, labels=NA, ...) {
     "
     theta : a vector containing the parameter values for the model
         @param lambda(i) : Rate of speciation (for state i)
