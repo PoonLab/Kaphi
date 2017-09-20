@@ -182,10 +182,17 @@ Align <- function(x, y) {
   tree2 <- y
   
   # count the tips
-  numtips <- len(tree1$tip.label)
-  if (numtips != len(tree2$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to compute Align metric.') }
-  internals <- numtips - 2    # why are the number of interanl nodes subtracted by 2? Nnode is subtracted by 1 in R's phylo trees
+  numtips <- length(tree1$tip.label)
+  if (numtips != length(tree2$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to compute Align metric.') }
+  t1.internals <- (numtips+1) : (numtips*2 - 2)   # why are the number of internal nodes subtracted by 2? Nnode is subtracted by 1 in R's phylo trees
+  t2.internals <- t1.internals
   
+  ## Nye et al metric
+  for (i in t1.internals) {
+    for (j in t2.internals) {
+      
+    }
+  }
   
 }
 
