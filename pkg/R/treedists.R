@@ -184,16 +184,34 @@ Align <- function(x, y) {
   # count the tips
   numtips <- length(tree1$tip.label)
   if (numtips != length(tree2$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to compute Align metric.') }
-  t1.internals <- (numtips+1) : (numtips*2 - 2)   # why are the number of internal nodes subtracted by 2? Nnode is subtracted by 1 in R's phylo trees
+  t1.internals <- (numtips+1) : (numtips*2 - 1)   # why are the number of internal nodes subtracted by 2? Nnode is subtracted by 1 in R's phylo trees
   t2.internals <- t1.internals
+  
+  same.side <- vector()     # (A,B), (A,C)
+  opp.side <- vector()      # (A,B), (B,D)
   
   ## Nye et al metric
   for (i in t1.internals) {
     for (j in t2.internals) {
+      t1list <- separate.node.subsets(i, tree1)
+      t2list <- separate.node.subsets(j, tree2)
       
+      # 4 computations, 2 on same side, 2 on opposite side
+      # for each 2 sets, take the intersection / union
+      val1.same.side <- length(intersect(t1list[[1]], t2list[[1]])) / length(union(t1list[[1]], t2list[[1]]))   # left side of t1 w/ left side of t2
+      val2.same.side <- length(intersect(t1list[[2]], t2list[[2]])) / length(union(t1list[[2]], t2list[[2]]))   # right side of t1 w/ right side of t2
+      val1.opp.side <- length(intersect(t1list[[1]], t2list[[2]])) / length(union(t1list[[1]], t2list[[2]]))    # left side of t1 w/ right side of t2
+      val2.opp.side <- length(intersect(t1list[[2]], t2list[[1]])) / length(union(t1list[[2]], t2list[[1]]))    # right side of t1 w/ left side of t2
+      
+      same.side <- append(same.side, c(val1.same.side, val2.same.side))
+      opp.side <- append(opp.side, c(val1.opp.side, val2.opp.side))
     }
   }
+  cat(same.side, '\n')
+  cat(opp.side, '\n')
   
+  res <- c(min(same.side), min(opp.side))
+  return(max(res))
 }
 
 ## MUST be bifurcating trees to use this distance metric (for the moment)
