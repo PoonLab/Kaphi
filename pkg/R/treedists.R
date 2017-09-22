@@ -168,7 +168,87 @@ TripL <- function(x, y){
 
 ##-------------------------------------------------------------------------------------------------------------
 # MAST (Gordon, 1980)
+# this is natively a similarity score, but turn it into a distance metric by subtracting the similarity score from the tree size
+# measures the similarity between trees as the # of tips in the largest subtree identical between trees
+MAST <- function(x, y) {
+  # copy the trees -- this function destroys its working copy
+  tree1 <- x
+  tree2 <- y
+  # count the tips and ensure that the trees are the same size
+  numtips <- length(tree1$tip.label)
+  if(numtips != length(tree2$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to comput the MAST metric') }
+  
+  # label nodes -- should be able to be called with `nodelabels()`
+  
+  # create 2D array
+  numnodes <- (numtips * 2) - 1
+  vals <- list()
+  inner <- list()
+  for (i in 1:numnodes) {
+    inner[[i]] <- NA
+  }
+  for (i in 1:numnodes) {
+    vals[[i]] <- inner
+  }
+  
+  # recursively calculate mast score
+  tree1 <- reorder(tree1, order='postorder')
+  tree2 <- reorder(tree2, order='postorder')
+  
+  
+  
+}
 
+
+# the mast score is the number of tips in the MAST of the given subtrees
+rmast <- function(a, w, treea, treew) {
+  if (vals[[a]][[w]] != NA) {   # a = node1, w = node2
+    return (vals[[a]][[w]])     # already calculated
+  }
+  else {
+    # leaf branch
+    if (a in treea$tip.label) {
+      if (a in treew$tip.label) {
+        vals[[a]][[w]] <- 1
+        return(1)                                 # tree a
+      }
+      else {
+        vals[[a]][[w]] <- 0
+        return(0)
+      }
+    }
+  
+    if (w in treew$tip.label) {
+      if (w in treea$tip.label) {
+        vals[[a]][[w]] <- 1
+        return(1)                                 # tree w
+      }
+      else {
+        vals[[a]][[w]] <- 0
+        return(0)
+      }
+    }
+    
+    # non-leaf branch
+    children.a <- sapply(which(edge == treea$edge[,1]), function(x){treea$edge[x,2]})
+    b <- min(children.a)                     # left child of node 'a' 
+    c <- max(children.a)                     # right child of node 'a'
+    children.w <- sapply(which(edge == treew$edge[,1]), function(x){treew$edge[x,2]})
+    x <- min(children.w)                     # left child of node 'w'
+    y <- max(children.w)                     # right child of node 'w'
+    
+    step1 <- rmast(b,x) + rmast(c,y)
+    step2 <- rmast(b,y) + rmast(c,x)
+    step3 <- rmast(a,x)
+    step4 <- rmast(a,y)
+    step5 <- rmast(b,w)
+    step6 <- rmast(c,w)
+    results <- c(step1, step2, step3, step4, step5, step6)
+    
+    vals[[a]][[w]] <- max(results)
+    return (vals[[a]][[w]])
+  }
+}
 
 
 
@@ -214,39 +294,40 @@ Align <- function(x, y) {
   return(max(res))
 }
 
-## MUST be bifurcating trees to use this distance metric (for the moment)
+## MUST be bifurcating trees to use this distance metric (for the moment)  Nye et al said it doesn't necessarily have to be 
+## TODO: separate nodes for case of multifurcating trees
 separate.node.subsets <- function(edge, tree) {
   edges <- tree$edge
   children <- sapply(which(edge == tree$edge[,1]), function(x){tree$edge[x,2]})
-  empties <- vector()
-  left.subset  <- preorder.traversal(min(children), empties, tree)    # vector of all descendants in left.node
-  right.subset <- preorder.traversal(max(children), empties, tree)    # vector of all descendants in right.node
+  subsetList <- vector()
+  left.subset  <- preorder.traversal(min(children), subsetList, tree)    # vector of all descendants in left.node
+  right.subset <- preorder.traversal(max(children), subsetList, tree)    # vector of all descendants in right.node
   
   return(list(left.subset, right.subset))
 }
 
-preorder.traversal <- function(child, empties, tree) {
+preorder.traversal <- function(child, subsetList, tree) {
   if (is.null(child)) {
-    return(empties)
+    return(subsetList)
   }
-  
+
   # store the node in a list
-  empties <- append(empties, child)
+  subsetList <- append(subsetList, child)
   
   children <- sapply(which(child == tree$edge[,1]), function(x){tree$edge[x,2]})
   if(length(children) == 0) {
-    return(empties)
+    return(subsetList)
   }
   
   # traverse left side
   left.child <- min(children)
-  left.empties <- preorder.traversal(left.child, empties, tree)
+  left.subsetList <- preorder.traversal(left.child, subsetList, tree)
   
   # traverse right side
   right.child <- max(children)
-  right.empties <- preorder.traversal(right.child, empties, tree)
+  right.subsetList <- preorder.traversal(right.child, subsetList, tree)
   
-  return(union(left.empties, right.empties))
+  return(union(left.subsetList, right.subsetList))
 }
 
 
