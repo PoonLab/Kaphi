@@ -195,20 +195,34 @@ MAST <- function(x, y) {
   tree1 <- reorder(tree1, order='postorder')
   tree2 <- reorder(tree2, order='postorder')
   
+  for (node1 in tree1$edge[,1]) {
+    for (node2 in tree2$edge[,1]) {
+      rmast(node1, node2, tree1, tree2)
+    }
+  }
   
+  biggest <- 0
+  for (i in 1:numnodes) {
+    for (j in 1:numnodes) {
+      if (vals[[i]][[j]] > biggest == TRUE) {
+        biggest <- vals[[i]][[j]]
+      }
+    }
+  }
   
+  return(biggest)
 }
 
 
 # the mast score is the number of tips in the MAST of the given subtrees
 rmast <- function(a, w, treea, treew) {
-  if (vals[[a]][[w]] != NA) {   # a = node1, w = node2
+  if (is.na(vals[[a]][[w]] != TRUE)) {   # a = node1, w = node2
     return (vals[[a]][[w]])     # already calculated
   }
   else {
     # leaf branch
-    if (a in treea$tip.label) {
-      if (a in treew$tip.label) {
+    if (a %in% treea$tip.label) {                # problem is comparing tip.labels, but trying to compare arbitrary integers right now
+      if (a %in% treew$tip.label) {
         vals[[a]][[w]] <- 1
         return(1)                                 # tree a
       }
@@ -218,8 +232,8 @@ rmast <- function(a, w, treea, treew) {
       }
     }
   
-    if (w in treew$tip.label) {
-      if (w in treea$tip.label) {
+    if (w %in% treew$tip.label) {
+      if (w %in% treea$tip.label) {
         vals[[a]][[w]] <- 1
         return(1)                                 # tree w
       }
@@ -237,12 +251,12 @@ rmast <- function(a, w, treea, treew) {
     x <- min(children.w)                     # left child of node 'w'
     y <- max(children.w)                     # right child of node 'w'
     
-    step1 <- rmast(b,x) + rmast(c,y)
-    step2 <- rmast(b,y) + rmast(c,x)
-    step3 <- rmast(a,x)
-    step4 <- rmast(a,y)
-    step5 <- rmast(b,w)
-    step6 <- rmast(c,w)
+    step1 <- rmast(b,x,treea,treew) + rmast(c,y,treea,treew)
+    step2 <- rmast(b,y,treea,treew) + rmast(c,x,treea,treew)
+    step3 <- rmast(a,x,treea,treew)
+    step4 <- rmast(a,y,treea,treew)
+    step5 <- rmast(b,w,treea,treew)
+    step6 <- rmast(c,w,treea,treew)
     results <- c(step1, step2, step3, step4, step5, step6)
     
     vals[[a]][[w]] <- max(results)
