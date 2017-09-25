@@ -3,26 +3,26 @@ priors:
     dist: 'unif'
     hyperparameters:
     - min: 0.1
-    - max: 0.2
+    - max: 0.4
   'N':
     dist: 'norm'
     hyperparameters:
     - mean: 10000
-    - sd: 100
+    - sd: 1000
   'beta':
     dist: 'gamma'
     hyperparameters:
-    - shape: 1
+    - shape: 2
     - rate: 10
   'gamma':
     dist: 'gamma'
     hyperparameters:
-    - shape: 10
+    - shape: 20
     - rate: 1
   'phi':
     dist: 'gamma'
     hyperparameters:
-    - shape: 10
+    - shape: 20
     - rate: 1
 constraints:
   - ''
@@ -53,7 +53,7 @@ proposals:
     - mean: 0
     - sd: 1
 smc:
-  nparticle: 10
+  nparticle: 1
   nsample: 5
   ess.tolerance: 50.0
   final.accept.rate: 0.1

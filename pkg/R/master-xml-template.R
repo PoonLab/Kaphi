@@ -25,19 +25,15 @@ epidem.model <- function(theta, nsim, tips, tsample, model='epidemic', seed=NA, 
   ntips <- .parse.tips(tips)                   # function is written in smcConfig.R
   if (!is.na(seed)) { set.seed(seed) }
   
-  trees <- replicate(nsim,                    # num of simulations
-                     .call.master(theta, tips=tips, seed=seed, tsample=tsample),
-                     simplify=FALSE
-                     )
-  # cast result as a multiPhylo object
-  class(trees) <- "multiPhylo"
+  trees <- .call.master(theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
+      
   return(trees)
 }
 attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConfig.R set.model() function
 
 
 
-.call.master <- function(theta, tips, seed=NA, tsample) {
+.call.master <- function(theta, nsim, tips, seed=NA, tsample) {
   setwd('~/git/Kaphi/pkg/R')
   require(whisker, quietly=TRUE)
 
@@ -48,6 +44,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                phi = as.character(theta$phi),
                N = as.character(theta$N - 1),
                #seed = as.character(NA),
+               nsample = as.character(nsim),
                ntips = as.character(tips),
                tsampl = as.character(tsample))
   
@@ -58,10 +55,11 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                                              :master.conditions
                                              :master.outputs
                                              :master.postprocessors'>
-              <run spec='InheritanceTrajectory'
-                   samplePopulationSizes='true'
-                   verbosity='1'
-                   simulationTime='{{ tend }}'>
+              <run spec='InheritanceEnsemble' 
+                   simulationTime='{{ tend }}'
+                   samplePopulationSizes='true' 
+                   nTraj='{{ nsample }}'
+                   verbosity='1'>
             
                 <model spec='Model' id='model'>
                   <population spec='Population' id='S' populationName='S' />
@@ -110,8 +108,9 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   system2('java', args=c('-jar ../../../MASTER-5.1.1/MASTER-5.1.1.jar', 'temp.xml'), stdout=F, stderr=F)
   
   ## read Newick, reset to Kaphi directory, and send tree back to user
-  tree <- read.tree(file='temp.newick')
+  # casting result as a multiPhylo object
+  trees <- read.tree(file='temp.newick', keep.multi=TRUE)
   setwd('~/git/Kaphi/')
-  tree
+  trees
 }
 

@@ -204,7 +204,7 @@ MAST <- function(x, y) {
   biggest <- 0
   for (i in 1:numnodes) {
     for (j in 1:numnodes) {
-      if (vals[[i]][[j]] > biggest == TRUE) {
+      if (vals[[i]][[j]] > biggest) {
         biggest <- vals[[i]][[j]]
       }
     }
