@@ -25,7 +25,7 @@ epidem.model <- function(theta, nsim, tips, tsample, model='epidemic', seed=NA, 
   ntips <- .parse.tips(tips)                   # function is written in smcConfig.R
   if (!is.na(seed)) { set.seed(seed) }
   
-  trees <- .call.master(theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
+  trees <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
       
   return(trees)
 }

@@ -3,10 +3,10 @@
                                              :master.conditions
                                              :master.outputs
                                              :master.postprocessors'>
-              <run spec='InheritanceTrajectory' 
-                   simulationTime='0.310073979850858'
+              <run spec='InheritanceEnsemble' 
+                   simulationTime='0.312618128932081'
                    samplePopulationSizes='true' 
-                   nTrajectories='5'
+                   nTraj='5'
                    verbosity='1'>
             
                 <model spec='Model' id='model'>
@@ -15,19 +15,19 @@
                   <population spec='Population' id='R' populationName='R' />
                   <population spec='Population' id='I_sample' populationName='I_sample' />
             
-                  <reaction spec='Reaction' reactionName='Infection' rate='0.22696528033424'>
+                  <reaction spec='Reaction' reactionName='Infection' rate='0.252604647955237'>
                     S + I -> 2I
                   </reaction>
-                  <reaction spec='Reaction' reactionName='Recovery' rate='33.0590170717463'>
+                  <reaction spec='Reaction' reactionName='Recovery' rate='12.720745212454'>
                     I -> R
                   </reaction>
-                  <reaction spec='Reaction' reactionName='Sampling' rate='21.1061950030358'>
+                  <reaction spec='Reaction' reactionName='Sampling' rate='12.61726079824'>
                     I:1 -> I_sample:1
                   </reaction>
                 </model>
             
                 <initialState spec='InitState'>
-                  <populationSize spec='PopulationSize' population='@S' size='11688.5595544781'/>
+                  <populationSize spec='PopulationSize' population='@S' size='9842.09500387476'/>
                   <populationSize spec='PopulationSize' population='@I_sample' size='0'/>
                   <populationSize spec='PopulationSize' population='@R' size='0'/>
                   <lineageSeed spec='Individual' population='@I'/>
@@ -36,7 +36,7 @@
                 <lineageEndCondition spec='LineageEndCondition' population='@I' nLineages='0' isRejection='true'/>
                
                 <inheritancePostProcessor spec='LineageSampler' samplingTime='0.1'>
-                  <populationSize spec='PopulationSize' population='@I_sample' size='0,0,0,0,0,0,0,0,0,0,0,0,0,1.38777878078145e-17,1.38777878078145e-17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.38777878078145e-17,0,1.38777878078145e-17,0,0,1.38777878078145e-17,1.38777878078145e-17,0,0,0,0,0,0,0,0,0,0,0,1.38777878078145e-17,0,0,0,0,0,0,0,0,0,0,1.38777878078145e-17,0,0,0,0,0,1.38777878078145e-17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.38777878078145e-17,0,0,0,0,0,0,0'/>
+                  <populationSize spec='PopulationSize' population='@I_sample' size='0,0,0,0,0,0,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,0,0,0,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,0,0,1.38777878078145e-17,0,0,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,0,0,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,0,0,0,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17,1.38777878078145e-17'/>
                 </inheritancePostProcessor>
             
                 <output spec='NewickOutput' fileName='temp.newick' collapseSingleChildNodes='true'/>

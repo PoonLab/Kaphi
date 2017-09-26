@@ -57,6 +57,7 @@ export(const.coalescent)
 export(compartmental.model)
 export(speciation.model)
 export(epidem.model)
+export(.call.master)
 
 export(parse.ode)
 export(.get.times)
