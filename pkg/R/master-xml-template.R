@@ -25,9 +25,9 @@ epidem.model <- function(theta, nsim, tips, tsample, model='epidemic', seed=NA, 
   ntips <- .parse.tips(tips)                   # function is written in smcConfig.R
   if (!is.na(seed)) { set.seed(seed) }
   
-  trees <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
+  res.trees <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
       
-  return(trees)
+  return(res.trees)
 }
 attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConfig.R set.model() function
 
@@ -110,6 +110,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   ## read Newick, reset to Kaphi directory, and send tree back to user
   # casting result as a multiPhylo object
   trees <- read.tree(file='temp.newick', keep.multi=TRUE)
+  system2('rm', args=c('temp.newick', 'temp.xml'), stdout=F, stderr=F)
   setwd('~/git/Kaphi/')
   trees
 }
