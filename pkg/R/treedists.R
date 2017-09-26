@@ -288,11 +288,26 @@ Align <- function(x, y) {
   for (i in t1.internals) {
     for (j in t2.internals) {
       # TODO: if the internal is the "root": ie. has no ancestor
+      if (i %in% tree1$edge[,2] == FALSE) {
+        list.partitions <- descendant.subset(i, tree1)
+        t1.left <- list.partitions[[1]]
+        t1.right <- list.partitions[[2]]
+      }
+      else { 
+        t1.left <- descendant.subset(i, tree1)                # arbitrarily calling the descendants of the edge the left partition
+        t1.right <- setdiff( c(1:(numtips*2 - 1)), t1.left)
+      }  
       
-      t1.left <- descendant.subset(i, tree1)   # arbitrarily calling the descendants of the edge the left partition
-      t1.right <- setdiff( c(1:(numtips*2 - 1)), t1.left)
-      t2.left <- descendant.subset(j, tree2)
-      t2.right <- setdiff( c(1:(numtips*2 - 1)), t2.left)
+      if (j %in% tree2$edge[,2] == FALSE) {
+        list.partitions <- descendant.subset(j, tree2)
+        t2.left <- list.partitions[[1]]
+        t2.right <- list.partitions[[2]]
+      }
+      else { 
+        t2.left <- descendant.subset(j, tree2)
+        t2.right <- setdiff( c(1:(numtips*2 - 1)), t2.left)
+      }
+      
       
       # 4 computations, 2 on same side, 2 on opposite side
       # for each 2 sets, take the intersection / union
@@ -318,28 +333,41 @@ descendant.subset <- function(edge, tree) {
   subsetList <- vector()
   descendants  <- sapply(children, function(x) {preorder.traversal(x, subsetList, tree)})    # vector of all descendants of a given edge
   
-  subset <- unlist(descendants, recursive=FALSE)
-  return(unique(subset))
+  # if root, return a list of left partition and right partition
+  if (edge %in% tree1$edge[,2] == FALSE) {
+    return(descendants)
+  }
+  # else, return descendants partition (ancestors partition are dealt with one level up)
+  else {
+    subset <- unlist(descendants, recursive=FALSE)
+    return(unique(subset))
+  }
 }
 
 preorder.traversal <- function(child, subsetList, tree) {
-  if (is.null(child)) {
-    return(subsetList)
-  }
-
+  if (is.null(child)) { return(subsetList) }
+  
   # store the node in a list
   subsetList <- append(subsetList, child)
   
   children <- sapply(which(child == tree$edge[,1]), function(x){tree$edge[x,2]})
-  if(length(children) == 0) {
-    return(subsetList)
+  if(length(children) == 0) { return(subsetList) }
+  
+  if (child %in% tree1$edge[,2] == FALSE) {
+    # partition and store into left and right partitions
+    left.child <- min(children)
+    left.subset <- preorder.traversal(left.child, subsetList, tree)
+    right.subset <- setdiff( c(1:(numtips*2 - 1)), left.subset)
+    
+    descendants <- list(c(left.subset, right.subset))
   }
-  
-  # traverse children of child
-  descendants <- sapply(children, function(x) {preorder.traversal(x, subsetList, tree)})
-  
+  else {
+    # traverse children of child node
+    descendants <- sapply(children, function(x) {preorder.traversal(x, subsetList, tree)})
+  }
   return(descendants)
 }
+
 
 
 
