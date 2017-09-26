@@ -287,22 +287,24 @@ Align <- function(x, y) {
   ## Nye et al metric
   for (i in t1.internals) {
     for (j in t2.internals) {
-      t1list <- separate.node.subsets(i, tree1)
-      t2list <- separate.node.subsets(j, tree2)
+      # TODO: if the internal is the "root": ie. has no ancestor
+      
+      t1.left <- descendant.subset(i, tree1)   # arbitrarily calling the descendants of the edge the left partition
+      t1.right <- setdiff( c(1:(numtips*2 - 1)), t1.left)
+      t2.left <- descendant.subset(j, tree2)
+      t2.right <- setdiff( c(1:(numtips*2 - 1)), t2.left)
       
       # 4 computations, 2 on same side, 2 on opposite side
       # for each 2 sets, take the intersection / union
-      val1.same.side <- length(intersect(t1list[[1]], t2list[[1]])) / length(union(t1list[[1]], t2list[[1]]))   # left side of t1 w/ left side of t2
-      val2.same.side <- length(intersect(t1list[[2]], t2list[[2]])) / length(union(t1list[[2]], t2list[[2]]))   # right side of t1 w/ right side of t2
-      val1.opp.side <- length(intersect(t1list[[1]], t2list[[2]])) / length(union(t1list[[1]], t2list[[2]]))    # left side of t1 w/ right side of t2
-      val2.opp.side <- length(intersect(t1list[[2]], t2list[[1]])) / length(union(t1list[[2]], t2list[[1]]))    # right side of t1 w/ left side of t2
+      val1.same.side <- length(intersect(t1.left, t2.left)) / length(union(t1.left, t2.left))   # left side of t1 w/ left side of t2
+      val2.same.side <- length(intersect(t1.right, t2.right)) / length(union(t1.right, t2.right))   # right side of t1 w/ right side of t2
+      val1.opp.side <- length(intersect(t1.left, t2.right)) / length(union(t1.left, t2.right))    # left side of t1 w/ right side of t2
+      val2.opp.side <- length(intersect(t1.right, t2.left)) / length(union(t1.right, t2.left))    # right side of t1 w/ left side of t2
       
       same.side <- append(same.side, c(val1.same.side, val2.same.side))
       opp.side <- append(opp.side, c(val1.opp.side, val2.opp.side))
     }
   }
-  cat(same.side, '\n')
-  cat(opp.side, '\n')
   
   res <- c(min(same.side), min(opp.side))
   return(max(res))
@@ -310,14 +312,14 @@ Align <- function(x, y) {
 
 ## MUST be bifurcating trees to use this distance metric (for the moment)  Nye et al said it doesn't necessarily have to be 
 ## TODO: separate nodes for case of multifurcating trees
-separate.node.subsets <- function(edge, tree) {
+descendant.subset <- function(edge, tree) {
   edges <- tree$edge
   children <- sapply(which(edge == tree$edge[,1]), function(x){tree$edge[x,2]})
   subsetList <- vector()
-  left.subset  <- preorder.traversal(min(children), subsetList, tree)    # vector of all descendants in left.node
-  right.subset <- preorder.traversal(max(children), subsetList, tree)    # vector of all descendants in right.node
+  descendants  <- sapply(children, function(x) {preorder.traversal(x, subsetList, tree)})    # vector of all descendants of a given edge
   
-  return(list(left.subset, right.subset))
+  subset <- unlist(descendants, recursive=FALSE)
+  return(unique(subset))
 }
 
 preorder.traversal <- function(child, subsetList, tree) {
@@ -333,15 +335,10 @@ preorder.traversal <- function(child, subsetList, tree) {
     return(subsetList)
   }
   
-  # traverse left side
-  left.child <- min(children)
-  left.subsetList <- preorder.traversal(left.child, subsetList, tree)
+  # traverse children of child
+  descendants <- sapply(children, function(x) {preorder.traversal(x, subsetList, tree)})
   
-  # traverse right side
-  right.child <- max(children)
-  right.subsetList <- preorder.traversal(right.child, subsetList, tree)
-  
-  return(union(left.subsetList, right.subsetList))
+  return(descendants)
 }
 
 

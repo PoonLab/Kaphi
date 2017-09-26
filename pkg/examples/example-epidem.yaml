@@ -3,7 +3,7 @@ priors:
     dist: 'unif'
     hyperparameters:
     - min: 0.15
-    - max: 0.25
+    - max: 0.4
   'N':
     dist: 'norm'
     hyperparameters:
@@ -17,12 +17,12 @@ priors:
   'gamma':
     dist: 'gamma'
     hyperparameters:
-    - shape: 10
+    - shape: 20
     - rate: 1
   'phi':
     dist: 'gamma'
     hyperparameters:
-    - shape: 10
+    - shape: 20
     - rate: 1
 constraints:
   - ''
