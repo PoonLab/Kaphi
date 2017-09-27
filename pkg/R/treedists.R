@@ -218,29 +218,30 @@ MAST <- function(x, y) {
 rmast <- function(a, w, treea, treew) {
   if (is.na(vals[[a]][[w]] != TRUE)) {   # a = node1, w = node2
     return (vals[[a]][[w]])     # already calculated
-  }
-  else {
+  } else {
     # leaf branch
-    if (a %in% treea$tip.label) {                # problem is comparing tip.labels, but trying to compare arbitrary integers right now
-      if (a %in% treew$tip.label) {
-        vals[[a]][[w]] <- 1
-        return(1)                                 # tree a
-      }
-      else {
-        vals[[a]][[w]] <- 0
-        return(0)
-      }
+    if (a <= length(treea$tip.label)) {
+      #if (treea$tip.label[a] %in% treea$tip.label) {                # problem is comparing tip.labels, but trying to compare arbitrary integers right now
+        if (treea$tip.label[a] %in% treew$tip.label) {              # didn't actually make an associative array...observed that tip.label vector was the same order as tiplabel index number 
+          vals[[a]][[w]] <- 1
+          return(1)                                 # tree a
+        } else {
+          vals[[a]][[w]] <- 0
+          return(0)
+        }
+      #}
     }
-  
-    if (w %in% treew$tip.label) {
-      if (w %in% treea$tip.label) {
-        vals[[a]][[w]] <- 1
-        return(1)                                 # tree w
-      }
-      else {
-        vals[[a]][[w]] <- 0
-        return(0)
-      }
+    
+    if (w <= length(treew$tip.label)) {
+      #if (treew$tip.label[w] %in% treew$tip.label) {
+        if (treew$tip.label[w] %in% treea$tip.label) {
+          vals[[a]][[w]] <- 1
+          return(1)                                 # tree w
+        } else {
+          vals[[a]][[w]] <- 0
+          return(0)
+        }
+      #}
     }
     
     # non-leaf branch
@@ -342,9 +343,7 @@ descendant.subset <- function(edge, tree) {
   # for root case, return a list of left partition and right partition
   if (edge %in% tree1$edge[,2] == FALSE) {
     subset <- sapply(descendants, function(x){unique(as.vector(unlist(x, recursive=FALSE)))})
-  }
-  # else, return descendants partition (ancestors partition are dealt with one level up)
-  else {
+  } else {  # else, return descendants partition (ancestors partition are dealt with one level up)
     subset <- unique(unlist(descendants, recursive=FALSE))
   }
   
@@ -367,8 +366,7 @@ preorder.traversal <- function(child, subsetList, tree) {
     right.subset <- setdiff( c(1:(numtips*2 - 1)), left.subset)
     
     descendants <- list(c(left.subset, right.subset))
-  }
-  else {
+  } else {
     # traverse children of child node
     descendants <- sapply(children, function(x) {preorder.traversal(x, subsetList, tree)})
   }
