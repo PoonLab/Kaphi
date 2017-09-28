@@ -170,6 +170,8 @@ TripL <- function(x, y){
 # MAST (Gordon, 1980)
 # this is natively a similarity score, but turn it into a distance metric by subtracting the similarity score from the tree size
 # measures the similarity between trees as the # of tips in the largest subtree identical between trees
+# tree must be bifurcating
+# TODO: need the tree size so you can return treesize - MAST(tree1,tree2) as the distance metric
 MAST <- function(x, y) {
   # copy the trees -- this function destroys its working copy
   tree1 <- x
@@ -182,30 +184,20 @@ MAST <- function(x, y) {
   
   # create 2D array
   numnodes <- (numtips * 2) - 1
-  vals <- list()
-  inner <- list()
-  for (i in 1:numnodes) {
-    inner[[i]] <- NA
-  }
-  for (i in 1:numnodes) {
-    vals[[i]] <- inner
-  }
+  vals <- matrix(nrow=numnodes, ncol=numnodes)
   
   # recursively calculate mast score
-  tree1 <- reorder(tree1, order='postorder')
-  tree2 <- reorder(tree2, order='postorder')
-  
-  for (node1 in tree1$edge[,1]) {
-    for (node2 in tree2$edge[,1]) {
-      rmast(node1, node2, tree1, tree2)
+  for (node1 in 1:numnodes) {
+    for (node2 in 1:numnodes) {
+      vals[node1,node2] <- rmast(node1, node2, tree1, tree2)
     }
   }
   
   biggest <- 0
   for (i in 1:numnodes) {
     for (j in 1:numnodes) {
-      if (vals[[i]][[j]] > biggest) {
-        biggest <- vals[[i]][[j]]
+      if (vals[i,j] > biggest) {
+        biggest <- vals[i,j]
       }
     }
   }
@@ -216,17 +208,21 @@ MAST <- function(x, y) {
 
 # the mast score is the number of tips in the MAST of the given subtrees
 rmast <- function(a, w, treea, treew) {
-  if (is.na(vals[[a]][[w]] != TRUE)) {   # a = node1, w = node2
-    return (vals[[a]][[w]])     # already calculated
+  # only want to narrow in on the tips present in a subtree 'rooted' with node a and a subtree 'rooted' at node w
+  vector.a <- vector()
+  vector.w <- vector()
+  subtree.a <- .retrieve.tips(a, treea, vector.a)
+  subtree.w <- .retrieve.tips(w, treew, vector.w)
+  
+  if (is.na(vals[a,w]) != TRUE) {   # a = node1, w = node2
+    return (vals[a,w])     # already calculated
   } else {
     # leaf branch
     if (a <= length(treea$tip.label)) {
       #if (treea$tip.label[a] %in% treea$tip.label) {                # problem is comparing tip.labels, but trying to compare arbitrary integers right now
-        if (treea$tip.label[a] %in% treew$tip.label) {              # didn't actually make an associative array...observed that tip.label vector was the same order as tiplabel index number 
-          vals[[a]][[w]] <- 1
+        if (treea$tip.label[a] %in% subtree.w) {              # didn't actually make an associative array...observed that tip.label vector was the same order as tiplabel index number 
           return(1)                                 # tree a
         } else {
-          vals[[a]][[w]] <- 0
           return(0)
         }
       #}
@@ -234,21 +230,19 @@ rmast <- function(a, w, treea, treew) {
     
     if (w <= length(treew$tip.label)) {
       #if (treew$tip.label[w] %in% treew$tip.label) {
-        if (treew$tip.label[w] %in% treea$tip.label) {
-          vals[[a]][[w]] <- 1
+        if (treew$tip.label[w] %in% subtree.a) {
           return(1)                                 # tree w
         } else {
-          vals[[a]][[w]] <- 0
           return(0)
         }
       #}
     }
     
-    # non-leaf branch
-    children.a <- sapply(which(edge == treea$edge[,1]), function(x){treea$edge[x,2]})
+    # non-leaf branch, this must be implemented for a bifurcating tree
+    children.a <- sapply(which(a == treea$edge[,1]), function(x){treea$edge[x,2]})
     b <- min(children.a)                     # left child of node 'a' 
     c <- max(children.a)                     # right child of node 'a'
-    children.w <- sapply(which(edge == treew$edge[,1]), function(x){treew$edge[x,2]})
+    children.w <- sapply(which(w == treew$edge[,1]), function(x){treew$edge[x,2]})
     x <- min(children.w)                     # left child of node 'w'
     y <- max(children.w)                     # right child of node 'w'
     
@@ -260,9 +254,23 @@ rmast <- function(a, w, treea, treew) {
     step6 <- rmast(c,w,treea,treew)
     results <- c(step1, step2, step3, step4, step5, step6)
     
-    vals[[a]][[w]] <- max(results)
-    return (vals[[a]][[w]])
+    vals[a,w] <- max(results)
+    return (vals[a,w])
   }
+}
+
+## function retrieves tip labels (NAMES) only of a subtree with a given node label
+.retrieve.tips <- function(node, tree, vect) {
+  children <- sapply(which(node == tree$edge[,1]), function(x){tree$edge[x,2]})
+  # if a tip, record and store tip.label index
+  if (length(children) == 0) {
+    vect <- append(vect, tree$tip.label[node])
+    return(vect)
+  }
+  descendants <- sapply(children, function(x){.retrieve.tips(x, tree, vect)})
+  
+  # clean this up
+  return(unique(unlist(descendants<-append(descendants, descendants))))
 }
 
 
@@ -350,6 +358,9 @@ descendant.subset <- function(edge, tree) {
   return(subset)
 }
 
+## function determines descendants of a given child (node) from a tree
+# for the root, separates directly into left and right partitions
+# for any other edge, all the children including the given node are the resulting 'left' partition, and the 'right partition is dealt w/ one level up
 preorder.traversal <- function(child, subsetList, tree) {
   if (is.null(child)) { return(subsetList) }
   
