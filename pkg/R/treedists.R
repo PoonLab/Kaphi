@@ -88,6 +88,8 @@ Trip <- function(x, y){
 # Triplet Length Distance (Kuhner & Yamato, 2014)
 TripL <- function(x, y){
   # The trees are assumed to contain identical tips (same number and labels)
+  if(length(x$tip.label) != length(y$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to compute the TripL metric.') }
+  if(any(!is.element(x$tip.label, y$tip.label))) { stop('Tree 1 and Tree 2 must contain identical tip label sets to compute the TripL metric.')}
   score <- 0.0
   count <- 0
   namelist <- x$tip.label
@@ -96,6 +98,9 @@ TripL <- function(x, y){
   combinations <- combn(namelist, 2)
   npairs <- length(combinations) / 2
   pairdict <- list()
+  
+  # create a matrix and fill in all pairs
+  pair.dict <- matrix(nrow=length(namelist), ncol=length(namelist), dimnames=list(namelist,namelist))
   
   for (i in 1:npairs){
     pair <- combinations[,i]
@@ -167,78 +172,68 @@ TripL <- function(x, y){
 
 
 ##-------------------------------------------------------------------------------------------------------------
-# MAST (Gordon, 1980)
-# this is natively a similarity score, but turn it into a distance metric by subtracting the similarity score from the tree size
-# measures the similarity between trees as the # of tips in the largest subtree identical between trees
-# tree must be bifurcating
-# TODO: need the tree size so you can return treesize - MAST(tree1,tree2) as the distance metric
-MAST <- function(x, y) {
-  # copy the trees -- this function destroys its working copy
-  tree1 <- x
-  tree2 <- y
+## MAST (Gordon, 1980)
+## this is natively a similarity score, but turned into a distance metric by subtracting similarity score from tree size
+## measures the similarity between trees as the # of tips in the largest subtree identical between trees
+## the mast score is the number of tips in the Maximum Agreement SubTree of the given subtrees
+## tree must be bifurcating, and be of the same size (have the same number of tips)
+## TODO: need the tree size so you can return treesize - MAST(tree1,tree2) as the distance metric
+MAST <- function(tree1, tree2) {
   # count the tips and ensure that the trees are the same size
   numtips <- length(tree1$tip.label)
-  if(numtips != length(tree2$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to comput the MAST metric') }
-  
-  # label nodes -- should be able to be called with `nodelabels()`
+  if(numtips != length(tree2$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to compute the MAST metric') }
   
   # create 2D array
   numnodes <- (numtips * 2) - 1
   vals <- matrix(nrow=numnodes, ncol=numnodes)
   
-  # recursively calculate mast score
+  # recursively calculate mast score and store into matrix
   for (node1 in 1:numnodes) {
     for (node2 in 1:numnodes) {
       vals[node1,node2] <- rmast(node1, node2, tree1, tree2)
     }
   }
   
-  biggest <- 0
-  for (i in 1:numnodes) {
-    for (j in 1:numnodes) {
-      if (vals[i,j] > biggest) {
-        biggest <- vals[i,j]
-      }
-    }
-  }
-  
-  return(biggest)
+  # subtract tree size from raw score associated w/ maximum identical subtrees
+  raw.score <- max(vals)
+  distance <- numtips - raw.score
+  return(distance)
 }
 
 
-# the mast score is the number of tips in the MAST of the given subtrees
+## calculates mast score for given subtrees from tree1 and tree2 and returns value to be stored into matrix
 rmast <- function(a, w, treea, treew) {
-  # only want to narrow in on the tips present in a subtree 'rooted' with node a and a subtree 'rooted' at node w
+  # narrow down towards the tips present in subtree 'rooted' with node 'a' and subtree 'rooted' at node 'w'
   vector.a <- vector()
   vector.w <- vector()
   subtree.a <- .retrieve.tips(a, treea, vector.a)
   subtree.w <- .retrieve.tips(w, treew, vector.w)
   
-  if (is.na(vals[a,w]) != TRUE) {   # a = node1, w = node2
-    return (vals[a,w])     # already calculated
+  if (is.na(vals[a,w]) != TRUE) {                             # a = node1, w = node2
+    return (vals[a,w])                                        # already calculated, returning value unchanged
   } else {
-    # leaf branch
+    # leaf branch of treea
     if (a <= length(treea$tip.label)) {
-      #if (treea$tip.label[a] %in% treea$tip.label) {                # problem is comparing tip.labels, but trying to compare arbitrary integers right now
-        if (treea$tip.label[a] %in% subtree.w) {              # didn't actually make an associative array...observed that tip.label vector was the same order as tiplabel index number 
-          return(1)                                 # tree a
+      #if (treea$tip.label[a] %in% treea$tip.label) {         # TODO: would be more robust to create an associative array between tip.label vector and tiplabel integers
+        if (treea$tip.label[a] %in% subtree.w) {              # didn't actually make an associative array yet; observed that tip.label vector was the same order as tiplabel index number 
+          return(1)                                 
         } else {
           return(0)
         }
       #}
     }
-    
+    # leaf branch of treew
     if (w <= length(treew$tip.label)) {
-      #if (treew$tip.label[w] %in% treew$tip.label) {
+      #if (treew$tip.label[w] %in% treew$tip.label) {         # commented out b/c alternative way to get the answer as the previous line of code
         if (treew$tip.label[w] %in% subtree.a) {
-          return(1)                                 # tree w
+          return(1)                                 
         } else {
           return(0)
         }
       #}
     }
     
-    # non-leaf branch, this must be implemented for a bifurcating tree
+    # non-leaf branch; recall that this must be implemented for a bifurcating tree
     children.a <- sapply(which(a == treea$edge[,1]), function(x){treea$edge[x,2]})
     b <- min(children.a)                     # left child of node 'a' 
     c <- max(children.a)                     # right child of node 'a'
@@ -259,7 +254,7 @@ rmast <- function(a, w, treea, treew) {
   }
 }
 
-## function retrieves tip labels (NAMES) only of a subtree with a given node label
+## function retrieves only the tip labels (NAMES) of a subtree with a given node label
 .retrieve.tips <- function(node, tree, vect) {
   children <- sapply(which(node == tree$edge[,1]), function(x){tree$edge[x,2]})
   # if a tip, record and store tip.label index
@@ -277,12 +272,9 @@ rmast <- function(a, w, treea, treew) {
 
 ##-------------------------------------------------------------------------------------------------------------
 # Align (Nye et al., 2006)
-Align <- function(x, y) {
+Align <- function(tree1, tree2) {
   # make 2D array of Nye distances
   # find shortest path through them
-  # copy the trees -- this function destroys its working copy
-  tree1 <- x
-  tree2 <- y
   
   # count the tips
   numtips <- length(tree1$tip.label)
