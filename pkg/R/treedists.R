@@ -111,8 +111,9 @@ TripL <- function(x, y){
     # time from tips (in # edges) to mrca in tree x, y.
     #   this assumes that timefromtips in the python implementation meant
     #   the time from the node of interest to the tips level.
-    timex <- node.depth(x)[mrcax] - 1
-    timey <- node.depth(y)[mrcay] - 1
+    # ie. timex <- length(node depth from root to tip) SUBTRACT length(node depth from root to node) 
+    timex <- node.depth.edgelength(x)[which(x$tip.label == pair[1])] - node.depth.edgelength(x)[mrcax]
+    timey <- node.depth.edgelength(y)[which(y$tip.label == pair[1])] - node.depth.edgelength(y)[mrcay]
     # create dictionary of pairs and their mrca depths in x and y:
     #   ex. AB: 1 2
     time2mrca <- c(timex, timey)
@@ -146,11 +147,13 @@ TripL <- function(x, y){
     x1 <- min(unlist(times1))
     x2 <- min(unlist(times2))
     
-    # y1 and y2 are the time from tips for the mrca minus x1 and x2
+    
     mrcax <- getMRCA(x, trip)
     mrcay <- getMRCA(y, trip)
-    timex <- node.depth(x)[mrcax] - 1
-    timey <- node.depth(y)[mrcay] - 1
+    # ie. timex <- length(node depth from root to tip) SUBTRACT length(node depth from root to node) 
+    timex <- node.depth.edgelength(x)[which(x$tip.label == trip[1])] - node.depth.edgelength(x)[mrcax]
+    timey <- node.depth.edgelength(y)[which(y$tip.label == trip[1])] - node.depth.edgelength(y)[mrcay]
+    # y1 and y2 are the time from tips for the mrca minus x1 and x2
     y1 <- timex - x1
     y2 <- timey - x2
     
