@@ -84,7 +84,6 @@ Trip <- function(x, y){
 
 
 ##-------------------------------------------------------------------------------------------------------------
-
 # Triplet Length Distance (Kuhner & Yamato, 2014)
 TripL <- function(x, y){
   # The trees are assumed to contain identical tips (same number and labels)
@@ -111,13 +110,13 @@ TripL <- function(x, y){
     # time from tips (in # edges) to mrca in tree x, y.
     #   this assumes that timefromtips in the python implementation meant
     #   the time from the node of interest to the tips level.
-    # ie. timex <- length(node depth from root to tip) SUBTRACT length(node depth from root to node) 
+    # ie. timex <- length(node depth from root to tip) SUBTRACT length(node depth from root to node)
+    
     timex <- node.depth.edgelength(x)[which(x$tip.label == pair[1])] - node.depth.edgelength(x)[mrcax]
     timey <- node.depth.edgelength(y)[which(y$tip.label == pair[1])] - node.depth.edgelength(y)[mrcay]
     # create dictionary of pairs and their mrca depths in x and y:
     #   ex. AB: 1 2
-    time2mrca <- c(timex, timey)
-    pairdict[[pairname]] <- time2mrca
+    pairdict[[pairname]] <- c(timex, timey)
   }
   
   # iterate through all triplets
@@ -161,16 +160,19 @@ TripL <- function(x, y){
     for (pair in pairs){
       if (times1[pair] == x1 && times2[pair] == x2){
         matches <- TRUE
-        score <- score + ((abs(x1-x2) + abs(y1-y2)) * 2)
+        score <- score + (abs(x1-x2) + abs(y1-y2)) * 2
       }
     }
     if (matches == FALSE){
       score <- score + (x1 + x2 + y1 + y2)
     }
-    cat(trip, ":", matches, "\n")
+    cat(trip, ":", matches, '\nMRCA x', mrcax, 'time x', timex, '\nMRCA y', mrcay, 'time y', timey, '\nscore', score, "\n\n")
   }
-  return(score/count)
+  cat(count, '\n')
+  return(score / count)
 }
+
+
 
 
 
@@ -180,7 +182,6 @@ TripL <- function(x, y){
 ## measures the similarity between trees as the # of tips in the largest subtree identical between trees
 ## the mast score is the number of tips in the Maximum Agreement SubTree of the given subtrees
 ## tree must be bifurcating, and be of the same size (have the same number of tips)
-## TODO: need the tree size so you can return treesize - MAST(tree1,tree2) as the distance metric
 MAST <- function(tree1, tree2) {
   # count the tips and ensure that the trees are the same size
   numtips <- length(tree1$tip.label)
