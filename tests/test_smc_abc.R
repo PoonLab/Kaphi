@@ -230,7 +230,7 @@ test.perturb.particles <- function() {
     result <- sapply(1:nparticle, function(i) {
         all(before$particles[i,]==after$particles[i,])
     })
-    checkEquals(sum(!result), after$accept)
+    checkEquals(sum(!result), after$accepted)
 
     # check that the changed distances line up
     result2 <- sapply(1:nparticle, function(i) {
