@@ -76,7 +76,7 @@ Trip <- function(x, y){
     if (matches == FALSE){
       score <- score + 1.0
     }
-    cat(trip, ":", matches, "\n")
+    #cat(trip, ":", matches, "\n")
   }
   return(score/count)
 }
@@ -166,9 +166,9 @@ TripL <- function(x, y){
     if (matches == FALSE){
       score <- score + (x1 + x2 + y1 + y2)
     }
-    cat(trip, ":", matches, '\nMRCA x', mrcax, 'time x', timex, '\nMRCA y', mrcay, 'time y', timey, '\nscore', score, "\n\n")
+    #cat(trip, ":", matches, '\nMRCA x', mrcax, 'time x', timex, '\nMRCA y', mrcay, 'time y', timey, '\nscore', score, "\n\n")
   }
-  cat(count, '\n')
+  #cat(count, '\n')
   return(score / count)
 }
 
