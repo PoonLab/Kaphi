@@ -34,7 +34,6 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
 
 
 .call.master <- function(theta, nsim, tips, seed=NA, tsample) {
-  setwd('~/git/Kaphi/pkg/R')
   require(whisker, quietly=TRUE)
 
   ## hash
@@ -85,7 +84,8 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                   <lineageSeed spec='Individual' population='@I'/>
                 </initialState>
 
-                <lineageEndCondition spec='LineageEndCondition' population='@I' nLineages='0' isRejection='true'/>
+                <lineageEndCondition spec='LineageEndCondition' population='@I' nLineages='0' isRejection='true'>
+                </lineageEndCondition>
                
                 <inheritancePostProcessor spec='LineageSampler' samplingTime='{{ tsampl }}'>
                   <populationSize spec='PopulationSize' population='@I_sample' size='{{ ntips }}'/>
@@ -102,16 +102,16 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   
   ## generate temporary XML
   text <- whisker.render(template, data)
-  write(text, file='temp.xml')
-  
+  tempname <- tempfile(pattern='temp', fileext= '.xml')
+  write(text, file=tempname)
+   
   ## system call to MASTER with temporarily generated XML
-  system2('java', args=c('-jar ../../../MASTER-5.1.1/MASTER-5.1.1.jar', 'temp.xml'), stdout=F, stderr=F)
+  system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname))) #, stdout=F, stderr=F
   
   ## read Newick, reset to Kaphi directory, and send tree back to user
   # casting result as a multiPhylo object
   trees <- read.tree(file='temp.newick', keep.multi=TRUE)
-  system2('rm', args=c('temp.newick', 'temp.xml'), stdout=F, stderr=F)
-  setwd('~/git/Kaphi/')
+  unlink(tempname)
   trees
 }
 

@@ -16,3 +16,66 @@ obs.tree <- parse.input.tree(obs.tree, config)
 # initialize workspace
 ws <- init.workspace(obs.tree, config)
 result <- run.smc(ws, trace.file='pkg/examples/example-epidem.tsv', nthreads=1, model="epidemic", tsample=0.1, seed=NA, verbose=TRUE)   
+
+
+
+
+
+
+
+
+
+trace <- read.table('pkg/examples/example-epidem.tsv', header=T, sep='\t')
+
+for (param in names(theta)) {
+  par(mar=c(5,5,2,2))
+  plot(
+    sapply(split(trace[[param]]*trace$weight, trace$n), sum), 
+    type='o',
+    xlab='Iteration', 
+    ylab=paste0('Mean', param),
+    cex.lab=1,
+    main=paste0('Trajectory of Mean ', param, ' (MASTER, ', config$nparticle, ' particles)')
+    #,ylim=c(0.05,0.105)
+  )
+  # true param value
+  abline(h=theta[[param]], lty=2)
+  
+  
+  # use kernel densities to visualize posterior approximations
+  pal <- rainbow(n=8, start=0, end=0.5, v=1, s=1)
+  par(mar=c(5,5,2,2))
+  plot(density
+       (trace[[param]][trace$n==1], 
+         weights=trace$weight[trace$n==1]), 
+       col=pal[1], 
+       lwd=2, 
+       main=paste0('MASTER ', config$priors[[param]]), 
+       xlab=paste0('MASTER parameter (', param, ')'), 
+       cex.lab=1.2
+  )
+  
+  for (i in 1:7) {
+    temp <- trace[trace$n==i*10,]
+    lines(density(temp[[param]], weights=temp$weight), col=pal[i+1], lwd=1.5)
+  }
+  lines(density
+        (trace[[param]][trace$n==max(trace$n)], 
+          weights=trace$weight[trace$n==max(trace$n)]), 
+        col='black', 
+        lwd=2
+  )  # final estimates
+  abline(v=theta[[param]], lty=3, col='red')
+  
+  
+  # show the prior distribution
+  x <- seq(0, 2, 0.01)
+  y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[[param]]))}
+  lines(x, y(x), lty=5)
+  
+  # show posterior distribution (work in progress)
+  node.heights <- rev(branching.times(obs.tree))
+  
+  # make a legend
+  legend(x=1, y=10, legend=c('prior', 'n=1', 'n=10', 'n=20', 'n=30', 'n=40', 'n=50', 'n=60', 'n=70','n=71(final)', paste0('true ', param, '(', theta[[param]], ')')), lty=c(5,rep(1,9),3), col=c('black', pal, 'black', 'red'), lwd=c(1,2,rep(1.5,7),2,0.75), seg.len=2)
+}
