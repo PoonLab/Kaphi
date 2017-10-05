@@ -45,7 +45,9 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                #seed = as.character(NA),
                nsample = as.character(nsim),
                ntips = as.character(tips),
-               tsampl = as.character(tsample))
+               tsampl = as.character(tsample),
+               temp.newick = tempfile(pattern='temp', fileext='.newick')
+               )
   
   ## XML template
   template <- 
@@ -91,7 +93,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                   <populationSize spec='PopulationSize' population='@I_sample' size='{{ ntips }}'/>
                 </inheritancePostProcessor>
             
-                <output spec='NewickOutput' fileName='temp.newick' collapseSingleChildNodes='true'/>
+                <output spec='NewickOutput' fileName={{ temp.newick }} collapseSingleChildNodes='true'/>
               </run>
             </beast>"
   
@@ -106,11 +108,28 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   write(text, file=tempname)
    
   ## system call to MASTER with temporarily generated XML
-  system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname))) #, stdout=F, stderr=F
+  system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname)), stdout=F) #, stdout=F, stderr=F
   
+  # if "Warning: Newick writer skipping empty graph" --> no newick trees created
+  # throws "Error in x[[i]]: subscript out of bounds."
+  if (readLines(data$temp.newick) == '') {
+    # should re-simulate trees
+  }
   ## read Newick, reset to Kaphi directory, and send tree back to user
   # casting result as a multiPhylo object
-  trees <- read.tree(file='temp.newick', keep.multi=TRUE)
+  trees <- tryCatch({
+    read.tree(file='temp.newick', keep.multi=TRUE)
+    }, warning = function(w) {
+      cat('The warning ', w)
+      # should re-simulate trees, not continue feeding the same theta params over and over
+      res <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
+      return(res)
+    }, error = function(e) {
+      cat('The error: ', print(paste0(e)))
+      # should re-simulate trees, not continue feeding the same theta params over and over
+      res <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
+      return(res)
+    })
   unlink(tempname)
   trees
 }
