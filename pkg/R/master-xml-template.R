@@ -109,7 +109,6 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   text <- whisker.render(template, data)
   tempname <- tempfile(pattern='temp', fileext= '.xml')
   write(text, file=tempname)
-  write(text, file='test.xml')
    
   ## system call to MASTER with temporarily generated XML
   system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname)), stdout=F) #, stdout=F, stderr=F
@@ -118,20 +117,20 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   # throws "Error in x[[i]]: subscript out of bounds."
   if (readLines(tree.file) == '') {
     # should re-simulate trees
-    b
-  }reak
+    break
+  }
   ## read Newick, reset to Kaphi directory, and send tree back to user
   # casting result as a multiPhylo object
   trees <- tryCatch({
     read.tree(file=tree.file, keep.multi=TRUE)
     }, warning = function(w) {
       cat('The warning ', w)
-      # should re-simulate trees, not continue feeding the same theta params over and over
+      # should re-simulate trees, do not continue feeding the same theta params over and over
       res <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
       return(res)
     }, error = function(e) {
       cat('The error: ', print(paste0(e)))
-      # should re-simulate trees, not continue feeding the same theta params over and over
+      # should re-simulate trees, do not continue feeding the same theta params over and over
       res <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
       return(res)
     })
