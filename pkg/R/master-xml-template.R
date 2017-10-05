@@ -35,7 +35,8 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
 
 .call.master <- function(theta, nsim, tips, seed=NA, tsample) {
   require(whisker, quietly=TRUE)
-
+  tree.file <- tempfile(pattern='temp', fileext='.newick') 
+  
   ## hash
   data <- list(tend = as.character(theta$t.end),
                beta = as.character(theta$beta),
@@ -46,8 +47,10 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                nsample = as.character(nsim),
                ntips = as.character(tips),
                tsampl = as.character(tsample),
-               temp.newick = tempfile(pattern='temp', fileext='.newick')
+               tempNewick = tree.file         
                )
+  # current problem is tempfile() is relative path (ie. '/tmp/RtmpNhrcQi/temp34e847bc77fa.newick')
+  # XML template will not render with the '/', needs only the fileName (ie. # current problem is tempfile() is relative path (ie. 'temp34e847bc77fa.newick')
   
   ## XML template
   template <- 
@@ -93,7 +96,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                   <populationSize spec='PopulationSize' population='@I_sample' size='{{ ntips }}'/>
                 </inheritancePostProcessor>
             
-                <output spec='NewickOutput' fileName={{ temp.newick }} collapseSingleChildNodes='true'/>
+                <output spec='NewickOutput' fileName='{{ tempNewick }}' collapseSingleChildNodes='true'/>
               </run>
             </beast>"
   
@@ -106,19 +109,21 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   text <- whisker.render(template, data)
   tempname <- tempfile(pattern='temp', fileext= '.xml')
   write(text, file=tempname)
+  write(text, file='test.xml')
    
   ## system call to MASTER with temporarily generated XML
   system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname)), stdout=F) #, stdout=F, stderr=F
   
   # if "Warning: Newick writer skipping empty graph" --> no newick trees created
   # throws "Error in x[[i]]: subscript out of bounds."
-  if (readLines(data$temp.newick) == '') {
+  if (readLines(tree.file) == '') {
     # should re-simulate trees
-  }
+    b
+  }reak
   ## read Newick, reset to Kaphi directory, and send tree back to user
   # casting result as a multiPhylo object
   trees <- tryCatch({
-    read.tree(file='temp.newick', keep.multi=TRUE)
+    read.tree(file=tree.file, keep.multi=TRUE)
     }, warning = function(w) {
       cat('The warning ', w)
       # should re-simulate trees, not continue feeding the same theta params over and over
@@ -130,7 +135,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
       res <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
       return(res)
     })
-  unlink(tempname)
+  unlink(c(tempname, tree.file))
   trees
 }
 
