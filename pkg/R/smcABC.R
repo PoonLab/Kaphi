@@ -258,7 +258,6 @@ initialize.smc <- function(ws, model, tsample=NA, seed=NA, ...) {
     return(res)
   }
   res <- list(new.trees, mh.ratio)
-  cat(res[[2]])
   return(res) 
 }
 
@@ -286,8 +285,12 @@ initialize.smc <- function(ws, model, tsample=NA, seed=NA, ...) {
     old.particle <- ws$particles[i,]
     
     rec.call <- .recursive.simulate.trees(ws, old.particle, model=model, tsample=tsample, seed=seed, ...)
+    if (is.null(rec.call)){
+      return(NULL)
+    }
     new.trees <- rec.call [[1]]
     mh.ratio <- rec.call [[2]]
+    
       
     new.dists <- sapply(new.trees, function(sim.tree) {
       distance(ws$obs.tree, sim.tree, config)
