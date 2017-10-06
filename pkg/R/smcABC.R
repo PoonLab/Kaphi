@@ -38,12 +38,13 @@ simulate.trees <- function(workspace, theta, model, tsample=NA, seed=NA, ...) {
 	}
   result <- config$model(theta=theta, nsim=config$nsample, tips=workspace$n.tips,
                          tsample=tsample, model=model, seed=seed, labels=workspace$tip.labels, ...)
-  #cat(theta)
+ 
   # annotate each trees with its self-kernel score
-  for (i in 1:config$nsample) {
-    result[[i]] <- .preprocess.tree(result[[i]], config)
+  if (is.list(result)) {
+    for (i in 1:config$nsample) {
+      result[[i]] <- .preprocess.tree(result[[i]], config)
+    }
   }
-
   return(result)
 }
 
@@ -99,20 +100,32 @@ distance <- function(x, y, config) {
 }
 
 
+
+.recursive.initialize.trees <- function(i, ws, model, tsample=NA, seed=NA, ...) {
+  ws$particles[i,] <- sample.priors(config)
+  
+  # assign uniform weights
+  ws$weights[i] <- 1./config$nparticle
+  
+  # simulate trees from particle
+  ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], model=model, tsample=tsample, seed=seed, ...)
+  
+  if (!is.list(ws$sim.trees[[i]])){
+    cat('Re-initializing trees')
+    res <- .recursive.initialize.trees(i, ws, model, tsample=tsample, seed=seed)
+    return(res)
+  }
+  return(ws) 
+}
+
+
 initialize.smc <- function(ws, model, tsample=NA, seed=NA, ...) {
   config <- ws$config
   nparams <- length(config$params)
   colnames(ws$particles) <- config$params
   for (i in 1:config$nparticle) {
     
-	  # sample particle from prior distribution
-  	ws$particles[i,] <- sample.priors(config)
-    
-    # assign uniform weights
-		ws$weights[i] <- 1./config$nparticle
-    
-		# simulate trees from particle
-		ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], model=model, tsample=tsample, seed=seed, ...)
+	  ws <- .recursive.initialize.trees(i, ws, model=model, tsample=tsample, seed=seed, ...)
     
 		# calculate kernel distances for trees
 		ws$dists[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
@@ -217,6 +230,39 @@ initialize.smc <- function(ws, model, tsample=NA, seed=NA, ...) {
 }
 
 
+
+.recursive.simulate.trees <- function(ws, old.particle, model, tsample=NA, seed=NA, ...) {
+  config <- ws$config
+  new.particle <- propose(config, old.particle)
+  
+  # calculate prior ratio
+  mh.ratio <- prior.density(config, new.particle) / prior.density(config, old.particle)
+  if (mh.ratio == 0) {
+    return(NULL)    # reject new particle, violates prior assumptions
+  }
+  
+  # calculate proposal ratio
+  mh.ratio <- mh.ratio * proposal.density(config, new.particle, old.particle) / proposal.density(config, old.particle, new.particle)
+  if (mh.ratio == 0) {
+    return(NULL)    # reject new particle, not possible under proposal distribution
+  }
+  
+  # simulate new trees
+  # retain sim.trees in case we revert to previous particle
+  new.trees <- simulate.trees(ws, new.particle, model=model, tsample=tsample, seed=seed, ...)
+  
+  # check if trees hold nothing (this is possible with given MASTER simulations: stochastically diff params result in empty graph OR bad trees)
+  # if so, trees need to be simulated again with a new particle
+  if (!is.list(new.trees)){
+    res <- .recursive.simulate.trees(ws, old.particle, model, tsample=tsample, seed=seed)
+    return(res)
+  }
+  res <- list(new.trees, mh.ratio)
+  cat(res[[2]])
+  return(res) 
+}
+
+
 .perturb.particles <- function(ws, model, n.threads=1, tsample=NA, seed=NA, ...) {
   ##  This implements the Metropolis-Hastings acceptance/rejection step
   ##  @param ws: workspace
@@ -238,23 +284,11 @@ initialize.smc <- function(ws, model, tsample=NA, seed=NA, ...) {
   res <- mclapply(alive, function (i) {
     # TODO: return value should be a list of particle, dist, and tree entries to go into ws
     old.particle <- ws$particles[i,]
-    new.particle <- propose(config, old.particle)
     
-    # calculate prior ratio
-    mh.ratio <- prior.density(config, new.particle) / prior.density(config, old.particle)
-    if (mh.ratio == 0) {
-      return(NULL)    # reject new particle, violates prior assumptions
-    }
-    
-    # calculate proposal ratio
-    mh.ratio <- mh.ratio * proposal.density(config, new.particle, old.particle) / proposal.density(config, old.particle, new.particle)
-    if (mh.ratio == 0) {
-      return(NULL)    # reject new particle, not possible under proposal distribution
-    }
-    
-    # simulate new trees
-    # retain sim.trees in case we revert to previous particle
-    new.trees <- simulate.trees(ws, new.particle, model=model, tsample=tsample, seed=seed, ...)
+    rec.call <- .recursive.simulate.trees(ws, old.particle, model=model, tsample=tsample, seed=seed, ...)
+    new.trees <- rec.call [[1]]
+    mh.ratio <- rec.call [[2]]
+      
     new.dists <- sapply(new.trees, function(sim.tree) {
       distance(ws$obs.tree, sim.tree, config)
     })

@@ -44,8 +44,9 @@ internal.terminal.ratio(x)
   \item{x}{
     An object of class "phylo". Tree must be ultrameric in the case of Pybus' gamma-statistic.
   }
-  \item{use.branch.lengths}
+  \item{use.branch.lengths}{
     If 0, all branches are treated as if they had unit length.
+  }
 }
 \details{
 All wrapper functions call the associated function in the C extension \code{src/kernel.c}  \cr\cr

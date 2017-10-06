@@ -113,11 +113,10 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   ## system call to MASTER with temporarily generated XML
   system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname)), stdout=F) #, stdout=F, stderr=F
   
-  # if "Warning: Newick writer skipping empty graph" --> no newick trees created
-  # throws "Error in x[[i]]: subscript out of bounds."
-  if (readLines(tree.file) == '') {
+
+  if (!file.exists(tree.file)) {
     # should re-simulate trees
-    break
+    return(0)
   }
   ## read Newick, reset to Kaphi directory, and send tree back to user
   # casting result as a multiPhylo object
@@ -126,15 +125,22 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
     }, warning = function(w) {
       cat('The warning ', w)
       # should re-simulate trees, do not continue feeding the same theta params over and over
-      res <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
-      return(res)
+      return(0)
     }, error = function(e) {
       cat('The error: ', print(paste0(e)))
       # should re-simulate trees, do not continue feeding the same theta params over and over
-      res <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
-      return(res)
+      return(0)
+    }, finally = {
+      unlink(c(tempname, tree.file))
     })
-  unlink(c(tempname, tree.file))
-  trees
+  
+  if (length(trees) != nsim) {
+    # if "Warning: Newick writer skipping empty graph" --> one of newick trees eliminated
+    # throws "Error in x[[i]]: subscript out of bounds."
+    cat('Less than 5 trees retained. Re-simulating..')
+    return(0)
+  }
+  
+  return(trees)
 }
 
