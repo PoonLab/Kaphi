@@ -102,6 +102,7 @@ distance <- function(x, y, config) {
 
 
 .recursive.initialize.trees <- function(i, ws, model, tsample=NA, seed=NA, ...) {
+  config <- ws$config
   ws$particles[i,] <- sample.priors(config)
   
   # assign uniform weights
@@ -257,7 +258,7 @@ initialize.smc <- function(ws, model, tsample=NA, seed=NA, ...) {
     res <- .recursive.simulate.trees(ws, old.particle, model, tsample=tsample, seed=seed)
     return(res)
   }
-  res <- list(new.trees, mh.ratio)
+  res <- list(new.trees, mh.ratio, new.particle)
   return(res) 
 }
 
@@ -290,6 +291,7 @@ initialize.smc <- function(ws, model, tsample=NA, seed=NA, ...) {
     }
     new.trees <- rec.call [[1]]
     mh.ratio <- rec.call [[2]]
+    new.particle <- rec.call [[3]]
     
       
     new.dists <- sapply(new.trees, function(sim.tree) {
