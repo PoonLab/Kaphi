@@ -5,7 +5,7 @@ config <- load.config('pkg/examples/example-epidem.yaml')
 config <- set.model(config, 'epidemic')
 
 # simulate target tree
-theta <- c(t.end=0.2, N=10000, beta=0.0135, gamma=5, phi=5)
+theta <- c(t.end=0.2, N=10000, beta=1, gamma=5, phi=5)
 set.seed(50)
 obs.tree <- epidem.model(theta, nsim=1, tips=100, model='epidemic', tsample=0.1)[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
@@ -20,7 +20,23 @@ result <- run.smc(ws, trace.file='pkg/examples/example-epidem.tsv', nthreads=1, 
 
 
 
-
+#-------------------------------------------------------------------------------------------------------------------------
+# calculate kernel distances for varying beta
+y <- seq(0.05,0.35, 0.025)    # (from, to, step)
+resy <- sapply(y, function(value) {
+  theta <- c(t.end=0.2, N=10000, beta=value, gamma=5, phi=5)
+  sim.trees <- epidem.model(theta, nsim=100, tips=100, model='epidemic', tsample=0.1)
+  distances <- sapply(sim.trees, function(singletree) {
+    processtree <- .preprocess.tree(singletree, config)
+    distance(obs.tree, processtree, config)
+  })
+  cat(value, "\n")
+  mean(distances)
+})
+# generate a plot
+par(mar=c(5,5,2,2))
+plot(y, resy, type='b', xlab='beta', ylab='Mean kernel distance', cex.lab=1.2)
+#-------------------------------------------------------------------------------------------------------------------------
 
 
 

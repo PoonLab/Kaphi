@@ -63,7 +63,8 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                    simulationTime='{{ tend }}'
                    samplePopulationSizes='true' 
                    nTraj='{{ nsample }}'
-                   verbosity='1'>
+                   verbosity='1' 
+                   maxConditionRejects='50'>
             
                 <model spec='Model' id='model'>
                   <population spec='Population' id='S' populationName='S' />
@@ -111,7 +112,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   write(text, file=tempname)
    
   ## system call to MASTER with temporarily generated XML
-  system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname)), stdout=F) #, stdout=F, stderr=F
+  system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname)) ) #, stdout=F, stderr=F
   
 
   if (!file.exists(tree.file)) {

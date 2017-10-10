@@ -29,6 +29,7 @@ simulate.trees <- function(workspace, theta, model, tsample=NA, seed=NA, ...) {
 	# @param workspace: smc.workspace object
 	# @param theta: parameter vector
 	# @param seed: argument to set.seed()
+  cat(theta)
   config <- workspace$config
   if (is.null(body(config$model))) {
     stop('Simulation method has not been set for configuration.')
