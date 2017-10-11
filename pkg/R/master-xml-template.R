@@ -42,7 +42,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                gamma = as.character(theta$gamma),
                phi = as.character(theta$phi),
                N = as.character(theta$N - 1),
-               #seed = as.character(NA),
+               seed = as.character(seed),
                nsample = as.character(nsim),
                ntips = as.character(tips),
                tsampl = as.character(tsample),
@@ -52,7 +52,12 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   # XML template will not render with the '/', needs only the fileName (ie. # current problem is tempfile() is relative path (ie. 'temp34e847bc77fa.newick')
   
   ## XML template
-  template <- 
+  if (is.na(seed)) {
+    seed <- ''
+  } else {
+    seed <- paste0("seed='", data$seed, "'")
+  }
+  template <- paste0(
             "<beast version='2.0' namespace= 'master
                                              :master.model
                                              :master.conditions
@@ -62,8 +67,9 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                    simulationTime='{{ tend }}'
                    samplePopulationSizes='true' 
                    nTraj='{{ nsample }}'
-                   verbosity='1' 
-                   maxConditionRejects='50'>
+                   verbosity='1' ",
+                   seed,
+                   " maxConditionRejects='50'>
             
                 <model spec='Model' id='model'>
                   <population spec='Population' id='S' populationName='S' />
@@ -99,12 +105,14 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                 <output spec='NewickOutput' fileName='{{ tempNewick }}' collapseSingleChildNodes='true'/>
               </run>
             </beast>"
+  )
   
   
   ## generate temporary XML
   text <- whisker.render(template, data)
   tempname <- tempfile(pattern='temp', fileext= '.xml')
   write(text, file=tempname)
+  write(text, 'temp.xml')
    
   ## system call to MASTER with temporarily generated XML
   system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname)) ) #, stdout=F, stderr=F
@@ -121,10 +129,11 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   
   # twig case
   txtlines <- readLines(con=tree.file)
+  trees <- list()
   treenum <- 1
   for (tree in txtlines) {
     tryCatch({
-      trees[[treenum]] <- read.tree(text=x, keep.multi=TRUE)
+      trees[[treenum]] <- read.tree(text=tree)
       }, error = function(e) {
         cat('Tree incorrectly parsed. Adding in a dummy tree.\n')
         trees[[treenum]] <- dummy.tree
@@ -132,6 +141,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
         treenum <- treenum + 1
     })
   }
+  class(trees) <- 'multiPhylo'
   unlink(c(tempname, tree.file))
   
   # stump case

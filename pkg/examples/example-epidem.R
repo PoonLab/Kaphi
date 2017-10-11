@@ -7,7 +7,7 @@ config <- set.model(config, 'epidemic')
 # simulate target tree
 theta <- c(t.end=0.2, N=10000, beta=1, gamma=5, phi=5)
 set.seed(50)
-obs.tree <- epidem.model(theta, nsim=1, tips=100, model='epidemic', tsample=0.1)[[1]]
+obs.tree <- epidem.model(theta, nsim=1, tips=100, model='epidemic', tsample=0.1, seed=50)[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
 
