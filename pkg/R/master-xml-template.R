@@ -26,7 +26,6 @@ epidem.model <- function(theta, nsim, tips, tsample, model='epidemic', seed=NA, 
   if (!is.na(seed)) { set.seed(seed) }
   
   res.trees <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
-      
   return(res.trees)
 }
 attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConfig.R set.model() function
@@ -102,10 +101,6 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
             </beast>"
   
   
-  #  <populationEndCondition spec='PopulationEndCondition' threshold='{{ ntips }}' exceedCondition='true' population='@I_sample'/>
-  
-  
-  
   ## generate temporary XML
   text <- whisker.render(template, data)
   tempname <- tempfile(pattern='temp', fileext= '.xml')
@@ -114,32 +109,39 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   ## system call to MASTER with temporarily generated XML
   system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname)) ) #, stdout=F, stderr=F
   
-
-  if (!file.exists(tree.file)) {
-    # should re-simulate trees
-    return(0)
-  }
-  ## read Newick, reset to Kaphi directory, and send tree back to user
-  # casting result as a multiPhylo object
-  trees <- tryCatch({
-    read.tree(file=tree.file, keep.multi=TRUE)
-    }, warning = function(w) {
-      cat('The warning ', w)
-      # should re-simulate trees, do not continue feeding the same theta params over and over
-      return(0)
-    }, error = function(e) {
-      cat('The error: ', print(paste0(e)))
-      # should re-simulate trees, do not continue feeding the same theta params over and over
-      return(0)
-    }, finally = {
-      unlink(c(tempname, tree.file))
-    })
   
-  if (length(trees) != nsim) {
+  #if (!file.exists(tree.file)) {
+    # should re-simulate trees
+   # return(0)
+  #}
+  
+  ## error-catching for twigs and stumps
+  # creating a dummy tree: something that will spike the particle out of the next iteration
+  dummy.tree <- read.tree(text='(1:0.1,1:0.1):0;')
+  
+  # twig case
+  txtlines <- readLines(con=tree.file)
+  treenum <- 1
+  for (tree in txtlines) {
+    tryCatch({
+      trees[[treenum]] <- read.tree(text=x, keep.multi=TRUE)
+      }, error = function(e) {
+        cat('Tree incorrectly parsed. Adding in a dummy tree.\n')
+        trees[[treenum]] <- dummy.tree
+      }, finally = {
+        treenum <- treenum + 1
+    })
+  }
+  unlink(c(tempname, tree.file))
+  
+  # stump case
+  if (length(trees) < nsim) {
     # if "Warning: Newick writer skipping empty graph" --> one of newick trees eliminated
     # throws "Error in x[[i]]: subscript out of bounds."
-    cat('Less than 5 trees retained. Re-simulating..\n')
-    return(0)
+    cat('Less than 5 trees retained. Adding in ', nsim - length(trees), ' dummy trees..\n')
+    for (i in 1:(nsim - length(trees))) {
+      trees[[nsim + i]] <- dummy.tree
+    }
   }
   
   return(trees)
