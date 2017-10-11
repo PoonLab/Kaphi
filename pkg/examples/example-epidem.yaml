@@ -7,7 +7,7 @@ priors:
   'N':
     dist: 'norm'
     hyperparameters:
-    - mean: 10000
+    - mean: 10500
     - sd: 1000
   'beta':
     dist: 'gamma'

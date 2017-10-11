@@ -112,7 +112,6 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   text <- whisker.render(template, data)
   tempname <- tempfile(pattern='temp', fileext= '.xml')
   write(text, file=tempname)
-  write(text, 'temp.xml')
    
   ## system call to MASTER with temporarily generated XML
   system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname)), stdout=F, stderr=F ) #, stdout=F, stderr=F
