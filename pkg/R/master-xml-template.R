@@ -138,7 +138,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   if (length(trees) != nsim) {
     # if "Warning: Newick writer skipping empty graph" --> one of newick trees eliminated
     # throws "Error in x[[i]]: subscript out of bounds."
-    cat('Less than 5 trees retained. Re-simulating..')
+    cat('Less than 5 trees retained. Re-simulating..\n')
     return(0)
   }
   
