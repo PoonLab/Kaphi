@@ -115,7 +115,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   write(text, 'temp.xml')
    
   ## system call to MASTER with temporarily generated XML
-  system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname)) ) #, stdout=F, stderr=F
+  system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname)), stdout=F, stderr=F ) #, stdout=F, stderr=F
   
   
   #if (!file.exists(tree.file)) {
@@ -141,19 +141,17 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
         treenum <- treenum + 1
     })
   }
-  class(trees) <- 'multiPhylo'
   unlink(c(tempname, tree.file))
   
   # stump case
   if (length(trees) < nsim) {
-    # if "Warning: Newick writer skipping empty graph" --> one of newick trees eliminated
-    # throws "Error in x[[i]]: subscript out of bounds."
-    cat('Less than 5 trees retained. Adding in ', nsim - length(trees), ' dummy trees..\n')
-    for (i in 1:(nsim - length(trees))) {
-      trees[[nsim + i]] <- dummy.tree
+    num.null <- nsim - length(trees)
+    cat('Less than 5 trees retained. Adding in', num.null, 'dummy trees..\n')
+    for (i in 1:num.null) {
+      trees[[length(trees) + 1]] <- dummy.tree
     }
   }
-  
+  class(trees) <- 'multiPhylo'
   return(trees)
 }
 

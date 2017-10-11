@@ -4,10 +4,10 @@
                                              :master.outputs
                                              :master.postprocessors'>
               <run spec='InheritanceEnsemble' 
-                   simulationTime='0.2'
+                   simulationTime='0.581857432709638'
                    samplePopulationSizes='true' 
-                   nTraj='1'
-                   verbosity='1' seed='50' maxConditionRejects='50'>
+                   nTraj='5'
+                   verbosity='1'  maxConditionRejects='50'>
             
                 <model spec='Model' id='model'>
                   <population spec='Population' id='S' populationName='S' />
@@ -15,19 +15,19 @@
                   <population spec='Population' id='R' populationName='R' />
                   <population spec='Population' id='I_sample' populationName='I_sample' />
             
-                  <reaction spec='Reaction' reactionName='Infection' rate='1'>
+                  <reaction spec='Reaction' reactionName='Infection' rate='2.53900322790369'>
                     S + I -> 2I
                   </reaction>
-                  <reaction spec='Reaction' reactionName='Recovery' rate='5'>
+                  <reaction spec='Reaction' reactionName='Recovery' rate='3.58366038332454'>
                     I -> R
                   </reaction>
-                  <reaction spec='Reaction' reactionName='Sampling' rate='5'>
+                  <reaction spec='Reaction' reactionName='Sampling' rate='3.07369055155815'>
                     I:1 -> I_sample:1
                   </reaction>
                 </model>
             
                 <initialState spec='InitState'>
-                  <populationSize spec='PopulationSize' population='@S' size='9999'/>
+                  <populationSize spec='PopulationSize' population='@S' size='10039.7803217143'/>
                   <populationSize spec='PopulationSize' population='@I_sample' size='0'/>
                   <populationSize spec='PopulationSize' population='@R' size='0'/>
                   <lineageSeed spec='Individual' population='@I'/>
@@ -40,6 +40,6 @@
                   <populationSize spec='PopulationSize' population='@I_sample' size='100'/>
                 </inheritancePostProcessor>
             
-                <output spec='NewickOutput' fileName='/tmp/RtmpWuOUWk/temp18524148b956.newick' collapseSingleChildNodes='true'/>
+                <output spec='NewickOutput' fileName='/tmp/RtmpovVooX/temp2a3f4a20809f.newick' collapseSingleChildNodes='true'/>
               </run>
             </beast>
