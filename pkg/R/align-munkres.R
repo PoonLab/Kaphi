@@ -142,10 +142,156 @@ find.star.in.row <- function(row, col, indM, N) {
 }
 
 
+## STEP FIVE: constructs path beginning at an uncovered, /primed zero/, and alternating btwn *starred* and /primed/ zeros
+# path is continued until a /primed zero/ w/ NO *starred zero* in its column is found
+# then all *starred zeros* are unstarred
+# then all /primed zeros/ are *starred*
+# all primes in the indM are erased and all rows are uncovered
+# then return to STEP THREE to cover over the columns again
+# requires 5 helper functions: find.star.in.col(), find.prime.in.row(), augment.path(), clear.covers(), erase.primes()
+step.five <- function(step, indM, rcov, ccov, path, rpath_0, cpath_0, N) {
+  done <- FALSE
+  row = col <- -1
+  path_count <- 1
+  path[path_count-1, 0] <- rpath_0
+  path[path_count-1, 1] <- cpath_0
+  while (!done) {
+    find.star.in.col(path[path_count-1, 1], row, indM, N)
+    if (row > -1) {
+      # *starred zero* in row "row"
+      path_count <- path_count + 1
+      path[path_count-1, 0] <- row
+      path[path_count-1, 1] <- path[path_count-2,1]
+    } else {
+      done <- TRUE
+    }
+    if (!done) {
+      # if there is a *starred zero*, find a /primed zero/ in this row
+      # write index to "col"
+      find.prime.in.row(path[path_count-1, 0], col, inM, N)
+      path_count <- path_count + 1
+      path[path_count-1, 0] <- path[path_count-2, 0]
+      path[path_count-1, 1] <- col
+    }
+  }
+  augment.path(path_count, indM, path)
+  clear.covers(rcov, ccov)
+  erase.primes(indM, N)
+  step <- 3
+}
+
+# helper function to find *starred zeros* in columns
+find.star.in.col <- function(col, row, indM, N) {
+  row <- -1
+  sapply(length(N), function(r) {
+    if (indM[r,col] == 1) {
+      row <- r
+    }
+  })
+}
+
+# helper function to find a primed zero in a row
+find.prime.in.row <- function(row, col, indM, N) {
+  sapply(length(N), function(c) {
+    if (indM[row,c] == 1) {
+      col <- c
+    }
+  })
+}
+
+# helper function to augment the path
+augment.path <- function(path_count, indM, path) {
+  sapply(length(path_count), function(p) {
+    if (indM[ path[p,0], path[p,1] ] == 1) {
+      inM[ path[p,0], path[p,1] ] <- 0  
+    } else {
+      indM[ path[p,0], path[p,1] ] <- 1
+    }
+  })
+}
+
+# helper function to clear the covers from rows
+clear.covers <- function(rcov, ccov) {
+  rcov <- as.vector(rep(c(0), length=length(rcov)))
+  ccov <- as.vector(rep(c(0), length=length(ccov)))
+}
+
+# helper function to erase /primed zeros/ from indM
+erase.primes <- function(indM, N) {
+  sapply(length(N), function(r) {
+    sapply(length(N), function(c) {
+      if (indM[r,c] == 2) {
+        indM[r,c] <- 0
+      }
+    })
+  })
+}
 
 
+# STEP SIX: take cover vectors 'rcov' and 'ccov' and lookinto uncovered region of cost matrix for smallest value
+# subtract this value from each element in an uncovered column and add it to each element in a covered row
+# requires 1 helper function: find.smallest()
+step.six <- function(stpe, cost, rcov, ccov, N) {
+  minval <- .Machine$double.xmax
+  find.smallest(minval, cost, rcov, ccov, N)
+  sapply(length(N), function(r) {
+    sapply(length(N), function(c) {
+      if (rcov[r] == 1) {
+        cost[r,c] <- cost[r,c] + minval
+      }
+      if (ccov[c] == 0) {
+        cost[r,c] <- cost[r,c] - minval
+      }
+    })
+  })
+  step <- 4
+}
+
+# helper function searches for smallest value in uncovered region of the cost matrix
+find.smallest <- function(minval, cost, rcov, ccov, N) {
+  sapply(length(N), function(r) {
+    sapply(length(N), function(c) {
+      if (rcov[r] == 0 && ccov[c] == 0) {
+        if (minval > cost[r,c]) {
+          minval <- cost[r,c]
+        }
+      }
+    })
+  })
+}
 
 
+#----------MAIN FUNCTION---------#
+hungarian.alg <- function(input_cost) {
+  N <- nrows(input_cost)
+  step <- 1
+  c_path = rpath <- 0
+  cost <- input_cost
+  indM <- matrix(data=0, nrow=N, ncol=N)
+  rcov <- as.vector(rep(c(0), length=N))
+  ccov <- as.vector(rep(c(0), length=N))
+  path <- matrix(data=2, nrow=N, ncol=N)    #changed.... originally -->  arma::imat path(2 * N, 2);
+  
+  done <- FALSE
+  while (!done) {
+    if (step == 1) {
+      step.one(step, cost, N)
+    } else if (step == 2) {
+      step.two(step, cost, indM, rcov, ccov, N)
+    } else if (step == 3) {
+      step.three(step, indM, ccov, N)
+    } else if (step == 4) {
+      step.four(step, cost, indM, rcov, ccov, rpath_0, cpath_0, N)
+    } else if (step == 5) {
+      step.five(step, indM, rcov, ccov, path, rpath_0, cpath_0, N)
+    } else if (step == 6) {
+      step.six(step, cost, rcov, ccov, N)
+    } else if (step == 7) {
+      done <- TRUE
+    }
+  }
+  return(indM)
+}
 
 
 
