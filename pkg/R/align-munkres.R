@@ -30,12 +30,7 @@ step.two <- function(step, cost, indM, rcov, ccov, N) {
     }
   }
   step <- 3
-  result <- list(step, indM, rcov, ccov)
-  
-  # for reuse later (wipe clean)
-  rcov <- as.vector(rep(c(0), length=length(rcov)))
-  ccov <- as.vector(rep(c(0), length=length(ccov)))
-  
+  result <- list(step, indM)
   return(result)
 }
 
@@ -59,7 +54,7 @@ step.three <- function(step, indM, ccov, N) {
   } else {
     step = 4
   }
-  return(list(step, indM, ccov))
+  return(list(step, ccov))
 }
 
 
@@ -98,25 +93,25 @@ step.four <- function(step, cost, indM, rcov, ccov, rpath_0, cpath_0, N) {
 
 # helper function to search for non-covered zeros
 find.noncovered.zero <- function(row, col, cost, rcov, ccov, N) {
-  r = 0
-  done = FALSE
-  row = col = -1
+  r <- 1
+  done <- FALSE
+  row = col <- -1
   while (!done) {
-    c = 0
+    c <- 1
     while (TRUE) {
       if (cost[r,c] == 0.0 && rcov[r] == 0 && ccov[c] == 0) {
-        row = r
-        col = c
-        done = TRUE
+        row <- r
+        col <- c
+        done <- TRUE
       }
       c <- c + 1
-      if (c == N || done) {
+      if (c > N || done) {
         break
       }
     }
     r <- r + 1
-    if (r == N) {
-      done = TRUE
+    if (r > N) {
+      done <- TRUE
     }
   }
   return(c(row, col)) #inserted
@@ -143,7 +138,7 @@ find.star.in.row <- function(row, col, indM, N) {
   col <- -1
   for (c in 1:N) {
     if (indM[row,c] == 1) {
-      col = c
+      col <- c
     }
   }
   return(col) #inserted
@@ -156,36 +151,38 @@ find.star.in.row <- function(row, col, indM, N) {
 # then all /primed zeros/ are *starred*
 # all primes in the indM are erased and all rows are uncovered
 # then return to STEP THREE to cover over the columns again
-# requires 5 helper functions: find.star.in.col(), find.prime.in.row(), augment.path(), clear.covers(), erase.primes()
+# requires 4 helper functions: find.star.in.col(), find.prime.in.row(), augment.path(), erase.primes()
 step.five <- function(step, indM, rcov, ccov, path, rpath_0, cpath_0, N) {
   done <- FALSE
   row = col <- -1
-  path_count <- 1
-  path[path_count-1, 0] <- rpath_0
-  path[path_count-1, 1] <- cpath_0
+  path_count <- 2
+  path[path_count-1, 1] <- rpath_0
+  path[path_count-1, 2] <- cpath_0
   while (!done) {
-    find.star.in.col(path[path_count-1, 1], row, indM, N)
+    row <- find.star.in.col(path[path_count-1, 2], row, indM, N)
     if (row > -1) {
       # *starred zero* in row "row"
       path_count <- path_count + 1
-      path[path_count-1, 0] <- row
-      path[path_count-1, 1] <- path[path_count-2,1]
+      path[path_count-1, 1] <- row
+      path[path_count-1, 2] <- path[path_count-2, 2]
     } else {
       done <- TRUE
     }
     if (!done) {
       # if there is a *starred zero*, find a /primed zero/ in this row
       # write index to "col"
-      find.prime.in.row(path[path_count-1, 0], col, inM, N)
+      col <- find.prime.in.row(path[path_count-1, 1], col, inM, N)
       path_count <- path_count + 1
-      path[path_count-1, 0] <- path[path_count-2, 0]
-      path[path_count-1, 1] <- col
+      path[path_count-1, 1] <- path[path_count-2, 1]
+      path[path_count-1, 2] <- col
     }
   }
-  augment.path(path_count, indM, path)
-  clear.covers(rcov, ccov)
-  erase.primes(indM, N)
+  indM <- augment.path(path_count, indM, path)
+  rcov <- as.vector(rep(c(0), length=length(rcov)))    # clear the covers from rows
+  ccov <- as.vector(rep(c(0), length=length(ccov)))
+  indM <- erase.primes(indM, N)
   step <- 3
+  return(list(step, indM, rpath_0, cpath_0))
 }
 
 # helper function to find *starred zeros* in columns
@@ -202,27 +199,23 @@ find.star.in.col <- function(col, row, indM, N) {
 # helper function to find a primed zero in a row
 find.prime.in.row <- function(row, col, indM, N) {
   for (c in 1:N) {
-    if (indM[row,c] == 1) {
+    if (indM[row,c] == 2) {
       col <- c
     }
   }
+  return(col)
 }
 
 # helper function to augment the path
 augment.path <- function(path_count, indM, path) {
-  sapply(length(path_count), function(p) {
-    if (indM[ path[p,0], path[p,1] ] == 1) {
-      inM[ path[p,0], path[p,1] ] <- 0  
+  for(p in 1:(path_count-1)) {
+    if (indM[ path[p,1], path[p,2] ] == 1) {
+      indM[ path[p,1], path[p,2] ] <- 0  
     } else {
-      indM[ path[p,0], path[p,1] ] <- 1
+      indM[ path[p,1], path[p,2] ] <- 1
     }
   }
-}
-
-# helper function to clear the covers from rows
-clear.covers <- function(rcov, ccov) {
-  rcov <- as.vector(rep(c(0), length=length(rcov)))
-  ccov <- as.vector(rep(c(0), length=length(ccov)))
+  return(indM)
 }
 
 # helper function to erase /primed zeros/ from indM
@@ -234,26 +227,28 @@ erase.primes <- function(indM, N) {
       }
     }
   }
+  return(indM)
 }
 
 
-# STEP SIX: take cover vectors 'rcov' and 'ccov' and lookinto uncovered region of cost matrix for smallest value
+# STEP SIX: take cover vectors 'rcov' and 'ccov' and look into uncovered region of cost matrix for smallest value
 # subtract this value from each element in an uncovered column and add it to each element in a covered row
 # requires 1 helper function: find.smallest()
-step.six <- function(stpe, cost, rcov, ccov, N) {
+step.six <- function(step, cost, rcov, ccov, N) {
   minval <- .Machine$double.xmax
-  find.smallest(minval, cost, rcov, ccov, N)
+  smallest <- find.smallest(minval, cost, rcov, ccov, N)
   for (r in 1:N) {
     for (c in 1:N) {
       if (rcov[r] == 1) {
-        cost[r,c] <- cost[r,c] + minval
+        cost[r,c] <- cost[r,c] + smallest
       }
       if (ccov[c] == 0) {
-        cost[r,c] <- cost[r,c] - minval
+        cost[r,c] <- cost[r,c] - smallest
       }
     }
   }
   step <- 4
+  return(list(step, cost))
 }
 
 # helper function searches for smallest value in uncovered region of the cost matrix
@@ -267,6 +262,7 @@ find.smallest <- function(minval, cost, rcov, ccov, N) {
       }
     }
   }
+  return(minval)
 }
 
 
@@ -274,7 +270,7 @@ find.smallest <- function(minval, cost, rcov, ccov, N) {
 hungarian.alg <- function(input_cost) {
   N <- nrow(input_cost)
   step <- 1
-  c_path = rpath <- 0
+  cpath_0 = rpath_0 <- 0
   cost <- input_cost
   indM <- matrix(data=0, nrow=N, ncol=N)
   rcov <- as.vector(rep(c(0), length=N))
@@ -291,13 +287,10 @@ hungarian.alg <- function(input_cost) {
       res2 <- step.two(step, cost, indM, rcov, ccov, N)
       step <- res2[[1]]
       indM <- res2[[2]]
-      rcov <- res2[[3]]
-      ccov <- res2[[4]]
     } else if (step == 3) {
       res3 <- step.three(step, indM, ccov, N)
       step <- res3[[1]]
-      indM <- res3[[2]]
-      ccov <- res3[[3]]
+      ccov <- res3[[2]] 
     } else if (step == 4) {
       res4 <- step.four(step, cost, indM, rcov, ccov, rpath_0, cpath_0, N)
       step <- res4[[1]]
@@ -307,9 +300,15 @@ hungarian.alg <- function(input_cost) {
       rpath_0 <- res4[[5]]
       cpath_0 <- res4[[6]]
     } else if (step == 5) {
-      step.five(step, indM, rcov, ccov, path, rpath_0, cpath_0, N)
+      res5 <- step.five(step, indM, rcov, ccov, path, rpath_0, cpath_0, N)
+      step <- res5[[1]]
+      indM <- res5[[2]]
+      rpath_0 <- res5[[3]]
+      cpath_0 <- res5[[4]]
     } else if (step == 6) {
-      step.six(step, cost, rcov, ccov, N)
+      res6 <- step.six(step, cost, rcov, ccov, N)
+      step <- res6[[1]]
+      cost <- res6[[2]]
     } else if (step == 7) {
       done <- TRUE
     }
