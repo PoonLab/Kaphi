@@ -276,14 +276,15 @@ rmast <- function(a, w, treea, treew) {
 
 ##-------------------------------------------------------------------------------------------------------------
 # Align (Nye et al., 2006)
-Align <- function(tree1, tree2) {
+Align <- function(x, y) {
   # make 2D array of Nye distances
   # find shortest path through them
-  
+  tree1 <- x
+  tree2 <- y
   # count the tips
   numtips <- length(tree1$tip.label)
   if (numtips != length(tree2$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to compute Align metric.') }
-  t1.internals <- (numtips+1) : (numtips*2 - 1)   # why are the number of internal nodes subtracted by 2? Nnode is subtracted by 1 in R's phylo trees
+  t1.internals <- (numtips+2) : (numtips*2 - 1)   # (numtips + 1) = root, skipped in kuhner & yamato
   t2.internals <- t1.internals
   
   # create a 2D-matrix to store all individual scores for edge 1 to edge 2 comparison
@@ -293,25 +294,13 @@ Align <- function(tree1, tree2) {
   ## Nye et al metric score across all combinations of edge pairs
   for (i in t1.internals) {
     for (j in t2.internals) {
-      # TODO: if the internal is the "root": ie. has no ancestor
-      if (i %in% tree1$edge[,2] == FALSE) {
-        list.partitions <- descendant.subset(i, tree1)
-        t1.left <- append(list.partitions[[1]], i)        # adding the chosen node arbitrarily to the left 
-        t1.right <- list.partitions[[2]]
-      } else { 
-        t1.left <- append(descendant.subset(i, tree1), i)                # arbitrarily calling the descendants of the edge the left partition
-        t1.right <- setdiff( c(1:(numtips*2 - 1)), t1.left)
-      }  
-      
-      if (j %in% tree2$edge[,2] == FALSE) {
-        list.partitions <- descendant.subset(j, tree2)
-        t2.left <- append(list.partitions[[1]], j)
-        t2.right <- list.partitions[[2]]
-      } else { 
-        t2.left <- append(descendant.subset(j, tree2), j)
-        t2.right <- setdiff( c(1:(numtips*2 - 1)), t2.left)
-      }
-      
+       
+      t1.left <- descendant.subset(i, tree1)                # arbitrarily calling the descendants of the edge the left partition
+      t1.right <- setdiff( c(1:(numtips)), t1.left)
+    
+      t2.left <- descendant.subset(j, tree2)
+      t2.right <- setdiff( c(1:(numtips)), t2.left)
+    
       # 4 computations, 2 on same side, 2 on opposite side
       # for each 2 sets, take the intersection / union
       val1.same.side <- length(intersect(t1.left, t2.left)) / length(union(t1.left, t2.left))   # left side of t1 w/ left side of t2
@@ -325,15 +314,15 @@ Align <- function(tree1, tree2) {
       res <- max(c(min(same.side), min(opp.side)))
       
       # convert the Nye et al similarity to a score by subtracting from 1 (implemented in align.py from Kuhner and Yamato)
-      scores[(i-numtips),(j-numtips)] <- 1.0 - res
+      scores[(i-(numtips+1)),(j-(numtips+1))] <- 1.0 - res
     }
   }
   
+  ## Munkres algorithm written in pkg/R/align-munkres.R
+  indM <- hungarian.alg(scores)
+  distance <- sum(indM * scores)
   
-  ## Munkres algorithm 
-  
-  
-  return(scores)
+  return(distance)
 }
 
 ## MUST be bifurcating trees to use this distance metric (for the moment)  Nye et al said it doesn't necessarily have to be 
@@ -344,13 +333,7 @@ descendant.subset <- function(edge, tree) {
   subsetList <- vector()
   descendants  <- sapply(children, function(x) {preorder.traversal(x, subsetList, tree)})    # vector of all descendants of a given edge
   
-  # for root case, return a list of left partition and right partition
-  if (edge %in% tree1$edge[,2] == FALSE) {
-    subset <- sapply(descendants, function(x){unique(as.vector(unlist(x, recursive=FALSE)))})
-  } else {  # else, return descendants partition (ancestors partition are dealt with one level up)
-    subset <- unique(unlist(descendants, recursive=FALSE))
-  }
-  
+  subset <- unique(unlist(descendants, recursive=FALSE))
   return(subset)
 }
 
@@ -366,21 +349,12 @@ preorder.traversal <- function(child, subsetList, tree) {
   children <- sapply(which(child == tree$edge[,1]), function(x){tree$edge[x,2]})
   if(length(children) == 0) { return(subsetList) }
   
-  if (child %in% tree1$edge[,2] == FALSE) {
-    # for root case, partition and store into left and right partitions
-    left.child <- min(children)
-    left.subset <- preorder.traversal(left.child, subsetList, tree)
-    right.subset <- setdiff( c(1:(numtips*2 - 1)), left.subset)
-    
-    descendants <- list(c(left.subset, right.subset))
-  } else {
-    # traverse children of child node
-    descendants <- sapply(children, function(x) {preorder.traversal(x, subsetList, tree)})
-  }
-  return(descendants)
+  # traverse children of child node
+  descendants <- sapply(children, function(x) {preorder.traversal(x, subsetList, tree)})
+  descendant.tips <- intersect(unique(as.vector(descendants)), c(1:numtips))
+  
+  return(descendant.tips)
 }
-
-
 
 
 
