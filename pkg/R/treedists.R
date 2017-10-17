@@ -194,7 +194,7 @@ MAST <- function(tree1, tree2) {
   # recursively calculate mast score and store into matrix
   for (node1 in 1:numnodes) {
     for (node2 in 1:numnodes) {
-      vals[node1,node2] <- rmast(node1, node2, tree1, tree2)
+      vals[node1,node2] <- .r.mast(node1, node2, tree1, tree2)
     }
   }
   
@@ -206,7 +206,7 @@ MAST <- function(tree1, tree2) {
 
 
 ## calculates mast score for given subtrees from tree1 and tree2 and returns value to be stored into matrix
-rmast <- function(a, w, treea, treew) {
+.r.mast <- function(a, w, treea, treew) {
   # narrow down towards the tips present in subtree 'rooted' with node 'a' and subtree 'rooted' at node 'w'
   vector.a <- vector()
   vector.w <- vector()
@@ -245,12 +245,12 @@ rmast <- function(a, w, treea, treew) {
     x <- min(children.w)                     # left child of node 'w'
     y <- max(children.w)                     # right child of node 'w'
     
-    step1 <- rmast(b,x,treea,treew) + rmast(c,y,treea,treew)
-    step2 <- rmast(b,y,treea,treew) + rmast(c,x,treea,treew)
-    step3 <- rmast(a,x,treea,treew)
-    step4 <- rmast(a,y,treea,treew)
-    step5 <- rmast(b,w,treea,treew)
-    step6 <- rmast(c,w,treea,treew)
+    step1 <- .r.mast(b,x,treea,treew) + .r.mast(c,y,treea,treew)
+    step2 <- .r.mast(b,y,treea,treew) + .r.mast(c,x,treea,treew)
+    step3 <- .r.mast(a,x,treea,treew)
+    step4 <- .r.mast(a,y,treea,treew)
+    step5 <- .r.mast(b,w,treea,treew)
+    step6 <- .r.mast(c,w,treea,treew)
     results <- c(step1, step2, step3, step4, step5, step6)
     
     vals[a,w] <- max(results)
@@ -276,11 +276,8 @@ rmast <- function(a, w, treea, treew) {
 
 ##-------------------------------------------------------------------------------------------------------------
 # Align (Nye et al., 2006)
-Align <- function(x, y) {
-  # make 2D array of Nye distances
-  # find shortest path through them
-  tree1 <- x
-  tree2 <- y
+Align <- function(tree1, tree2) {
+  # make 2D array of Nye distances and find shortest path through them
   # count the tips
   numtips <- length(tree1$tip.label)
   if (numtips != length(tree2$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to compute Align metric.') }
@@ -290,15 +287,14 @@ Align <- function(x, y) {
   # create a 2D-matrix to store all individual scores for edge 1 to edge 2 comparison
   scores <- matrix(nrow=length(t1.internals), ncol=length(t2.internals), dimnames=list(t1.internals, t2.internals))
   
-  
   ## Nye et al metric score across all combinations of edge pairs
   for (i in t1.internals) {
     for (j in t2.internals) {
        
-      t1.left <- descendant.subset(i, tree1)                # arbitrarily calling the descendants of the edge the left partition
+      t1.left <- ..descendant.subset(i, tree1)                # arbitrarily calling the descendants of the edge the left partition
       t1.right <- setdiff( c(1:(numtips)), t1.left)
     
-      t2.left <- descendant.subset(j, tree2)
+      t2.left <- .descendant.subset(j, tree2)
       t2.right <- setdiff( c(1:(numtips)), t2.left)
     
       # 4 computations, 2 on same side, 2 on opposite side
@@ -327,11 +323,11 @@ Align <- function(x, y) {
 
 ## MUST be bifurcating trees to use this distance metric (for the moment)  Nye et al said it doesn't necessarily have to be 
 ## TODO: separate nodes for case of multifurcating trees
-descendant.subset <- function(edge, tree) {
+.descendant.subset <- function(edge, tree) {
   edges <- tree$edge
   children <- sapply(which(edge == tree$edge[,1]), function(x){tree$edge[x,2]})
   subsetList <- vector()
-  descendants  <- sapply(children, function(x) {preorder.traversal(x, subsetList, tree)})    # vector of all descendants of a given edge
+  descendants  <- sapply(children, function(x) {.preorder.traversal(x, subsetList, tree)})    # vector of all descendants of a given edge
   
   subset <- unique(unlist(descendants, recursive=FALSE))
   return(subset)
@@ -340,9 +336,8 @@ descendant.subset <- function(edge, tree) {
 ## function determines descendants of a given child (node) from a tree
 # for the root, separates directly into left and right partitions
 # for any other edge, all the children including the given node are the resulting 'left' partition, and the 'right partition is dealt w/ one level up
-preorder.traversal <- function(child, subsetList, tree) {
+.preorder.traversal <- function(child, subsetList, tree) {
   if (is.null(child)) { return(subsetList) }
-  
   # store the node in a list
   subsetList <- append(subsetList, child)
   
@@ -350,9 +345,8 @@ preorder.traversal <- function(child, subsetList, tree) {
   if(length(children) == 0) { return(subsetList) }
   
   # traverse children of child node
-  descendants <- sapply(children, function(x) {preorder.traversal(x, subsetList, tree)})
-  descendant.tips <- intersect(unique(as.vector(descendants)), c(1:numtips))
-  
+  descendants <- sapply(children, function(x) {.preorder.traversal(x, subsetList, tree)})
+  descendant.tips <- intersect(unique(as.vector(descendants)), c(1:length(tree$tip.label)))
   return(descendant.tips)
 }
 
@@ -361,18 +355,99 @@ preorder.traversal <- function(child, subsetList, tree) {
 
 ##-------------------------------------------------------------------------------------------------------------
 # Sim (Hein et al., 2005)
-Sim <- function(x, y){
-  score = 0.0
-  ab1 = 0.0
-  ab2 = 0.0
-  aa1 = 0.0
-  aa2 = 0.0
-  c1len = 0.0
-  c2len = 0.0
-  # find length of each tree
+Sim <- function(tree1, tree2){
+  # averaging S_AB and S_BA from Hein et al. p. 213
+  score <- 0.0
+  ab1 <- 0.0
+  ab2 <- 0.0
+  aa1 <- 0.0
+  aa2 <- 0.0
+  
+  # find total (branches) length of each tree
+  c1len <- sum(tree1$edge.length)
+  c2len <- sum(tree2$edge.length)
+  if (c1len == 0 || c2len == 0) {
+     stop("Unable to compute Sim metric because one or both of the trees has a total branch length of 0.")
+  }
+  
+  t1 <- .find.clades.and.lengths(tree1)
+  t2 <- .find.clades.and.lengths(tree2)
+  t1.clades <- t1[[1]]
+  t1.lengths <- t1[[2]]
+  t2.clades <- t2[[1]]
+  t2.lengths <- t2[[2]]
   
   # compute sum(a*b) for branches in both trees
   # compute sum(a*a) for banches in each tree
+  for (i in 1:(length(tree1$tip.label)*2-1)) {
+    if (i != (length(tree1$tip.label) + 1)) {
+      t1.clade <- t1.clades[[i]]
+      t1.length <- t1.lengths[[i]]
+      aa1 <- aa1 + t1.length ^ 2
+      match.ind1 <- .clade.is.present(t1.clade, t2.clades)
+      if (match.ind1 > -1) {
+        ab1 <- ab1 + t1.length * t2.lengths[[match.ind1]]
+      }
+    }
+  }
   
+  for (i in 1:(length(tree2$tip.label)*2-1)) {
+    if (i != (length(tree2$tip.label) + 1)) {
+      t2.clade <- t2.clades[[i]]
+      t2.length <- t2.lengths[[i]]
+      aa2 <- aa2 + t2.length ^ 2
+      match.ind2 <- .clade.is.present(t2.clade, t1.clades)
+      if (match.ind2 > -1) {
+        ab2 <- ab2 + t2.length * t1.lengths[[match.ind2]]
+      }
+    }
+  }
   
+  aa1 <- aa1 / (c1len ^ 2)
+  ab1 <- ab1 / (c1len * c2len)
+  aa2 <- aa2 / (c2len ^ 2)
+  ab2 <- ab2 / (c1len * c2len)
+
+  score <- (ab1/aa1 + ab2/aa2) / 2.0
+  distance <- 1.0 - score
+  return(distance)
+}
+
+
+.find.clades.and.lengths <- function(tree) {
+  clades <- list()
+  lengths <- list()
+  
+  # performs on all tips and nodes except for the root
+  for (child in 1:(length(tree$tip.label)*2-1)) {
+    if (child <= length(tree$tip.label)) {
+      clades[[child]] <- tree$tip.label[child]
+      max.height <- node.depth.edgelength(tree)[child]
+      child.branch.len <- max.height - node.depth.edgelength(tree)[ tree$edge[ which(tree$edge[,2] == child), 1] ]
+      lengths[[child]] <- child.branch.len
+    } else {
+      indices <- .descendant.subset(child, tree)
+      clades[[child]] <- sapply(indices, function(x) {tree$tip.label[x]})
+      max.height <- max(sapply(.descendant.subset(child, tree), function(x) {
+        height <- node.depth.edgelength(tree)[x] 
+      }))
+      child.branch.len <- max(sapply(.descendant.subset(child, tree), function(x) {
+        mrca.child <- max.height - node.depth.edgelength(tree)[ tree$edge[ which(tree$edge[,2] == x), 1] ]
+      }))
+      mrcax.len <- node.depth.edgelength(tree)[ tree$edge[ which(tree$edge[,2] == child), 1] ]
+      lengths[[child]] <- max.height - mrcax.len - child.branch.len
+    }
+  }
+  return(list(clades, lengths))
+}
+
+.clade.is.present <- function(clade, group) {
+  match = -1
+  for (i in 1:length(group)) {
+    if (setequal(clade, group[[i]])) { 
+      match <- i
+      break
+    }
+  }
+  return(match)
 }

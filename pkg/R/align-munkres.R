@@ -60,12 +60,12 @@ step.three <- function(step, indM, ccov, N) {
 
 ## STEP FOUR: find non-covered zeros and prime them
 # if there are zeros in a row and none of them are *starred*, /prime/ them
-# requires 3 helper functions: find.noncovered.zero(), star.in.row(), find.star.in.row()
+# requires 3 helper functions: .find.noncovered.zero(), .star.in.row(), .find.star.in.row()
 step.four <- function(step, cost, indM, rcov, ccov, rpath_0, cpath_0, N) {
   row = col <- -1
   done <- FALSE
   while (!done) {
-    search <- find.noncovered.zero(row, col, cost, rcov, ccov, N)
+    search <- .find.noncovered.zero(row, col, cost, rcov, ccov, N)
     row <- search[1]
     col <- search[2]
     if (row == -1) {
@@ -74,8 +74,8 @@ step.four <- function(step, cost, indM, rcov, ccov, rpath_0, cpath_0, N) {
     } else {
       # uncovered zero
       indM[row,col] <- 2
-      if (star.in.row(row, indM, N)) {
-        col.num <- find.star.in.row(row, col, indM, N)
+      if (.star.in.row(row, indM, N)) {
+        col.num <- .find.star.in.row(row, col, indM, N)
         # cover the row w/ *starred zero* and uncover column w/ *starred zero*
         rcov[row] <- 1
         ccov[col] <- 0
@@ -92,7 +92,7 @@ step.four <- function(step, cost, indM, rcov, ccov, rpath_0, cpath_0, N) {
 }
 
 # helper function to search for non-covered zeros
-find.noncovered.zero <- function(row, col, cost, rcov, ccov, N) {
+.find.noncovered.zero <- function(row, col, cost, rcov, ccov, N) {
   r <- 1
   done <- FALSE
   row = col <- -1
@@ -123,7 +123,7 @@ find.noncovered.zero <- function(row, col, cost, rcov, ccov, N) {
 # uncover column w/ the starred zero
 # cover row w/ the starred zero
 # two helper functions are required to do this
-star.in.row <- function(row, indM, N) {
+.star.in.row <- function(row, indM, N) {
   tmp <- FALSE
   for (c in 1:N) {
     if (indM[row,c] == 1) {
@@ -134,7 +134,7 @@ star.in.row <- function(row, indM, N) {
   return(tmp)
 }
 
-find.star.in.row <- function(row, col, indM, N) {
+.find.star.in.row <- function(row, col, indM, N) {
   col <- -1
   for (c in 1:N) {
     if (indM[row,c] == 1) {
@@ -151,7 +151,7 @@ find.star.in.row <- function(row, col, indM, N) {
 # then all /primed zeros/ are *starred*
 # all primes in the indM are erased and all rows are uncovered
 # then return to STEP THREE to cover over the columns again
-# requires 4 helper functions: find.star.in.col(), find.prime.in.row(), augment.path(), erase.primes()
+# requires 4 helper functions: ..find.star.in.col(), ..find.prime.in.row(), ..augment.path(), .erase.primes()
 step.five <- function(step, indM, rcov, ccov, path, rpath_0, cpath_0, N) {
   done <- FALSE
   row = col <- -1
@@ -159,7 +159,7 @@ step.five <- function(step, indM, rcov, ccov, path, rpath_0, cpath_0, N) {
   path[path_count-1, 1] <- rpath_0
   path[path_count-1, 2] <- cpath_0
   while (!done) {
-    row <- find.star.in.col(path[path_count-1, 2], row, indM, N)
+    row <- .find.star.in.col(path[path_count-1, 2], row, indM, N)
     if (row > -1) {
       # *starred zero* in row "row"
       path_count <- path_count + 1
@@ -171,22 +171,22 @@ step.five <- function(step, indM, rcov, ccov, path, rpath_0, cpath_0, N) {
     if (!done) {
       # if there is a *starred zero*, find a /primed zero/ in this row
       # write index to "col"
-      col <- find.prime.in.row(path[path_count-1, 1], col, inM, N)
+      col <- .find.prime.in.row(path[path_count-1, 1], col, inM, N)
       path_count <- path_count + 1
       path[path_count-1, 1] <- path[path_count-2, 1]
       path[path_count-1, 2] <- col
     }
   }
-  indM <- augment.path(path_count, indM, path)
+  indM <- .augment.path(path_count, indM, path)
   rcov <- as.vector(rep(c(0), length=length(rcov)))    # clear the covers from rows
   ccov <- as.vector(rep(c(0), length=length(ccov)))
-  indM <- erase.primes(indM, N)
+  indM <- .erase.primes(indM, N)
   step <- 3
   return(list(step, indM, rpath_0, cpath_0))
 }
 
 # helper function to find *starred zeros* in columns
-find.star.in.col <- function(col, row, indM, N) {
+.find.star.in.col <- function(col, row, indM, N) {
   row <- -1
   for (r in 1:N) {
     if (indM[r,col] == 1) {
@@ -197,7 +197,7 @@ find.star.in.col <- function(col, row, indM, N) {
 }
 
 # helper function to find a primed zero in a row
-find.prime.in.row <- function(row, col, indM, N) {
+.find.prime.in.row <- function(row, col, indM, N) {
   for (c in 1:N) {
     if (indM[row,c] == 2) {
       col <- c
@@ -207,7 +207,7 @@ find.prime.in.row <- function(row, col, indM, N) {
 }
 
 # helper function to augment the path
-augment.path <- function(path_count, indM, path) {
+.augment.path <- function(path_count, indM, path) {
   for(p in 1:(path_count-1)) {
     if (indM[ path[p,1], path[p,2] ] == 1) {
       indM[ path[p,1], path[p,2] ] <- 0  
@@ -219,7 +219,7 @@ augment.path <- function(path_count, indM, path) {
 }
 
 # helper function to erase /primed zeros/ from indM
-erase.primes <- function(indM, N) {
+.erase.primes <- function(indM, N) {
   for (r in 1:N) {
     for (c in 1:N) {
       if (indM[r,c] == 2) {
@@ -233,10 +233,10 @@ erase.primes <- function(indM, N) {
 
 # STEP SIX: take cover vectors 'rcov' and 'ccov' and look into uncovered region of cost matrix for smallest value
 # subtract this value from each element in an uncovered column and add it to each element in a covered row
-# requires 1 helper function: find.smallest()
+# requires 1 helper function: ..find.smallest()
 step.six <- function(step, cost, rcov, ccov, N) {
   minval <- .Machine$double.xmax
-  smallest <- find.smallest(minval, cost, rcov, ccov, N)
+  smallest <- .find.smallest(minval, cost, rcov, ccov, N)
   for (r in 1:N) {
     for (c in 1:N) {
       if (rcov[r] == 1) {
@@ -252,7 +252,7 @@ step.six <- function(step, cost, rcov, ccov, N) {
 }
 
 # helper function searches for smallest value in uncovered region of the cost matrix
-find.smallest <- function(minval, cost, rcov, ccov, N) {
+.find.smallest <- function(minval, cost, rcov, ccov, N) {
   for (r in 1:N) {
     for (c in 1:N) {
       if (rcov[r] == 0 && ccov[c] == 0) {
