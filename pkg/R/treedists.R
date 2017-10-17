@@ -413,30 +413,23 @@ Sim <- function(tree1, tree2){
   return(distance)
 }
 
-
 .find.clades.and.lengths <- function(tree) {
   clades <- list()
   lengths <- list()
   
   # performs on all tips and nodes except for the root
   for (child in 1:(length(tree$tip.label)*2-1)) {
+    subsetList <- vector()
     if (child <= length(tree$tip.label)) {
       clades[[child]] <- tree$tip.label[child]
-      max.height <- node.depth.edgelength(tree)[child]
-      child.branch.len <- max.height - node.depth.edgelength(tree)[ tree$edge[ which(tree$edge[,2] == child), 1] ]
-      lengths[[child]] <- child.branch.len
     } else {
       indices <- .descendant.subset(child, tree)
       clades[[child]] <- sapply(indices, function(x) {tree$tip.label[x]})
-      max.height <- max(sapply(.descendant.subset(child, tree), function(x) {
-        height <- node.depth.edgelength(tree)[x] 
-      }))
-      child.branch.len <- max(sapply(.descendant.subset(child, tree), function(x) {
-        mrca.child <- max.height - node.depth.edgelength(tree)[ tree$edge[ which(tree$edge[,2] == x), 1] ]
-      }))
-      mrcax.len <- node.depth.edgelength(tree)[ tree$edge[ which(tree$edge[,2] == child), 1] ]
-      lengths[[child]] <- max.height - mrcax.len - child.branch.len
     }
+    total.height <- node.depth.edgelength(tree)[child]
+    parent <- tree$edge[ which(tree$edge[,2] == child), 1]
+    parent.branch.len <- node.depth.edgelength(tree)[parent]
+    lengths[[child]] <- total.height - parent.branch.len
   }
   return(list(clades, lengths))
 }
