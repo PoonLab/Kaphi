@@ -10,7 +10,7 @@
 # RFL (Robinson & Flouds, 1979; Kuhner & Felsenstein, 1994)
 # - KF.dist in phangorn.
 
-# Path Distance Metric (Penny et al., 1982)
+# Path Distance Metric (Steel & Penny, 1993)
 # - path.dist in phangorn.
 
 # Trip (Critchlow et al., 1996)
@@ -194,7 +194,7 @@ MAST <- function(tree1, tree2) {
   # recursively calculate mast score and store into matrix
   for (node1 in 1:numnodes) {
     for (node2 in 1:numnodes) {
-      vals[node1,node2] <- .r.mast(node1, node2, tree1, tree2)
+      vals[node1,node2] <- .r.mast(node1, node2, tree1, tree2, vals)
     }
   }
   
@@ -206,7 +206,7 @@ MAST <- function(tree1, tree2) {
 
 
 ## calculates mast score for given subtrees from tree1 and tree2 and returns value to be stored into matrix
-.r.mast <- function(a, w, treea, treew) {
+.r.mast <- function(a, w, treea, treew, vals) {
   # narrow down towards the tips present in subtree 'rooted' with node 'a' and subtree 'rooted' at node 'w'
   vector.a <- vector()
   vector.w <- vector()
@@ -245,16 +245,16 @@ MAST <- function(tree1, tree2) {
     x <- min(children.w)                     # left child of node 'w'
     y <- max(children.w)                     # right child of node 'w'
     
-    step1 <- .r.mast(b,x,treea,treew) + .r.mast(c,y,treea,treew)
-    step2 <- .r.mast(b,y,treea,treew) + .r.mast(c,x,treea,treew)
-    step3 <- .r.mast(a,x,treea,treew)
-    step4 <- .r.mast(a,y,treea,treew)
-    step5 <- .r.mast(b,w,treea,treew)
-    step6 <- .r.mast(c,w,treea,treew)
+    step1 <- .r.mast(b,x,treea,treew, vals) + .r.mast(c,y,treea,treew, vals)
+    step2 <- .r.mast(b,y,treea,treew, vals) + .r.mast(c,x,treea,treew, vals)
+    step3 <- .r.mast(a,x,treea,treew, vals)
+    step4 <- .r.mast(a,y,treea,treew, vals)
+    step5 <- .r.mast(b,w,treea,treew, vals)
+    step6 <- .r.mast(c,w,treea,treew, vals)
     results <- c(step1, step2, step3, step4, step5, step6)
     
-    vals[a,w] <- max(results)
-    return (vals[a,w])
+    val <- max(results)
+    return (val)
   }
 }
 
@@ -291,7 +291,7 @@ Align <- function(tree1, tree2) {
   for (i in t1.internals) {
     for (j in t2.internals) {
        
-      t1.left <- ..descendant.subset(i, tree1)                # arbitrarily calling the descendants of the edge the left partition
+      t1.left <- .descendant.subset(i, tree1)                # arbitrarily calling the descendants of the edge the left partition
       t1.right <- setdiff( c(1:(numtips)), t1.left)
     
       t2.left <- .descendant.subset(j, tree2)
@@ -443,4 +443,64 @@ Sim <- function(tree1, tree2){
     }
   }
   return(match)
+}
+
+
+
+
+##-------------------------------------------------------------------------------------------------------------
+# Path (Penny et al. 1982)
+Node.dist <- function(tree1, tree2, k=1) {
+  # count the tips
+  numtips <- length(tree1$tip.label)
+  if (numtips != length(tree2$tip.label)) { stop("Tree 1 and Tree 2 must be the same size to be able to compute the Node distance") }
+  t1.internals <- (numtips+2) : (numtips*2 - 1)   # (numtips + 1) = root, skipped in kuhner & yamato
+  t2.internals <- t1.internals
+  
+  # set up 3D array for storage (leaves x leaves x tree)
+  vals <- array(dim=c(2, numtips, numtips))
+  
+  # for each pair of tips, compare their lists and count non-shared members
+  index <- 1
+  for (tree in c(tree1, tree2)) {
+    for (leaf1 in 1:numtips) {
+      for (leaf2 in 1:numtips) {
+        if (tree$tip.label[leaf1] == tree$tip.label[leaf2]) {
+          vals[index, leaf1, leaf2] <- 0
+        } else {
+          annotList <- vector()
+          leaf1.parents <- .find.ancestors(leaf1, tree, annotList)
+          leaf2.parents <- .find.ancestors(leaf2, tree, annotList)
+          nodepath.len <- length(setdiff(leaf1.parents, leaf2.parents)) + length(setdiff(leaf2.parents, leaf1.parents)) + 1     # common ancestor is always counted
+          vals[index, leaf1, leaf2] <- nodepath.len
+        }
+      }
+    }
+    index <- index + 1
+  }
+  
+  # subtract treeA and treeB results and sum
+  total <- 0
+  count <- 0
+  for (i in 1:numtips) {
+    for (j in 1:numtips) {
+      count <- count + 1
+      total <- total + abs(vals[1, i, j] - vals[2, i, j]) ^ k    # power of k
+    }
+  }
+  
+  distance <- total / as.numeric(count)
+  return(distance)
+  
+}
+
+.find.ancestors <- function(node, tree, annotList) {
+  if (node == length(tree$tip.label) + 1) {
+    return(annotList)
+  }
+  parent <- tree$edge[ which(tree$edge[,2] == node), 1]
+  annotList <- append(annotList, parent)
+  ancestors <- .find.ancestors(parent, tree, annotList)
+  
+  return(unique(ancestors))
 }

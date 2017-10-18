@@ -53,6 +53,13 @@ export(.resample.particles)
 export(.perturb.particles)
 export(run.smc)
 
+export(Trip)
+export(TripL)
+export(MAST)
+export(Align)
+export(Sim)
+export(Node.dist)
+
 export(const.coalescent)
 export(compartmental.model)
 export(speciation.model)
