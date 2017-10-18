@@ -278,7 +278,6 @@ MAST <- function(tree1, tree2) {
 # Align (Nye et al., 2006)
 Align <- function(tree1, tree2) {
   # make 2D array of Nye distances and find shortest path through them
-  # count the tips
   numtips <- length(tree1$tip.label)
   if (numtips != length(tree2$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to compute Align metric.') }
   t1.internals <- (numtips+2) : (numtips*2 - 1)   # (numtips + 1) = root, skipped in kuhner & yamato
@@ -413,6 +412,12 @@ Sim <- function(tree1, tree2){
   return(distance)
 }
 
+## helper function for Sim()
+# takes a tree a constructs a list holding all possible clades and associating branch lengths for each tip and node in the tree
+# @param tree = given tree to construct the clade and lengths data structure for
+# @return list(clades, length)
+#     * clades = clade associated with each tip and node in the tree stored in the tip/node's respective index
+#     * lengths = branch length associated with each tip and node in the tree stored in the tip/node's respective index
 .find.clades.and.lengths <- function(tree) {
   clades <- list()
   lengths <- list()
@@ -434,6 +439,11 @@ Sim <- function(tree1, tree2){
   return(list(clades, lengths))
 }
 
+## helper function for Sim()
+# determines if a given clade is present in a list of clades
+# @param clade = single clade to be compared with given group
+# @param group = list of clades to be compared with a single clade
+# @return match = integer of the index in list group where matching clade is found, and returns -1 otherwise
 .clade.is.present <- function(clade, group) {
   match = -1
   for (i in 1:length(group)) {
@@ -449,9 +459,14 @@ Sim <- function(tree1, tree2){
 
 
 ##-------------------------------------------------------------------------------------------------------------
-# Path (Penny et al. 1982)
+## Node distance metric derived from Williams and Clifford (1971) for k=1 AND/OR Path Distance Metric from Penny et al. (1982) for k=2
+# considers each possible pair of tips in turn and counts number of nodes traversed in minimal path from tip A to tip B in a tree
+# distance between tree 1 and tree 2 is the sum of the differences in minimal path lengths
+# @param tree1 = tree of class 'phylo'
+# @param tree2 = tree of class 'phylo'
+# @param k = the differences in minimal path lengths will be raised to the power of this integer before summing
+# @return distance = sum of the idfferences in minimal path lengths between tree 1 and tree 2
 Node.dist <- function(tree1, tree2, k=1) {
-  # count the tips
   numtips <- length(tree1$tip.label)
   if (numtips != length(tree2$tip.label)) { stop("Tree 1 and Tree 2 must be the same size to be able to compute the Node distance") }
   t1.internals <- (numtips+2) : (numtips*2 - 1)   # (numtips + 1) = root, skipped in kuhner & yamato
@@ -491,16 +506,16 @@ Node.dist <- function(tree1, tree2, k=1) {
   
   distance <- total / as.numeric(count)
   return(distance)
-  
 }
 
-.find.ancestors <- function(node, tree, annotList) {
-  if (node == length(tree$tip.label) + 1) {
-    return(annotList)
-  }
-  parent <- tree$edge[ which(tree$edge[,2] == node), 1]
+## helper function for Node.dist()
+# @param leaf = tip of the given tree
+# @param tree = specified tree to find parents of given leaf
+# @param annotList = empty vector to be populated with all parents of the leaf
+# @return ancestors = vector of all the ancestors of the given leaf
+.find.ancestors <- function(leaf, tree, annotList) {
+  parent <- tree$edge[ which(tree$edge[,2] == leaf), 1]
   annotList <- append(annotList, parent)
   ancestors <- .find.ancestors(parent, tree, annotList)
-  
   return(unique(ancestors))
 }
