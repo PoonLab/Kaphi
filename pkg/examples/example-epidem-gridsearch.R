@@ -24,41 +24,22 @@ grid.params <- list('t.end'=t.end, 'N'=N, 'beta'=beta, 'gamma'=gamma, 'phi'=phi)
 grid <- array(dim=c(length(t.end), length(N), length(beta), length(gamma), length(phi)), dimnames=list(t.end,N,beta,gamma,phi))
 all.combns <- expand.grid(grid.params)
 
-for (param1 in names(grid.params)) {
-  for (param2 in names(grid.params)) {
-    if (param1 != param2) {
-      for (i in grid.params[[param1]]) {
-      
-        res <- sapply(grid.params[[param2]], function(j) {
-          new.theta <- .modify.theta(theta, param1, i, param2, j)
-          sim.trees <- epidem.model(new.theta, nsim=5, tips=100, model='epidemic')
-          dists <- sapply(sim.trees, function(st) {
-            pt <- .preprocess.tree(st, config)
-            distance(obs.tree, pt, config)
-            
-          if (param1 == 't.end' && param2 == 'N') {
-            grid[i, j, ]
-          }
-          
-          })
-          
-          
-        })
-      }
-    }
-  }
-}
-
-
-.modify.theta <- function(theta, param1, i, param2, j) {
-  new.theta <-sapply(names(theta), function(x) {
-    if (param1 == x) {
-      theta[[x]] <- i
-    } else if (param2 == x) {
-      theta[[x]] <- j
-    } else {
-      theta[[x]] <- theta[[x]]
-    }
+sapply(1:nrow(all.combns), function(x) {
+  theta <- all.combns[x,]
+  sim.trees <- epidem.model(theta, nsim=5, tips=100, model='epidemic', tsample=0.1)
+  dists <- sapply(sim.trees, function(st) {
+    pt <- .preprocess.tree(st, config)
+    distance(obs.tree, pt, config)
   })
-  return(new.theta)
-}
+  # populate the index in the matrix
+  ind1 <- which(t.end == theta$t.end)
+  ind2 <- which(N == theta$N)
+  ind3 <- which(beta == theta$beta)
+  ind4 <- which(gamma == theta$gamma)
+  ind5 <- which(phi == theta$phi)
+  cat("Populating index: [", theta$t.end, ',', theta$N, ',', theta$beta, ',', theta$gamma, ',', theta$phi, '] with', mean(dists), '\n')
+  cat("Indices and values: [ind1=", ind1, 'ind2=', ind2, 'ind3=', ind3, 'ind4=', ind4, 'ind5=', ind5, '\n\n')
+  grid[ind1, ind2, ind3, ind4, ind5] <- mean(dists)
+})
+
+
