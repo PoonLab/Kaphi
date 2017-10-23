@@ -187,13 +187,17 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   colnames(sampleStates) <- demes
   rownames(sampleStates) <- 1:tips$n.tips
 
-  
+  dummy.tree <- read.tree(text='(1:0.1,1:0.1):0;')
   # calculates numerical solution of ODE system and returns simulated trees
   # incorporate number of simulations
-  trees <- replicate(nsim, # num of simulations
+  tryCatch({
+    trees <- replicate(nsim, # num of simulations
                      .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, migrations=NA, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod),
                      simplify=FALSE
                      )
+  }, error=function(e) {
+    trees <- replicate(nsim, dummy.tree)
+  })
   
   # cast result as a multiPhylo object
   class(trees) <- "multiPhylo"
