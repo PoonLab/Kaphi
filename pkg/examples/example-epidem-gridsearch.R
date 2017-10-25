@@ -44,3 +44,28 @@ for(x in 1:nrow(all.combns)) {
 }
 
 
+# if R session aborts when attempting to visualize scatter plot, save the data into a file and re-import
+require(reshape2)
+run3 <- grid
+melted <- melt(run3)
+write.csv(file='~/Documents/gridsearch.run3.csv')
+
+data <- read.table('~/Documents/gridsearch.run3.csv', sep=',')
+
+t.end <- seq(0.1, 1.5, 0.2)
+N <- seq(7000, 14000, 1000)
+beta <- seq(0.2, 3.2, 0.4)
+gamma <- seq(2.8, 5.6, 0.4)
+phi <- seq(2.2, 5.0, 0.4)
+grid.params <- list('t.end'=t.end, 'N'=N, 'beta'=beta, 'gamma'=gamma, 'phi'=phi)
+grid <- array(dim=c(length(t.end), length(N), length(beta), length(gamma), length(phi)), dimnames=list(t.end,N,beta,gamma,phi))
+
+for (i in 1:length(rownames(data))) {
+  params <- data[i,]
+  ind1 <- which(as.character(t.end) == as.character(params$Var1))
+  ind2 <- which(as.character(N) == as.character(params$Var2))
+  ind3 <- which(as.character(beta) == as.character(params$Var3))
+  ind4 <- which(as.character(gamma) == as.character(params$Var4))
+  ind5 <- which(as.character(phi) == as.character(params$Var5))
+  grid[ind1, ind2, ind3, ind4, ind5] <- params$value
+}
