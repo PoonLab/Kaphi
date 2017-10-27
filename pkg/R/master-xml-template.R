@@ -124,22 +124,21 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   
   ## error-catching for twigs and stumps
   # creating a dummy tree: something that will spike the particle out of the next iteration
-  dummy.tree <- read.tree(text='(1:0.1,1:0.1):0;')
+  dummy.tree <- read.tree(text='(1:0.1,2:0.1):0;')
   
   # twig case
   txtlines <- readLines(con=tree.file)
   trees <- list()
   treenum <- 1
   for (tree in txtlines) {
-    dummy.tree <- read.tree(text='(1:0.1,1:0.1):0;')
-    tryCatch({
-      trees[[treenum]] <- read.tree(text=tree)
+    new.tree<- tryCatch({
+      update <- read.tree(text=tree)
       }, error = function(e) {
-        cat('Tree incorrectly parsed. Adding in a dummy tree.\n')
-        trees[[treenum]] <- dummy.tree
-      }, finally = {
-        treenum <- treenum + 1
+        message('Tree incorrectly parsed. Adding in a dummy tree.\n')
+        update <- dummy.tree
     })
+    trees[[treenum]] <- new.tree
+    treenum <- treenum + 1
   }
   unlink(c(tempname, tree.file))
   
