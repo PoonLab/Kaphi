@@ -131,6 +131,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   trees <- list()
   treenum <- 1
   for (tree in txtlines) {
+    dummy.tree <- read.tree(text='(1:0.1,1:0.1):0;')
     tryCatch({
       trees[[treenum]] <- read.tree(text=tree)
       }, error = function(e) {

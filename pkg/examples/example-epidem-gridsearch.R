@@ -7,16 +7,16 @@ config <- load.config('pkg/examples/example-epidem.yaml')
 config <- set.model(config, 'epidemic')
 
 # simulate target tree
-theta <- c(t.end=0.2, N=10000, beta=1, gamma=5, phi=3)
+theta <- c(t.end=30, N=1000, beta=0.001, gamma=0.3, phi=0.15)
 #set.seed(50)
-obs.tree <- epidem.model(theta, nsim=1, tips=100, model='epidemic', tsample=0.1, seed=50)[[1]]
+obs.tree <- epidem.model(theta, nsim=1, tips=100, model='epidemic', tsample=20, seed=50)[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
-t.end <- seq(0.1, 1.5, 0.2)
-N <- seq(7000, 14000, 1000)
-beta <- seq(0.2, 3.2, 0.4)
-gamma <- seq(2.8, 5.6, 0.4)
-phi <- seq(2.2, 5.0, 0.4)
+t.end <- seq(20, 55, 5)
+N <- seq(700, 1400, 100)
+beta <- seq(0.0005, 0.004, 0.0005)
+gamma <- seq(0.1, 0.8, 0.1)
+phi <- seq(0.05, 0.4, 0.05)
 
 grid.params <- list('t.end'=t.end, 'N'=N, 'beta'=beta, 'gamma'=gamma, 'phi'=phi)
 
@@ -26,7 +26,7 @@ all.combns <- expand.grid(grid.params)
 
 for(x in 1:nrow(all.combns)) {
   theta <- all.combns[x,]
-  sim.trees <- epidem.model(theta, nsim=5, tips=100, model='epidemic', tsample=0.1)
+  sim.trees <- epidem.model(theta, nsim=5, tips=100, model='epidemic', tsample=20)
   dists <- sapply(sim.trees, function(st) {
     pt <- .preprocess.tree(st, config)
     distance(obs.tree, pt, config)
@@ -48,24 +48,25 @@ for(x in 1:nrow(all.combns)) {
 require(reshape2)
 run3 <- grid
 melted <- melt(run3)
-write.csv(file='~/Documents/gridsearch.run3.csv')
+write.csv(melted, file='~/Documents/gridsearch.run4.csv')
 
-data <- read.table('~/Documents/gridsearch.run3.csv', sep=',')
+#data <- read.table('~/Documents/gridsearch.run3.csv', sep=',')
 
-t.end <- seq(0.1, 1.5, 0.2)
-N <- seq(7000, 14000, 1000)
-beta <- seq(0.2, 3.2, 0.4)
-gamma <- seq(2.8, 5.6, 0.4)
-phi <- seq(2.2, 5.0, 0.4)
-grid.params <- list('t.end'=t.end, 'N'=N, 'beta'=beta, 'gamma'=gamma, 'phi'=phi)
-grid <- array(dim=c(length(t.end), length(N), length(beta), length(gamma), length(phi)), dimnames=list(t.end,N,beta,gamma,phi))
+#t.end <- seq(0.1, 1.5, 0.2)
+#N <- seq(7000, 14000, 1000)
+#beta <- seq(0.2, 3.2, 0.4)
+#gamma <- seq(2.8, 5.6, 0.4)
+#phi <- seq(2.2, 5.0, 0.4)
+#grid.params <- list('t.end'=t.end, 'N'=N, 'beta'=beta, 'gamma'=gamma, 'phi'=phi)
+#grid <- array(dim=c(length(t.end), length(N), length(beta), length(gamma), length(phi)), dimnames=list(t.end,N,beta,gamma,phi))
 
-for (i in 1:length(rownames(data))) {
-  params <- data[i,]
-  ind1 <- which(as.character(t.end) == as.character(params$Var1))
-  ind2 <- which(as.character(N) == as.character(params$Var2))
-  ind3 <- which(as.character(beta) == as.character(params$Var3))
-  ind4 <- which(as.character(gamma) == as.character(params$Var4))
-  ind5 <- which(as.character(phi) == as.character(params$Var5))
-  grid[ind1, ind2, ind3, ind4, ind5] <- params$value
-}
+#for (i in 1:length(rownames(data))) {
+#  params <- data[i,]
+#  ind1 <- which(as.character(t.end) == as.character(params$Var1))
+#  ind2 <- which(as.character(N) == as.character(params$Var2))
+#  ind3 <- which(as.character(beta) == as.character(params$Var3))
+#  ind4 <- which(as.character(gamma) == as.character(params$Var4))
+#  ind5 <- which(as.character(phi) == as.character(params$Var5))
+#  grid[ind1, ind2, ind3, ind4, ind5] <- params$value
+#}
+

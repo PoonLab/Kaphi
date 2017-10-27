@@ -27,7 +27,7 @@ all.combns <- expand.grid(grid.params)
 
 for(x in 1:nrow(all.combns)) {
   theta <- all.combns[x,]
-  sim.trees <- compartmental.model(theta, nsim=5, tips=100, model='sir.dynamic')
+  sim.trees <- compartmental.model(theta, nsim=5, tips=100, model='sir.dynamic', fgyResolution=1000)
   dists <- sapply(sim.trees, function(st) {
     pt <- .preprocess.tree(st, config)
     distance(obs.tree, pt, config)
@@ -37,9 +37,15 @@ for(x in 1:nrow(all.combns)) {
   ind2 <- which(N == theta$N)
   ind3 <- which(beta == theta$beta)
   ind4 <- which(gamma == theta$gamma)
-  ind5 <- which(phi == theta$phi)
-  cat("Populating index: [", theta$t.end, ',', theta$N, ',', theta$beta, ',', theta$gamma, ',', theta$phi, '] with', mean(dists), '\n')
-  cat("Indices and values: [ind1=", ind1, 'ind2=', ind2, 'ind3=', ind3, 'ind4=', ind4, 'ind5=', ind5, '\n\n')
-  grid[ind1, ind2, ind3, ind4, ind5] <- mean(dists)
+  ind5 <- which(mu == theta$mu)
+  ind6 <- 1
+  cat("Populating index: [", theta$t.end, ',', theta$N, ',', theta$beta, ',', theta$gamma, ',', theta$mu, ',', theta$alpha, '] with', mean(dists), '\n')
+  cat("Indices and values: [ind1=", ind1, 'ind2=', ind2, 'ind3=', ind3, 'ind4=', ind4, 'ind5=', ind5, 'ind6=', ind6, '\n\n')
+  grid[ind1, ind2, ind3, ind4, ind5, ind6] <- mean(dists)
   grid
 }
+
+require(reshape2)
+run.copy <- grid
+melted <- melt(run.copy)
+write.csv(melted, file='~/Documents/gridsearch.run1.compart.csv')
