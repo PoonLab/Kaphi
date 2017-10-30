@@ -7,7 +7,7 @@ config <- set.model(config, 'epidemic')
 # simulate target tree
 theta <- c(t.end=0.2, N=10000, beta=1, gamma=5, phi=5)
 set.seed(50)
-obs.tree <- epidem.model(theta, nsim=1, tips=100, model='epidemic', tsample=0.1, seed=50)[[1]]
+obs.tree <- epidem.model(theta, nsim=1, tips=100, model='epidemic', seed=50)[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
 
 
@@ -15,7 +15,7 @@ obs.tree <- parse.input.tree(obs.tree, config)
 
 # initialize workspace
 ws <- init.workspace(obs.tree, config)
-result <- run.smc(ws, trace.file='pkg/examples/example-epidem.tsv', nthreads=1, model="epidemic", tsample=0.1, seed=NA, verbose=TRUE)   
+result <- run.smc(ws, trace.file='pkg/examples/example-epidem.tsv', nthreads=1, model="epidemic", seed=NA, verbose=TRUE)   
 
 
 
@@ -25,7 +25,7 @@ result <- run.smc(ws, trace.file='pkg/examples/example-epidem.tsv', nthreads=1, 
 y <- seq(0.5,1.5, 0.1)    # (from, to, step)
 resy <- sapply(y, function(value) {
   theta <- c(t.end=0.2, N=10000, beta=value, gamma=5, phi=5)                                  ###
-  sim.trees <- epidem.model(theta, nsim=100, tips=100, model='epidemic', tsample=0.1)
+  sim.trees <- epidem.model(theta, nsim=100, tips=100, model='epidemic')
   distances <- sapply(sim.trees, function(singletree) {
     processtree <- .preprocess.tree(singletree, config)
     distance(obs.tree, processtree, config)

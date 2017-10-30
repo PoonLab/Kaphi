@@ -14,7 +14,7 @@
 # along with Kaphi.  If not, see <http://www.gnu.org/licenses/>.
 
 
-epidem.model <- function(theta, nsim, tips, tsample, model='epidemic', seed=NA, labels=NA) {
+epidem.model <- function(theta, nsim, tips, model='epidemic', seed=NA, labels=NA) {
   th.args <- names(theta)
   if (length(th.args) < 5 || any(!is.element(c('t.end', 'N', 'beta', 'gamma', 'phi'), th.args))) {
     stop("'theta' does not hold Kaphi-compatible parameters")
@@ -25,14 +25,14 @@ epidem.model <- function(theta, nsim, tips, tsample, model='epidemic', seed=NA, 
   ntips <- .parse.tips(tips)                   # function is written in smcConfig.R
   if (!is.na(seed)) { set.seed(seed) }
   
-  res.trees <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed, tsample=tsample)
+  res.trees <- .call.master(theta=theta, nsim=nsim, tips=tips, seed=seed)
   return(res.trees)
 }
 attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConfig.R set.model() function
 
 
 
-.call.master <- function(theta, nsim, tips, seed=NA, tsample) {
+.call.master <- function(theta, nsim, tips, seed=NA) {
   require(whisker, quietly=TRUE)
   tree.file <- tempfile(pattern='temp', fileext='.newick') 
   
@@ -45,7 +45,6 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                seed = as.character(seed),
                nsample = as.character(nsim),
                ntips = as.character(tips),
-               tsampl = as.character(tsample),
                tempNewick = tree.file         
                )
   # current problem is tempfile() is relative path (ie. '/tmp/RtmpNhrcQi/temp34e847bc77fa.newick')
@@ -98,7 +97,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
                 <lineageEndCondition spec='LineageEndCondition' population='@I' nLineages='0' isRejection='true'>
                 </lineageEndCondition>
                
-                <inheritancePostProcessor spec='LineageSampler' samplingTime='{{ tsampl }}'>
+                <inheritancePostProcessor spec='LineageSampler' samplingTime='{{ tend }}'>
                   <populationSize spec='PopulationSize' population='@I_sample' size='{{ ntips }}'/>
                 </inheritancePostProcessor>
             

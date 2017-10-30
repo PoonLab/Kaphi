@@ -25,7 +25,7 @@ resize.amount <- 100
 bisection.max.iter <- 10000
 
 
-simulate.trees <- function(workspace, theta, model, tsample=NA, seed=NA, ...) {
+simulate.trees <- function(workspace, theta, model, seed=NA, ...) {
 	# @param workspace: smc.workspace object
 	# @param theta: parameter vector
 	# @param seed: argument to set.seed()
@@ -37,7 +37,7 @@ simulate.trees <- function(workspace, theta, model, tsample=NA, seed=NA, ...) {
 		set.seed(seed)
 	}
   result <- config$model(theta=theta, nsim=config$nsample, tips=workspace$n.tips,
-                         tsample=tsample, model=model, seed=seed, labels=workspace$tip.labels, ...)
+                         model=model, seed=seed, labels=workspace$tip.labels, ...)
  
   # annotate each trees with its self-kernel score
   for (i in 1:config$nsample) {
@@ -99,7 +99,7 @@ distance <- function(x, y, config) {
 }
 
 
-initialize.smc <- function(ws, model, tsample=NA, seed=NA, ...) {
+initialize.smc <- function(ws, model, seed=NA, ...) {
   config <- ws$config
   nparams <- length(config$params)
   colnames(ws$particles) <- config$params
@@ -111,7 +111,7 @@ initialize.smc <- function(ws, model, tsample=NA, seed=NA, ...) {
     ws$weights[i] <- 1./config$nparticle
     
     # simulate trees from particle
-    ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], model=model, tsample=tsample, seed=seed, ...)
+    ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], model=model, seed=seed, ...)
     
 		# calculate kernel distances for trees
 		ws$dists[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
@@ -217,7 +217,7 @@ initialize.smc <- function(ws, model, tsample=NA, seed=NA, ...) {
 
 
 
-.perturb.particles <- function(ws, model, n.threads=1, tsample=NA, seed=NA, ...) {
+.perturb.particles <- function(ws, model, n.threads=1, seed=NA, ...) {
   ##  This implements the Metropolis-Hastings acceptance/rejection step
   ##  @param ws: workspace
   ##  @param model: reference to an R function that will simulate trees
@@ -254,7 +254,7 @@ initialize.smc <- function(ws, model, tsample=NA, seed=NA, ...) {
     
     # simulate new trees
     # retain sim.trees in case we revert to previous particle
-    new.trees <- simulate.trees(ws, new.particle, model=model, tsample=tsample, seed=seed, ...)
+    new.trees <- simulate.trees(ws, new.particle, model=model, seed=seed, ...)
     new.dists <- sapply(new.trees, function(sim.tree) {
       distance(ws$obs.tree, sim.tree, config)
     })
@@ -300,7 +300,7 @@ initialize.smc <- function(ws, model, tsample=NA, seed=NA, ...) {
 
 
 
-run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FALSE, model='', tsample=NA, ...) {
+run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FALSE, model='', ...) {
   # @param ws: workspace
 	# @param obs.tree: object of class 'phylo'
 	# @param trace.file: (optional) path to a file to write outputs
@@ -322,7 +322,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
   # draw particles from prior distribution, assign weights and simulate data
   ptm <- proc.time()  # start timer
   cat ("Initializing SMC-ABC run with", config$nparticle, "particles\n")
-  ws <- initialize.smc(ws, model, tsample=tsample, seed=seed, ...)
+  ws <- initialize.smc(ws, model, seed=seed, ...)
 
   niter <- 0
   ws$epsilon <- .Machine$double.xmax
@@ -357,7 +357,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     # perturb particles
     ws$accept <- vector()    # vector to keep track of which particles were accepted through parallelization in .perturb.particles
     ws$alive <- 0
-    ws <- .perturb.particles(ws, model, n.threads=nthreads, tsample=tsample)  # Metropolis-Hastings sampling
+    ws <- .perturb.particles(ws, model, n.threads=nthreads)  # Metropolis-Hastings sampling
     
     # record everything
     result$theta[[niter]] <- ws$particles

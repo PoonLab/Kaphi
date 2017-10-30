@@ -49,3 +49,5 @@ require(reshape2)
 run.copy <- grid
 melted <- melt(run.copy)
 write.csv(melted, file='~/Documents/gridsearch.run1.compart.csv')
+
+data <- read.table('~/Documents/Grid-search/gridsearch.run1.compart.csv', sep=',', header=TRUE)
