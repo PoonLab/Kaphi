@@ -13,7 +13,7 @@ obs.tree <- epidem.model(theta, nsim=1, tips=100, model='epidemic', seed=50)[[1]
 obs.tree <- parse.input.tree(obs.tree, config)
 
 t.end <- seq(20, 55, 5)
-N <- seq(700, 1400, 100)
+N <- seq(100, 10600, 1500)
 beta <- seq(0.0005, 0.004, 0.0005)
 gamma <- seq(0.1, 0.8, 0.1)
 phi <- seq(0.05, 0.4, 0.05)
@@ -48,10 +48,33 @@ for(x in 1:nrow(all.combns)) {
 require(reshape2)
 run3 <- grid
 melted <- melt(run3)
-write.csv(melted, file='~/Documents/Grid-search/gridsearch.run5.csv')
+write.csv(melted, file='~/Documents/Grid-search/gridsearch.run6.csv')
 
-#data <- read.table('~/Documents/Grid-search/gridsearch.run4.csv', sep=',', header=TRUE)
 
-#require(rgl)
-#open3d(device=1)
+## code for looking at grid search results from issue #120
+gr <- read.csv('~/Documents/Grid-search/gridsearch.run6.csv')
+names(gr) <- c('index', 't.end', 'N', 'beta', 'gamma', 'phi', 'distance')
+
+pairs <- combn(names(grid.params), 2)
+
+pdf(file='~/Documents/Grid-search/gridsearch.run6.pdf')
+for (i in 1:(length(pairs)/2)) {
+  param1 <- pairs[1,i]
+  param2 <- pairs[2,i]
+  z <- matrix(0, nrow=8, ncol=8)
+  for (i in 1:8) {
+    for (j in 1:8) {
+      x <- unique(gr[[param1]])[i]
+      y <- unique(gr[[param2]])[j]
+      foo <- gr$distance[gr[[param1]]==x & gr[[param2]]==y]
+      z[i,j] <- mean(sort(foo))
+    }
+  }
+
+  filled.contour(x=unique(gr[[param1]]), y=unique(gr[[param2]]), z, color.palette=terrain.colors,
+                 plot.title= title(main=paste0('Contour Plot Distances of Varying ', param1, ' and ', param2), xlab=paste0(param1), ylab=paste0(param2)),
+                 plot.axes= {axis(1); axis(2); abline(v=theta[[param1]], h=theta[[param2]])}
+                 )
+}
+dev.off()
 

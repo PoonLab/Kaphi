@@ -48,6 +48,38 @@ for(x in 1:nrow(all.combns)) {
 require(reshape2)
 run.copy <- grid
 melted <- melt(run.copy)
-write.csv(melted, file='~/Documents/gridsearch.run1.compart.csv')
+write.csv(melted, file='~/Documents/Grid-search/gridsearch.run1.compart.csv')
 
-data <- read.table('~/Documents/Grid-search/gridsearch.run1.compart.csv', sep=',', header=TRUE)
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## code for looking at grid search results from issue #120
+gr <- read.csv('~/Documents/Grid-search/gridsearch.run1.compart.csv')
+names(gr) <- c('index', 't.end', 'N', 'beta', 'gamma', 'mu', 'alpha', 'distance')
+
+pairs <- combn(names(grid.params), 2)
+
+pdf(file='~/Documents/Grid-search/gridsearch.run1.compart.pdf')
+for (i in 1:(length(pairs)/2)) {
+  param1 <- pairs[1,i]
+  param2 <- pairs[2,i]
+  if (param1 != 'alpha' && param2 != 'alpha') {
+    z <- matrix(0, nrow=8, ncol=8)
+    for (i in 1:8) {
+      for (j in 1:8) {
+        x <- unique(gr[[param1]])[i]
+        y <- unique(gr[[param2]])[j]
+        foo <- gr$distance[gr[[param1]]==x & gr[[param2]]==y]
+        z[i,j] <- mean(sort(foo))
+      }
+    }
+    
+    filled.contour(x=unique(gr[[param1]]), y=unique(gr[[param2]]), z, color.palette=terrain.colors,
+                   plot.title= title(main=paste0('Contour Plot Distances of Varying ', param1, ' and ', param2), xlab=paste0(param1), ylab=paste0(param2)),
+                   plot.axes= {axis(1); axis(2); abline(v=theta[[param1]], h=theta[[param2]])}
+    )
+  }
+}
+dev.off()
+
+
+
+
