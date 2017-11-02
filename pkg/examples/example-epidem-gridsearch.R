@@ -48,16 +48,16 @@ for(x in 1:nrow(all.combns)) {
 require(reshape2)
 run3 <- grid
 melted <- melt(run3)
-write.csv(melted, file='~/Documents/Grid-search/gridsearch.run6.csv')
+write.csv(melted, file='~/Documents/Grid-search/gridsearch.run7.csv')
 
 
 ## code for looking at grid search results from issue #120
-gr <- read.csv('~/Documents/Grid-search/gridsearch.run6.csv')
+gr <- read.csv('~/Documents/Grid-search/gridsearch.run7.csv')
 names(gr) <- c('index', 't.end', 'N', 'beta', 'gamma', 'phi', 'distance')
 
 pairs <- combn(names(grid.params), 2)
 
-pdf(file='~/Documents/Grid-search/gridsearch.run6.pdf')
+pdf(file='~/Documents/Grid-search/gridsearch.run7.pdf')
 for (i in 1:(length(pairs)/2)) {
   param1 <- pairs[1,i]
   param2 <- pairs[2,i]
@@ -67,7 +67,7 @@ for (i in 1:(length(pairs)/2)) {
       x <- unique(gr[[param1]])[i]
       y <- unique(gr[[param2]])[j]
       foo <- gr$distance[gr[[param1]]==x & gr[[param2]]==y]
-      z[i,j] <- mean(sort(foo))
+      z[i,j] <- mean(sort(foo)[1:200])
     }
   }
 
