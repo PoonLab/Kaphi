@@ -5,7 +5,7 @@ config <- load.config('pkg/examples/example-epidem.yaml')
 config <- set.model(config, 'epidemic')
 
 # simulate target tree
-theta <- c(t.end=30, N=1000, beta=0.001, gamma=0.3, phi=0.15)
+theta <- c(t.end=20, N=1000, beta=0.001, gamma=0.3, phi=0.15)
 #set.seed(50)
 obs.tree <- epidem.model(theta, nsim=1, tips=100, model='epidemic', seed=50)[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)

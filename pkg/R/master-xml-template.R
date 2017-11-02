@@ -116,11 +116,6 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   system2('java', args=c('-jar ../MASTER-5.1.1/MASTER-5.1.1.jar', paste0(tempname)), stdout=F, stderr=F ) #, stdout=F, stderr=F
   
   
-  #if (!file.exists(tree.file)) {
-    # should re-simulate trees
-   # return(0)
-  #}
-  
   ## error-catching for twigs and stumps
   # creating a dummy tree: something that will spike the particle out of the next iteration
   dummy.tree <- read.tree(text='(1:0.1,2:0.1):0;')
