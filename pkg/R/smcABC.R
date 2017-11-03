@@ -38,7 +38,7 @@ simulate.trees <- function(workspace, theta, model, seed=NA, ...) {
 	}
   result <- config$model(theta=theta, nsim=config$nsample, tips=workspace$n.tips,
                          model=model, seed=seed, labels=workspace$tip.labels, ...)
- 
+  
   # annotate each trees with its self-kernel score
   for (i in 1:config$nsample) {
     result[[i]] <- .preprocess.tree(result[[i]], config)

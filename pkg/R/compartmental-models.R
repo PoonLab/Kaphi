@@ -129,26 +129,26 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
     migrations <- rbind(c('0'))      #in rcolgem manual say this should be omitted if there is only one deme
     deaths <- rbind(c('parms$gamma * I'))
     nonDemeDynamics <- c('-parms$beta * S * I / (S+I) + parms$gamma * I')
-  }
+  
   
   # SIR model w/ vital dynamics and constant population
-  else if (identical(tolower(model), 'sir.dynamic')) {
+  } else if (identical(tolower(model), 'sir.dynamic')) {
     births <- rbind(c('parms$beta * S * I / (S+I)'))
     migrations <- rbind(c('0'))
     deaths <- rbind(c('(parms$gamma + parms$mu) * I'))          # removed from the population
     nonDemeDynamics <- rbind(c('(parms$gamma + parms$mu) * I - parms$beta * S * I / (S+I)'))
-  }
+  
   
   # SIS model w/ births and deaths
-  else if (identical(tolower(model), 'sis')) {
+  } else if (identical(tolower(model), 'sis')) {
     births <- rbind(c('parms$beta * S * I / (S+I)'))
     migrations <- rbind(c('parms$gamma * I'))       # migrating out of I compartment, but back into S compartment
     deaths <- rbind(c('0'))
     nonDemeDynamics <- rbind(c('-parms$beta * S * I / (S+I)'))
-  }
+  
   
   # SEIR model, assuming presence of vital dynamics w/ birth rate equal to death rate
-  else if (identical(tolower(model), 'seir')) {
+  } else if (identical(tolower(model), 'seir')) {
     # first infected will be exposed for an incubation period, not immediately infectious
     # update sample vector to include Exposed compartment
     E <- 0
@@ -160,9 +160,9 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
     deaths <- rbind(c('parms$gamma * I'))
     nonDemeDynamics <- paste('-parms$beta * S * I / (S+I) + parms$mu * I - parms$mu * E', '+parms$beta * S * I / (S+I) - (parms$alpha + parms$mu) * E', sep='')
     # second part of ndd is the expression for exposed individuals in incubation period
-  }
   
-  else {
+  
+  } else {
     stop ("Model is not Kaphi-compatible. Must be a character string of one of the following: 'sir.nondynamic', 'sir.dynamic', 'sis', 'seir'.")
   }
   
@@ -187,17 +187,20 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   colnames(sampleStates) <- demes
   rownames(sampleStates) <- 1:tips$n.tips
 
+  # creating a dummy tree: something that will spike the particle out of the next iteration
   dummy.tree <- read.tree(text='(1:0.1,1:0.1):0;')
+  
   # calculates numerical solution of ODE system and returns simulated trees
   # incorporate number of simulations
-  tryCatch({
-    trees <- replicate(nsim, # num of simulations
-                     .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, migrations=NA, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod),
-                     simplify=FALSE
-                     )
-  }, error=function(e) {
-    trees <- replicate(nsim, dummy.tree)
-  })
+  trees <- list()
+  for (treenum in 1:nsim) {
+    new.tree <- tryCatch({
+      update <- .call.rcolgem(x0, t0, t.end, sampleTimes, sampleStates, births, migrations=NA, deaths, nonDemeDynamics, parms, fgyResolution, integrationMethod)
+    }, error = function(e) {
+      update <- dummy.tree
+    })
+    trees[[treenum]] <- new.tree
+  }
   
   # cast result as a multiPhylo object
   class(trees) <- "multiPhylo"
