@@ -2,8 +2,8 @@ priors:
   't.end':
     dist: 'norm'
     hyperparameters:
-    - mean: 250
-    - sd: 50
+    - mean: 300
+    - sd: 100
   'N':
     dist: 'norm'
     hyperparameters:
@@ -71,9 +71,7 @@ smc:
   quality: 0.95
   step.tolerance: 1.e-5
 distances:
-  'kernel.dist':
+  'sackin':
+    package: 'Kaphi'
     weight: 1.0
-    decay.factor: 0.02
-    rbf.variance: 100.0
-    sst.control: 1.0
-    norm.mode: 'NONE'
+    use.branch.lengths: 'TRUE'
