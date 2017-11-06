@@ -15,14 +15,14 @@ obs.tree <- parse.input.tree(obs.tree, config)
 
 # initialize workspace
 ws <- init.workspace(obs.tree, config)
-result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthreads=10, model="sir.dynamic", seed=NA, verbose=TRUE)   
+result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthreads=5, model="sir.dynamic", seed=NA, verbose=TRUE)   
 
 ########################################################################################################################################################################
 
 # let's examine the contents of the trace file
 trace <- read.table('pkg/examples/example-compartmental.tsv', header=T, sep='\t')
 
-pdf(file='~/Documents/Plots/example-compartmental-widened.pdf')
+pdf(file='~/Documents/example-compartmental.RF.dist.n1000.pdf')
 
 for (param in names(theta)) {
   par(mar=c(5,5,2,2))

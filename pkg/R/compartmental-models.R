@@ -188,7 +188,7 @@ compartmental.model <- function(theta, nsim, tips, model='sir.nondynamic', seed=
   rownames(sampleStates) <- 1:tips$n.tips
 
   # creating a dummy tree: something that will spike the particle out of the next iteration
-  dummy.tree <- read.tree(text='(1:0.1,1:0.1):0;')
+  dummy.tree <- read.tree(text='((A:0.1,B:0.2):0.1,C:0.3):0;')
   
   # calculates numerical solution of ODE system and returns simulated trees
   # incorporate number of simulations

@@ -71,7 +71,6 @@ smc:
   quality: 0.95
   step.tolerance: 1.e-5
 distances:
-  'sackin':
-    package: 'Kaphi'
+  'RF.dist':
+    package: 'phangorn'
     weight: 1.0
-    use.branch.lengths: 'TRUE'

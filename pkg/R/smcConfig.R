@@ -157,6 +157,7 @@ parse.distance <- function(distance) {
                       'internal.terminal.ratio', 'cophenetic.phylo.met', 'dist.nodes.met', 'getDepths.met')
   ape.stats <- list('dist.topo')
   phyloTop.stats <- list('avgLadder', 'pitchforks')
+  phangorn.stats <- list('RF.dist', 'KF.dist', 'path.dist')
   
   # Checks the method used to specify distance expression
   if (is.character(distance)) {
@@ -183,12 +184,14 @@ parse.distance <- function(distance) {
         fn <- paste0('ape::', fn)
       } else if (is.element(fn, phyloTop.stats)) {
         fn <- paste0('phyloTop::', fn)
+      } else if (is.element(fn, phangorn.stats)) {
+        fn <- paste0('phangorn::', fn)
       } else {
         stop(paste0(fn, ' is not a valid choice of distance metric'))
       }
 
       # Put it back together
-      if (fn == 'Kaphi::kernel.dist' || fn == 'ape::dist.topo') {
+      if (fn == 'Kaphi::kernel.dist' || fn == 'ape::dist.topo' || fn == 'phangorn::RF.dist' || fn == 'phangorn::KF.dist' || fn == 'phangorn::path.dist') {
       # These two functions take in two trees instead of one.
         if (!is.na(arguments)){
           dist.call <- paste0(weight, "*", fn, '(x, y, ', arguments, ")")
@@ -226,7 +229,9 @@ parse.distance <- function(distance) {
       } else if (is.element(d.metric, ape.stats)) {
         fn <- paste0('ape::', d.metric)
       } else if (is.element(d.metric, phyloTop.stats)) {
-        fn <- paste0('ape::', d.metric)
+        fn <- paste0('phyloTop::', d.metric)
+      } else if (is.element(d.metric, phangorn.stats)) {
+        fn <- paste0('phangorn::', d.metric)
       } else {
         stop(paste0(d.metric, ' is not a valid choice of distance metric'))
       }
@@ -241,7 +246,7 @@ parse.distance <- function(distance) {
       strip.args <- sapply(arguments, function(x) {which(!grepl('weight', x) && !grepl('package', x))})
       args <- arguments[ which(strip.args == 1) ]
   
-      if (d.metric == 'kernel.dist' || d.metric == 'dist.topo') {
+      if (d.metric == 'kernel.dist' || d.metric == 'dist.topo' || d.metric == 'RF.dist' || d.metric == 'KF.dist' || d.metric == 'path.dist') {
         # These two functions take in two trees instead of one.
         dist.call <- paste0(weight, "*", fn, '(x, y, ', paste(args, collapse=', '), ')')
       } else {
