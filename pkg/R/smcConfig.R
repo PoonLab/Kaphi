@@ -159,7 +159,7 @@ parse.distance <- function(distance) {
   phyloTop.stats <- list('avgLadder', 'pitchforks')
   
   # Checks the method used to specify distance expression
-  if (length(distance)==1 && is.character(distance)) {
+  if (is.character(distance)) {
     # The user has specified the distance expression as a string (format: "weight*function(args)+...")
    
     # List of the distance metrics
@@ -237,8 +237,9 @@ parse.distance <- function(distance) {
       arguments <- lapply(seq_along(sublist), 
                           function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, 
                           y=sublist, n=names(sublist))
-      # Drop the weight argument
-      args <- arguments[2:length(arguments)]
+      # strip out weight and package arguments
+      strip.args <- sapply(arguments, function(x) {which(!grepl('weight', x) && !grepl('package', x))})
+      args <- arguments[ which(strip.args == 1) ]
   
       if (d.metric == 'kernel.dist' || d.metric == 'dist.topo') {
         # These two functions take in two trees instead of one.
