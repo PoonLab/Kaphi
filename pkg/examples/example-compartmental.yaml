@@ -8,22 +8,22 @@ priors:
     dist: 'norm'
     hyperparameters:
     - mean: 10000
-    - sd: 200
+    - sd: 3000
   'beta':
     dist: 'gamma'
     hyperparameters:
     - shape: 1
-    - rate: 10
+    - rate: 5
   'gamma':
     dist: 'gamma'
     hyperparameters:
     - shape: 1
-    - rate: 10
+    - rate: 2
   'mu':
     dist: 'gamma'
     hyperparameters:
     - shape: 1
-    - rate: 10
+    - rate: 2
   'alpha':
     dist: 'norm'
     hyperparameters:
@@ -71,6 +71,9 @@ smc:
   quality: 0.95
   step.tolerance: 1.e-5
 distances:
-  'RF.dist':
-    package: 'phangorn'
+  'kernel.dist':
     weight: 1.0
+    decay.factor: 0.02
+    rbf.variance: 100.0
+    sst.control: 1.0
+    norm.mode: 'NONE'

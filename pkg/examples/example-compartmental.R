@@ -5,7 +5,7 @@ config <- load.config('pkg/examples/example-compartmental.yaml')
 config <- set.model(config, 'sir.dynamic')
 
 # simulate target tree
-theta <- c(t.end=200, N=10000, beta=0.1, gamma=0.002, mu=0.0001, alpha=5)
+theta <- c(t.end=200, N=10000, beta=0.2, gamma=0.02, mu=0.01, alpha=5)
 #set.seed(50)
 obs.tree <- compartmental.model(theta, nsim=1, tips=100, model='sir.dynamic', fgyResolution=1000, seed=50)[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
@@ -15,14 +15,14 @@ obs.tree <- parse.input.tree(obs.tree, config)
 
 # initialize workspace
 ws <- init.workspace(obs.tree, config)
-result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthreads=5, model="sir.dynamic", seed=NA, verbose=TRUE)   
+result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthreads=10, model="sir.dynamic", seed=NA, verbose=TRUE)   
 
 ########################################################################################################################################################################
 
 # let's examine the contents of the trace file
 trace <- read.table('pkg/examples/example-compartmental.tsv', header=T, sep='\t')
 
-pdf(file='~/Documents/example-compartmental.RF.dist.n1000.pdf')
+pdf(file='~/Documents/example-compartmental.beta.gamma.mu.pdf')
 
 for (param in names(theta)) {
   par(mar=c(5,5,2,2))
@@ -30,7 +30,7 @@ for (param in names(theta)) {
     sapply(split(trace[[param]]*trace$weight, trace$n), sum), 
     type='o',
     xlab='Iteration', 
-    ylab=paste0('Mean', param),
+    ylab=paste0('Mean ', param),
     cex.lab=1,
     main=paste0('Trajectory of Mean ', param, ' (SIR, ', config$nparticle, ' particles)')
     #,ylim=c(0.05,0.105)
@@ -52,7 +52,7 @@ for (param in names(theta)) {
        cex.lab=1.2
   )
   
-  for (i in 1:7) {
+  for (i in 1: ( length(unique(trace$n)) %/% 10 ) ) {
     temp <- trace[trace$n==i*10,]
     lines(density(temp[[param]], weights=temp$weight), col=pal[i+1], lwd=1.5)
   }
@@ -62,11 +62,11 @@ for (param in names(theta)) {
         col='black', 
         lwd=2
   )  # final estimates
-  abline(v=0.0135, lty=3, col='red')
+  abline(v=theta[[param]], lty=3, col='red')
   
   
   # show the prior distribution
-  x <- seq(0, 2, 0.01)
+  x <- sort( replicate(1000, eval(parse(text=config$priors[[param]]))) )
   y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[[param]]))}
   lines(x, y(x), lty=5)
   

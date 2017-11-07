@@ -21,6 +21,8 @@ result <- run.smc(ws, trace.file='pkg/examples/example-epidem.tsv', nthreads=1, 
 
 trace <- read.table('pkg/examples/example-epidem.tsv', header=T, sep='\t')
 
+pdf(file='~/Documents/Plots/example-epidem.run1.pdf')
+
 for (param in names(theta)) {
   par(mar=c(5,5,2,2))
   plot(
@@ -74,3 +76,4 @@ for (param in names(theta)) {
   legend(x=1, y=10, legend=c('prior', 'n=1', 'n=10', 'n=20', 'n=30', 'n=40', 'n=50', 'n=60', 'n=70','n=71(final)', paste0('true ', param, '(', theta[[param]], ')')), lty=c(5,rep(1,9),3), col=c('black', pal, 'black', 'red'), lwd=c(1,2,rep(1.5,7),2,0.75), seg.len=2)
 }
 
+dev.off()
