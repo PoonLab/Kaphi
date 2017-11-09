@@ -150,121 +150,105 @@ load.config <- function(file) {
 }
 
 parse.distance <- function(distance) {
-
-  # Lists of accepted tree statistic functions, separated by package
-  kaphi.stats <- list('kernel.dist', 'nLTT', 'sackin', 'colless', 'cophenetic.index', 'ladder.length', 'IL.nodes', 'tree.width', 
-                      'max.delta.width', 'n.cherries', 'prop.unbalanced', 'avg.unbalance', 'pybus.gamma', 
-                      'internal.terminal.ratio', 'cophenetic.phylo.met', 'dist.nodes.met', 'getDepths.met')
-  ape.stats <- list('dist.topo')
-  phyloTop.stats <- list('avgLadder', 'pitchforks')
-  phangorn.stats <- list('RF.dist', 'KF.dist', 'path.dist')
+  # generate matrix of accepted tree statistic functions from 'metrics' list which can be added to over time without altering the rest of the function
+  # if value of 1, only one variable required in distance function call (ie. sackin(x) - sackin(y))
+  # if value of 2, two variables required in distance function call (ie. kernel.dist(x, y))
+  metrics <- list( c('Kaphi::','kernel.dist',2),      
+                   c('Kaphi::','nLTT',1), 
+                   c('Kaphi::','sackin',1), 
+                   c('Kaphi::','colless',1), 
+                   c('Kaphi::','cophenetic.index',1), 
+                   c('Kaphi::','ladder.length',1), 
+                   c('Kaphi::','IL.nodes',1), 
+                   c('Kaphi::','tree.width',1), 
+                   c('Kaphi::','max.delta.width',1), 
+                   c('Kaphi::','n.cherries',1), 
+                   c('Kaphi::','prop.unbalanced',1), 
+                   c('Kaphi::','avg.unbalance',1), 
+                   c('Kaphi::','pybus.gamma',1), 
+                   c('Kaphi::','internal.terminal.ratio',1), 
+                   c('Kaphi::','cophenetic.phylo.met',1), 
+                   c('Kaphi::','dist.nodes.met',1), 
+                   c('Kaphi::','getDepths.met',1),
+                   
+                   c('ape::','dist.topo',2),
+                   
+                   c('phyloTop::','avgLadder',1),
+                   c('phyloTop::','pitchforks',1),
+                   
+                   c('phangorn::','RF.dist',2),
+                   c('phangorn::','KF.dist',2),
+                   c('phangorn::','path.dist',2)
+                   
+                   )
+  mat <- matrix(nrow=length(stats), ncol=3, dimnames=list(NULL,c('pkg', 'metric', 'no.vars')))
+  stats <- t(sapply(seq_along(stats), function(x) {mat[x,] <- stats[[x]]}))                   # matrix of tree stats
   
   # Checks the method used to specify distance expression
-  if (is.character(distance)) {
-    # The user has specified the distance expression as a string (format: "weight*function(args)+...")
-   
-    # List of the distance metrics
-    dist.list <- strsplit(distance, "+", fixed=TRUE)[[1]]
-    # Empty vector to hold parsed expressions
-    dists <- c()
-    for (d.metric in dist.list) {
-      # Break the weight off of the function
-      pop.weight <- strsplit(d.metric, "*", fixed=TRUE)[[1]]
-      weight <- pop.weight[1]
-      # Separate function from the arguments
-      pop.function <- strsplit(pop.weight[2], "(", fixed=TRUE)[[1]]
-      fn <- pop.function[1]
-      arguments <- pop.function[2]
-      arguments <- gsub(")", "", arguments)
-
-      # Add package to function name
-      if (is.element(fn, kaphi.stats)) {
-        fn <- paste0('Kaphi::', fn)
-      } else if (is.element(fn, ape.stats)) {
-        fn <- paste0('ape::', fn)
-      } else if (is.element(fn, phyloTop.stats)) {
-        fn <- paste0('phyloTop::', fn)
-      } else if (is.element(fn, phangorn.stats)) {
-        fn <- paste0('phangorn::', fn)
-      } else {
-        stop(paste0(fn, ' is not a valid choice of distance metric'))
-      }
-
-      # Put it back together
-      if (fn == 'Kaphi::kernel.dist' || fn == 'ape::dist.topo' || fn == 'phangorn::RF.dist' || fn == 'phangorn::KF.dist' || fn == 'phangorn::path.dist') {
-      # These two functions take in two trees instead of one.
-        if (!is.na(arguments)){
-          dist.call <- paste0(weight, "*", fn, '(x, y, ', arguments, ")")
-        } else {
-        # If only default parameters are being used
-          dist.call <- paste0(weight, "*", fn, "'(x, y)")
-        }
-      } else {
-      # The function takes only 1 tree
-        if (!is.na(arguments)) {
-          dist.call <- paste0(weight, '*', 'abs(', fn, '(x, ', arguments, 
-                              ') - ', fn, '(y, ', arguments, '))')
-        } else { 
-        # If only default parameters are being used
-          dist.call <- paste0(weight, "*", 'abs(', fn, '(x) - ', fn, '(y))')
-        }
-      }
-      dists <- c(dists, dist.call)
-    }
-    # combines vector of expressions into one string
-    expression <- paste0(dists, collapse=' + ')
-
-  } else {
-    # The user has specified the distance expression as a YAML dictionary
-    # Vector to hold each parsed distance expression
-    dists <- c()
+  if (is.character(distance)) {                                                                # The user has specified the distance expression as a string
+    dist.list <- strsplit(distance, '+', fixed=TRUE)[[1]]                                      # List of the distance metrics
+    dists <- c()                                                                               # Empty vector to hold parsed expressions
     
-    for (d.metric in names(distance)){
-      # sublist contains the weight and additional arguments for the function
-      sublist <- distance[[d.metric]]
+    for (expr in dist.list) {
+      pop.weight <- strsplit(expr, '*', fixed=TRUE)[[1]]                                       # Break the weight off of the function
+      weight <- pop.weight[1]
       
-      # Add package to function name
-      if (is.element(d.metric, kaphi.stats)) {
-        fn <- paste0('Kaphi::', d.metric)
-      } else if (is.element(d.metric, ape.stats)) {
-        fn <- paste0('ape::', d.metric)
-      } else if (is.element(d.metric, phyloTop.stats)) {
-        fn <- paste0('phyloTop::', d.metric)
-      } else if (is.element(d.metric, phangorn.stats)) {
-        fn <- paste0('phangorn::', d.metric)
-      } else {
-        stop(paste0(d.metric, ' is not a valid choice of distance metric'))
-      }
+      pop.function <- strsplit(pop.weight[2], '(', fixed=TRUE)[[1]]                            # Separate function name from the arguments 
+      d.metric <- pop.function[1]
+      arguments <- pop.function[2]
+      arguments <- gsub(')', '', arguments)
       
-      # Pulls the weight value from the list
-      weight <- sublist$weight
-      # Convert list of arguments to strings of the format: "argument=value"
-      arguments <- lapply(seq_along(sublist), 
-                          function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, 
-                          y=sublist, n=names(sublist))
-      # strip out weight and package arguments
-      strip.args <- sapply(arguments, function(x) {which(!grepl('weight', x) && !grepl('package', x))})
-      args <- arguments[ which(strip.args == 1) ]
-  
-      if (d.metric == 'kernel.dist' || d.metric == 'dist.topo' || d.metric == 'RF.dist' || d.metric == 'KF.dist' || d.metric == 'path.dist') {
-        # These two functions take in two trees instead of one.
-        dist.call <- paste0(weight, "*", fn, '(x, y, ', paste(args, collapse=', '), ')')
-      } else {
-        # The function takes only 1 tree
-        if (length(arguments) < 2) {
-          dist.call <- paste0(weight, '*', 'abs(', fn, '(x) - ', fn, '(y))')
-        } else {
-          dist.call <- paste0(weight, '*', 'abs(', fn, '(x, ', paste(args, collapse=', '), 
-                              ') - ', fn, '(y, ', paste(args, collapse=', '), '))')
-        }
-      }
-      # Stores individual expressions
-      dists <- c(dists, dist.call)
+      indiv.expr <- .generate.dist.expr(weight, d.metric, arguments, stats)
+      dists <- c(indiv.expr)
     }
-    # combines vector of expressions into one string
-    expression <- paste0(dists, collapse=' + ')
+  } else {
+    dists <- c()  # Vector to hold each parsed distance expression                              # The user has specified the distance expression as a YAML dictionary
+                                                                                                
+    for (d.metric in names(distance)){ 
+      sublist <- distance[[d.metric]]                                                           # sublist contains the weight and additional arguments for the function
+      weight <- sublist$weight
+      
+      # strip out weight, package arguments, and convert list of arguments to strings of the format: "argument=value"
+      all.args <- lapply(seq_along(sublist), function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, y=sublist, n=names(sublist))
+      strip.args <- sapply(all.args, function(x) {which(!grepl('weight', x) && !grepl('package', x))})
+      arguments <- all.args[ which(strip.args == 1) ]
+      
+      indiv.expr <- .generate.dist.expr(weight, d.metric, arguments, stats)
+      dists <- c(indiv.expr)                                                                      # Stores individual expressions
+    }
   }
+  expression <- paste0(dists, collapse=' + ')                                                     # combines vector of expressions into one string
   return(expression)
+}
+
+
+.generate.dist.expr <- function(weight, d.metric, arguments, stats) {
+  ind <- which(stats[,2] == d.metric)
+  # Check if distance metric exists in stats matrix, then add package name to function name
+  if (is.element(d.metric, stats[,2])) {
+    d.metric <- paste0(stats[ind,1], d.metric)
+  } else {
+    stop(paste0(d.metric, ' is not a valid choice of distance metric'))
+  }
+  
+  # Put expression together
+  if (as.numeric(stats[ind,3]) == 2) {
+    if (!is.na(arguments)){                                                                 # metric takes in two variables in its function call instead of one.
+      dist.call <- paste0(weight, '*', fn, '(x,y,', paste(arguments, collapse=','), ')')
+    } else {                                                                                # If only default parameters are being used
+      dist.call <- paste0(weight, '*', fn, "(x,y)")
+    }
+  } else {
+    if (!is.na(arguments)) {                                                                 # metric takes in one variable in its function call
+      dist.call <- paste0(weight, '*', 'abs(', fn, '(x,', arguments, 
+                          ')-', fn, '(y,', arguments, '))')
+    } else { 
+      # If only default parameters are being used
+      dist.call <- paste0(weight, '*', 'abs(', fn, '(x)-', fn, '(y))')
+    }
+  }
+  metric.expr <- c(dists, dist.call)
+  metric.expr
 }
 
 

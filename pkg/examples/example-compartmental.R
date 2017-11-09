@@ -5,7 +5,7 @@ config <- load.config('pkg/examples/example-compartmental.yaml')
 config <- set.model(config, 'sir.dynamic')
 
 # simulate target tree
-theta <- c(t.end=200, N=10000, beta=0.2, gamma=0.02, mu=0.01, alpha=5)
+theta <- c(t.end=200, N=10000, beta=0.1, gamma=0.002, mu=0.0001, alpha=5)
 #set.seed(50)
 obs.tree <- compartmental.model(theta, nsim=1, tips=100, model='sir.dynamic', fgyResolution=1000, seed=50)[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)
@@ -22,7 +22,7 @@ result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthre
 # let's examine the contents of the trace file
 trace <- read.table('pkg/examples/example-compartmental.tsv', header=T, sep='\t')
 
-pdf(file='~/Documents/example-compartmental.beta.gamma.mu.pdf')
+pdf(file='~/Documents/example-compartmental.KF.dist.modifiedN.pdf')
 
 for (param in names(theta)) {
   par(mar=c(5,5,2,2))
