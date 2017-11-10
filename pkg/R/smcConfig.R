@@ -187,7 +187,7 @@ parse.distance <- function(distance) {
                    c('phangorn::','path.dist',2)
                    
                    )
-  mat <- matrix(nrow=length(stats), ncol=3, dimnames=list(NULL,c('pkg', 'metric', 'no.vars')))
+  mat <- matrix(nrow=length(metrics), ncol=3, dimnames=list(NULL,c('pkg', 'metric', 'no.vars')))
   stats <- t(sapply(seq_along(metrics), function(x) {mat[x,] <- metrics[[x]]}))                   # matrix of tree stats
   
   # Checks the method used to specify distance expression
@@ -254,8 +254,7 @@ parse.distance <- function(distance) {
       dist.call <- paste0(weight, '*', 'abs(', fn, '(x)-', fn, '(y))')
     }
   }
-  metric.expr <- c(dists, dist.call)
-  metric.expr
+  dist.call
 }
 
 
