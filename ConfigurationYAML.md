@@ -159,8 +159,8 @@ distances:
   'colless':
     package: 'Kaphi'
     weight: 0.10
-  'gammaStat':
-    package: 'ape'
+  'KF.dist':
+    package: 'phangorn'
     weight: 0.05
 ```
 
