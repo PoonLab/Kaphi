@@ -1,9 +1,6 @@
 ##-----------------------------------------------------------------------------
 ## Tree Comparison Metrics from Kuhner & Yamato (2014)
 
-# Node (Williams & Clifford, 1971)
-# - just use cophenetic.phylo in ape.
-
 # RF (Robinson & Flouds, 1981)
 # - RF.dist in phangorn.
 

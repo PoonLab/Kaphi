@@ -170,6 +170,12 @@ parse.distance <- function(distance) {
                    c('Kaphi::','cophenetic.phylo.met',1), 
                    c('Kaphi::','dist.nodes.met',1), 
                    c('Kaphi::','getDepths.met',1),
+                   c('Kaphi::','Trip',2),
+                   c('Kaphi::','TripL',2),
+                   c('Kaphi::','MAST',2),
+                   c('Kaphi::','Align',2),
+                   c('Kaphi::','Sim',2),
+                   c('Kaphi::','Node',2),
                    
                    c('ape::','dist.topo',2),
                    
@@ -182,7 +188,7 @@ parse.distance <- function(distance) {
                    
                    )
   mat <- matrix(nrow=length(stats), ncol=3, dimnames=list(NULL,c('pkg', 'metric', 'no.vars')))
-  stats <- t(sapply(seq_along(stats), function(x) {mat[x,] <- stats[[x]]}))                   # matrix of tree stats
+  stats <- t(sapply(seq_along(metrics), function(x) {mat[x,] <- metrics[[x]]}))                   # matrix of tree stats
   
   # Checks the method used to specify distance expression
   if (is.character(distance)) {                                                                # The user has specified the distance expression as a string
@@ -198,8 +204,9 @@ parse.distance <- function(distance) {
       arguments <- pop.function[2]
       arguments <- gsub(')', '', arguments)
       
-      indiv.expr <- .generate.dist.expr(weight, d.metric, arguments, stats)
-      dists <- c(indiv.expr)
+      ind <- which(stats[,2] == d.metric)
+      indiv.expr <- .generate.dist.expr(weight, d.metric, arguments, stats[ind,])
+      dists <- append(dists, indiv.expr)
     }
   } else {
     dists <- c()  # Vector to hold each parsed distance expression                              # The user has specified the distance expression as a YAML dictionary
@@ -213,8 +220,9 @@ parse.distance <- function(distance) {
       strip.args <- sapply(all.args, function(x) {which(!grepl('weight', x) && !grepl('package', x))})
       arguments <- all.args[ which(strip.args == 1) ]
       
-      indiv.expr <- .generate.dist.expr(weight, d.metric, arguments, stats)
-      dists <- c(indiv.expr)                                                                      # Stores individual expressions
+      ind <- which(stats[,2] == d.metric)
+      indiv.expr <- .generate.dist.expr(weight, d.metric, arguments, stats[ind,])
+      dists <- append(dists, indiv.expr)                                                                      # Stores individual expressions
     }
   }
   expression <- paste0(dists, collapse=' + ')                                                     # combines vector of expressions into one string
@@ -222,24 +230,23 @@ parse.distance <- function(distance) {
 }
 
 
-.generate.dist.expr <- function(weight, d.metric, arguments, stats) {
-  ind <- which(stats[,2] == d.metric)
+.generate.dist.expr <- function(weight, d.metric, arguments, statistic) {
   # Check if distance metric exists in stats matrix, then add package name to function name
-  if (is.element(d.metric, stats[,2])) {
-    d.metric <- paste0(stats[ind,1], d.metric)
+  if (is.element(d.metric, statistic)) {
+    fn <- paste0(statistic[1], d.metric)
   } else {
     stop(paste0(d.metric, ' is not a valid choice of distance metric'))
   }
   
   # Put expression together
-  if (as.numeric(stats[ind,3]) == 2) {
-    if (!is.na(arguments)){                                                                 # metric takes in two variables in its function call instead of one.
+  if (as.numeric(statistic[3]) == 2) {
+    if (length(arguments) != 0 && !is.na(arguments)){                                                                 # metric takes in two variables in its function call instead of one.
       dist.call <- paste0(weight, '*', fn, '(x,y,', paste(arguments, collapse=','), ')')
     } else {                                                                                # If only default parameters are being used
       dist.call <- paste0(weight, '*', fn, "(x,y)")
     }
   } else {
-    if (!is.na(arguments)) {                                                                 # metric takes in one variable in its function call
+    if (length(arguments) != 0 && !is.na(arguments)) {                                                                 # metric takes in one variable in its function call
       dist.call <- paste0(weight, '*', 'abs(', fn, '(x,', arguments, 
                           ')-', fn, '(y,', arguments, '))')
     } else { 

@@ -25,6 +25,7 @@ export(TripL)
 
 export(load.config)
 export(parse.distance)
+export(.generate.dist.expr)
 export(set.model)
 export(sample.priors)
 export(prior.density)
