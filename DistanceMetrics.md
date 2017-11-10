@@ -24,9 +24,9 @@
 | RF.dist | phangorn | Robinson-Foulds distance: number of clades not shared. |
 | KF.dist | phangorn | RF with branch lengths: sums of differences in branch lengths. |
 | path.dist | phangorn | Path distance metric: nodal distance ("NODE") with k=2. |
-| Trip | Critchlow et al. (1996)| Proportion of triplets not shared between trees. |
-| TripL | Kuhner & Yamato (2014)| Trip distance using branch lengths |
-| MAST  | Gordon (1980) | Number of tips in the Maximum Agreement SubTree of given subtrees.  | 
-| Align  | Nye et al. (2006)  | Calculates dissimilarity of of all one-to-one mapping of branches between 2 trees and determines most optimal mapping of branches  | 
-| Sim  | Hein et al. (2005)  | Similiarity measure based on the probability that a point chosen randomly in A will be on a branch leading to the same set of tips as a point randomly chosen in B  | 
-| Node  | Williams & Clifford (1971)  | Number of nodes traversed in mainimal path from one tip to another in trees A and B  | 
+| Trip | Kaphi | Critchlow et al. (1996), Proportion of triplets not shared between trees. |
+| TripL | Kaphi | Kuhner & Yamato (2014), Trip distance using branch lengths |
+| MAST  | Kaphi | Gordon (1980), Number of tips in the Maximum Agreement SubTree of given subtrees.  | 
+| Align  | Kaphi | Nye et al. (2006), Calculates dissimilarity of of all one-to-one mapping of branches between 2 trees and determines most optimal mapping of branches  | 
+| Sim  | Kaphi | Hein et al. (2005), Similiarity measure based on the probability that a point chosen randomly in A will be on a branch leading to the same set of tips as a point randomly chosen in B  | 
+| Node  | Kaphi | Williams & Clifford (1971), Number of nodes traversed in mainimal path from one tip to another in trees A and B  | 
