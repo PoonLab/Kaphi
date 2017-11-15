@@ -49,7 +49,7 @@
 	   install.packages("inline")
 	   install.packages("Rcpp")
 	   install.packages("RcppArmadillo")
-           install.packages("whisker")
+       install.packages("whisker")
 	   quit() 
     ```
 4. Installing GNU tools and C libraries
@@ -94,7 +94,7 @@
 	   install.packages("inline") 
 	   install.packages("Rcpp")
 	   install.packages("RcppArmadillo")
-           install.packages("whisker")
+       install.packages("whisker")
 	   quit() 
     ```
 4. Installing GNU tools and C libraries
