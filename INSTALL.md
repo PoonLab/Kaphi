@@ -10,6 +10,7 @@
   * [inline](https://cran.r-project.org/web/packages/inline/index.html)
   * [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html)
   * [RcppArmadillo](https://cran.r-project.org/web/packages/RcppArmadillo/index.html)
+  * [whisker](https://cran.r-project.org/web/packages/whisker/index.html)
   * [phyloTop](https://cran.r-project.org/web/packages/phyloTop/index.html) (optional)
   * [phangorn](https://cran.r-project.org/web/packages/phangorn/index.html) (optional)
 * GNU tools: 
@@ -48,6 +49,7 @@
 	   install.packages("inline")
 	   install.packages("Rcpp")
 	   install.packages("RcppArmadillo")
+       install.packages("whisker")
 	   quit() 
     ```
 4. Installing GNU tools and C libraries
@@ -92,6 +94,7 @@
 	   install.packages("inline") 
 	   install.packages("Rcpp")
 	   install.packages("RcppArmadillo")
+       install.packages("whisker")
 	   quit() 
     ```
 4. Installing GNU tools and C libraries
