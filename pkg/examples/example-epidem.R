@@ -15,13 +15,13 @@ obs.tree <- parse.input.tree(obs.tree, config)
 
 # initialize workspace
 ws <- init.workspace(obs.tree, config)
-result <- run.smc(ws, trace.file='pkg/examples/example-epidem.tsv', nthreads=1, model="epidemic", seed=NA, verbose=TRUE)   
+result <- run.smc(ws, trace.file='pkg/examples/example-epidem.tsv', nthreads=6, model="epidemic", seed=NA, verbose=TRUE)   
 
 
 
 trace <- read.table('pkg/examples/example-epidem.tsv', header=T, sep='\t')
 
-pdf(file='~/Documents/Plots/example-epidem.run1.pdf')
+pdf(file='~/Documents/Plots/exepidem.kernel.2.pdf')
 
 for (param in names(theta)) {
   par(mar=c(5,5,2,2))
@@ -39,7 +39,7 @@ for (param in names(theta)) {
   
   
   # use kernel densities to visualize posterior approximations
-  pal <- rainbow(n=8, start=0, end=0.5, v=1, s=1)
+  pal <- rainbow(n=(length(unique(trace$n)) %/% 10)+1, start=0, end=0.5, v=1, s=1)
   par(mar=c(5,5,2,2))
   plot(density
        (trace[[param]][trace$n==1], 

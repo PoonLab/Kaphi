@@ -22,7 +22,7 @@ result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthre
 # let's examine the contents of the trace file
 trace <- read.table('pkg/examples/example-compartmental.tsv', header=T, sep='\t')
 
-pdf(file='~/Documents/example-compartmental.KF.dist.modifiedN.pdf')
+pdf(file='~/Documents/excomp.kernel.11.pdf')
 
 for (param in names(theta)) {
   par(mar=c(5,5,2,2))
@@ -40,7 +40,7 @@ for (param in names(theta)) {
   
   
   # use kernel densities to visualize posterior approximations
-  pal <- rainbow(n=10, start=0, end=0.5, v=1, s=1)
+  pal <- rainbow(n=(length(unique(trace$n)) %/% 10)+1, start=0, end=0.5, v=1, s=1)
   par(mar=c(5,5,2,2))
   plot(density
        (trace[[param]][trace$n==1], 

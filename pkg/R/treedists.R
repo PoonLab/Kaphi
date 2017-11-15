@@ -175,10 +175,6 @@ TripL <- function(x, y){
 
 ##-------------------------------------------------------------------------------------------------------------
 ## MAST (Gordon, 1980)
-## this is natively a similarity score, but turned into a distance metric by subtracting similarity score from tree size
-## measures the similarity between trees as the # of tips in the largest subtree identical between trees
-## the mast score is the number of tips in the Maximum Agreement SubTree of the given subtrees
-## tree must be bifurcating, and be of the same size (have the same number of tips)
 MAST <- function(tree1, tree2) {
   # count the tips and ensure that the trees are the same size
   numtips <- length(tree1$tip.label)
@@ -457,12 +453,6 @@ Sim <- function(tree1, tree2){
 
 ##-------------------------------------------------------------------------------------------------------------
 ## Node distance metric derived from Williams and Clifford (1971) for k=1 AND/OR Path Distance Metric from Penny et al. (1982) for k=2
-# considers each possible pair of tips in turn and counts number of nodes traversed in minimal path from tip A to tip B in a tree
-# distance between tree 1 and tree 2 is the sum of the differences in minimal path lengths
-# @param tree1 = tree of class 'phylo'
-# @param tree2 = tree of class 'phylo'
-# @param k = the differences in minimal path lengths will be raised to the power of this integer before summing
-# @return distance = sum of the idfferences in minimal path lengths between tree 1 and tree 2
 Node.dist <- function(tree1, tree2, k=1) {
   numtips <- length(tree1$tip.label)
   if (numtips != length(tree2$tip.label)) { stop("Tree 1 and Tree 2 must be the same size to be able to compute the Node distance") }

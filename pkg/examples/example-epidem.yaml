@@ -2,28 +2,28 @@ priors:
   't.end':
     dist: 'norm'
     hyperparameters:
-    - mean: 25
+    - mean: 30
     - sd: 5
   'N':
     dist: 'norm'
     hyperparameters:
-    - mean: 1000
-    - sd: 100
+    - mean: 2000
+    - sd: 500
   'beta':
-    dist: 'norm'
+    dist: 'gamma'
     hyperparameters:
-    - mean: 0.002
-    - sd: 0.0005
+    - shape: 1
+    - rate: 10
   'gamma':
-    dist: 'norm'
+    dist: 'gamma'
     hyperparameters:
-    - mean: 0.3
-    - sd: 0.1
+    - shape: 1
+    - rate: 2
   'phi':
-    dist: 'norm'
+    dist: 'gamma'
     hyperparameters:
-    - mean: 0.15
-    - sd: 0.05
+    - shape: 1
+    - rate: 5
 constraints:
   - ''
 proposals:
@@ -36,12 +36,12 @@ proposals:
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 10
+    - sd: 100
   'beta':
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.0001
+    - sd: 0.01
   'gamma':
     dist: 'norm'
     parameters:
@@ -53,8 +53,8 @@ proposals:
     - mean: 0
     - sd: 0.001
 smc:
-  nparticle: 10
-  nsample: 5
+  nparticle: 50
+  nsample: 3
   ess.tolerance: 50.0
   final.accept.rate: 0.1
   final.epsilon: 0.1
