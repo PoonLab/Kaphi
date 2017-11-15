@@ -14,7 +14,8 @@ Depends:
     inline,
     Rcpp,
     RcppArmadillo,
-    rcolgem
+    rcolgem,
+    whisker
 Optional:
     phyloTop & phangorn (for some distance metric functions).
 Description: Kaphi is a package for phylodynamic using approximate Bayesian computation 
