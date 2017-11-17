@@ -22,7 +22,7 @@ result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthre
 # let's examine the contents of the trace file
 trace <- read.table('pkg/examples/example-compartmental.tsv', header=T, sep='\t')
 
-pdf(file='~/Documents/excomp.KF.dist.3.pdf')
+pdf(file='~/Documents/excomp.kernel.12.pdf')
 
 for (param in names(theta)) {
   par(mar=c(5,5,2,2))
