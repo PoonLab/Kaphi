@@ -71,10 +71,7 @@ smc:
   quality: 0.95
   step.tolerance: 1.e-5
 distances:
-  'kernel.dist':
-    package: 'Kaphi'
-    weight: 0.8
-    decay.factor: 0.2
-    rbf.variance: 100.0
-    sst.control: 1.0
-    norm.mode: 'NONE'
+  'KF.dist':
+    package: 'phangorn'
+    weight: 1.0
+    check.labels: 'FALSE'

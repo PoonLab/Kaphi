@@ -139,7 +139,7 @@ attr(epidem.model, 'name') <- "epidem.model"  # satisfies requirement in smcConf
   # stump case
   if (length(trees) < nsim) {
     num.null <- nsim - length(trees)
-    cat('Less than 5 trees retained. Adding in', num.null, 'dummy trees..\n')
+    cat('Less than', nsim, 'trees retained. Adding in', num.null, 'dummy trees..\n')
     for (i in 1:num.null) {
       trees[[length(trees) + 1]] <- dummy.tree
     }
