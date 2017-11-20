@@ -51,7 +51,7 @@ for (param in names(theta)) {
        xlab=paste0('SIR rate parameter (', param, ')',
                    '\nMean: ',
                    mean(trace[[param]][trace$n==max(trace$n)]), 
-                   '\nMedian: ', 
+                   '    Median: ', 
                    median(trace[[param]][trace$n==max(trace$n)]),
                    '\n95% CI (',
                    quantile(trace[[param]][trace$n==max(trace$n)], c(0.025, 0.975))[1],
