@@ -22,7 +22,7 @@ result <- run.smc(ws, trace.file='pkg/examples/example-compartmental.tsv', nthre
 # let's examine the contents of the trace file
 trace <- read.table('pkg/examples/example-compartmental.tsv', header=T, sep='\t')
 
-pdf(file='~/Documents/excomp.kernel.12.pdf')
+pdf(file='~/Documents/excomp.kernel.12.pdf')            ############################################################### Faisal
 
 for (param in names(theta)) {
   par(mar=c(5,5,2,2))
@@ -48,8 +48,17 @@ for (param in names(theta)) {
        col=pal[1], 
        lwd=2, 
        main=paste0('SIR ', config$priors[[param]]), 
-       xlab=paste0('SIR rate parameter (', param, ')'), 
-       cex.lab=1.2
+       xlab=paste0('SIR rate parameter (', param, ')',
+                   '\nMean: ',
+                   mean(trace[[param]][trace$n==max(trace$n)]), 
+                   '\nMedian: ', 
+                   median(trace[[param]][trace$n==max(trace$n)]),
+                   '\n95% CI (',
+                   quantile(trace[[param]][trace$n==max(trace$n)], c(0.025, 0.975))[1],
+                   ' , ',
+                   quantile(trace[[param]][trace$n==max(trace$n)], c(0.025, 0.975))[2],
+                   ')'), 
+       cex.lab=0.8
   )
   
   for (i in 1: ( length(unique(trace$n)) %/% 10 ) ) {
@@ -69,12 +78,7 @@ for (param in names(theta)) {
   x <- sort( replicate(1000, eval(parse(text=config$priors[[param]]))) )
   y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[[param]]))}
   lines(x, y(x), lty=5)
-  
-  # show posterior distribution (work in progress)
-  node.heights <- rev(branching.times(obs.tree))
-  
-  # make a legend
-  legend(x=1, y=10, legend=c('prior', 'n=1', 'n=10', 'n=20', 'n=30', 'n=40', 'n=50', 'n=60', 'n=70','n=71(final)', paste0('true ', param, '(', theta[[param]], ')')), lty=c(5,rep(1,9),3), col=c('black', pal, 'black', 'red'), lwd=c(1,2,rep(1.5,7),2,0.75), seg.len=2)
+
 }
 
 dev.off()
