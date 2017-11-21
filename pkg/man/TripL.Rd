@@ -8,7 +8,7 @@ Triplet with branch lengths distance metric
 Topology and branch lengths distance metric, computing the sum of discrepant branch lengths among triplets between two clock-like rooted trees.
 }
 \usage{
-TripL(x, y, k=2)
+TripL(x, y, k=0.65)
 }
 \arguments{
   \item{x}{
@@ -18,7 +18,7 @@ TripL(x, y, k=2)
     A rooted tree object of class 'phylo'
   }
   \item{k}{
-    Power that the differences are raised to before summing. Default is 2.
+    Power that the differences are raised to before summing. Default is 0.65.
   }
 }
 \details{

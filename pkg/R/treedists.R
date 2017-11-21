@@ -82,7 +82,7 @@ Trip <- function(x, y){
 
 ##-------------------------------------------------------------------------------------------------------------
 # Triplet Length Distance (Kuhner & Yamato, 2014)
-TripL <- function(x, y){
+TripL <- function(x, y, k=0.65){
   # The trees are assumed to contain identical tips (same number and labels)
   if(length(x$tip.label) != length(y$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to compute the TripL metric.') }
   if(any(!is.element(x$tip.label, y$tip.label))) { stop('Tree 1 and Tree 2 must contain identical tip label sets to compute the TripL metric.')}
@@ -157,7 +157,7 @@ TripL <- function(x, y){
     for (pair in pairs){
       if (times1[pair] == x1 && times2[pair] == x2){
         matches <- TRUE
-        score <- score + (abs(x1-x2) + abs(y1-y2)) * 2
+        score <- score + (abs(x1-x2) + abs(y1-y2)) ^ k
       }
     }
     if (matches == FALSE){
@@ -453,7 +453,7 @@ Sim <- function(tree1, tree2){
 
 ##-------------------------------------------------------------------------------------------------------------
 ## Node distance metric derived from Williams and Clifford (1971) for k=1 AND/OR Path Distance Metric from Penny et al. (1982) for k=2
-Node.dist <- function(tree1, tree2, k=1) {
+Node.dist <- function(tree1, tree2, k=0.65) {
   numtips <- length(tree1$tip.label)
   if (numtips != length(tree2$tip.label)) { stop("Tree 1 and Tree 2 must be the same size to be able to compute the Node distance") }
   t1.internals <- (numtips+2) : (numtips*2 - 1)   # (numtips + 1) = root, skipped in kuhner & yamato
@@ -501,6 +501,7 @@ Node.dist <- function(tree1, tree2, k=1) {
 # @param annotList = empty vector to be populated with all parents of the leaf
 # @return ancestors = vector of all the ancestors of the given leaf
 .find.ancestors <- function(leaf, tree, annotList) {
+  if (leaf == length(tree$tip.label) + 1) return(unique(annotList))
   parent <- tree$edge[ which(tree$edge[,2] == leaf), 1]
   annotList <- append(annotList, parent)
   ancestors <- .find.ancestors(parent, tree, annotList)

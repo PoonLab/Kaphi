@@ -8,7 +8,7 @@ Nodal/Path distance metric
 Topology-only distance metric that considers each possible pair of typs in turn and counts the number of nodes traversed in the minimal path from tip A to tip B in a tree. The distance between tree \code{x} and tree \code{y} is the sum of the differences in minimal path lengths.
 }
 \usage{
-Node.dist(x, y, k=2)
+Node.dist(x, y, k=0.65)
 }
 
 \arguments{
@@ -19,7 +19,7 @@ Node.dist(x, y, k=2)
     A tree object of class 'phylo' of the same size (has the same number of tips) as tree \code{x}
   }
   \item{k}{
-    Power that the differences in minimal path lengths will be raised to before summing
+    Power that the differences in minimal path lengths will be raised to before summing. Default is 0.65.
   }
 }
 
