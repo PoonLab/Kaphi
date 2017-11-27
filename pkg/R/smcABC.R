@@ -392,6 +392,12 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
       ws$epsilon <- config$final.epsilon
       break  # FIXME: this should be redundant given loop condition above
     }
+    
+    ## check if the last 10 accept.rates OR last 10 epislon values are the same: if frozen, break
+    if (niter > 10 && (length(unique(result$accept.rate[niter:niter-9])) == 0 || length(unique(result$epsilons[niter:niter-9])) == 0)) {
+      cat ("SMC-ABC run has frozen in given parameter space. Please check the ranges in your prior settings.")
+      break
+    }
   }
 
   # finally sample from the estimated posterior distribution
