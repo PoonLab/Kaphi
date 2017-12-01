@@ -143,8 +143,17 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
   for (i in 1:config$nparticle) {
     num <- sum(ws$dists[,i] < epsilon)
     denom <- sum(ws$dists[,i] < prev.epsilon)
-    #cat("Numerator:", num, "\n")
-    #cat("Denominator:", denom, "\n")
+    
+    # write.table(x=t(c(niter, i, epsilon,
+    #                   num,
+    #                   denom)),
+    #             file='~/Documents/epsilon-accepted.tsv',
+    #             append=TRUE,
+    #             sep='\t',
+    #             row.names=FALSE,
+    #             col.names=FALSE
+    # )
+    
     if (num == denom) {
       # handle case where numerator and denominator are both zero
       ws$new.weights[i] <- ws$weights[i]
@@ -217,12 +226,12 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
 
 
 
-.perturb.particles <- function(ws, model, n.threads=1, seed=NA, ...) {
+.perturb.particles <- function(ws, model, nthreads=1, seed=NA, ...) {
   ##  This implements the Metropolis-Hastings acceptance/rejection step
   ##  @param ws: workspace
   ##  @param model: reference to an R function that will simulate trees
-  ##  @param n.threads:  number of threads to run in parallel, defaults to 1 (serial)
-  if (n.threads < 1) {
+  ##  @param nthreads:  number of threads to run in parallel, defaults to 1 (serial)
+  if (nthreads < 1) {
     stop("User requested less than 1 thread in call to .perturb.particles")
   }
 
@@ -267,7 +276,7 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
     output <- list(i, mh.ratio, new.particle, new.trees, new.dists)
     output
     
-  }, mc.cores=n.threads)  # TODO: is there an issue with cores to threads?
+  }, mc.cores=nthreads)  # TODO: is there an issue with cores to threads?
 
   # accept or reject the proposal
   for (i in res) {
@@ -357,7 +366,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     # perturb particles
     ws$accept <- vector()    # vector to keep track of which particles were accepted through parallelization in .perturb.particles
     ws$alive <- 0
-    ws <- .perturb.particles(ws, model, n.threads=nthreads)  # Metropolis-Hastings sampling
+    ws <- .perturb.particles(ws, model, nthreads=nthreads)  # Metropolis-Hastings sampling
     
     # record everything
     result$theta[[niter]] <- ws$particles
@@ -366,6 +375,16 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     #cat(ws$accept, ws$accepted, ws$alive, '\n')
     result$accept.rate <- c(result$accept.rate, ws$accepted / ws$alive)      # changed ws$accept to ws$accepted; didn't want dual behaviour of ws$accept switching back and forth between vector and int
 
+    # write.table(x=t(c(niter,
+    #                   ws$epsilon,
+    #                   ws$accepted / ws$alive)),
+    #             file='~/Documents/epsilon-accepted.tsv',
+    #             append=TRUE,
+    #             sep='\t',
+    #             row.names=FALSE,
+    #             col.names=FALSE
+    #             )
+    # 
     # write output to file if specified
     for (i in 1:config$nparticle) {
       write.table(

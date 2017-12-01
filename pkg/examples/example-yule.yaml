@@ -13,7 +13,7 @@ proposals:
 constraints:
   - ''
 smc:
-  nparticle: 1000
+  nparticle: 10
   nsample: 5
   ess.tolerance: 50.0
   final.accept.rate: 0.05
