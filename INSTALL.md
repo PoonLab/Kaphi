@@ -132,7 +132,7 @@
     ```
 * Compile and install rcolgem
     ```
-    cd Kaphi/colgem  # navigate to the colgem directory
+    cd ../../../colgem  # navigate back to the colgem directory
     R CMD INSTALL pkg
     ```
 * Compile and install Kaphi
