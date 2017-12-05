@@ -36,7 +36,7 @@ test.load.config <- function() {
         final.accept.rate=0.014,
         quality=0.9,
         step.tolerance=1e-4,
-        dist='1*Kaphi::kernel.dist(x, y, decay.factor=0.1, rbf.variance=2.5, sst.control=1, norm.mode=NONE)',
+        dist='1*Kaphi::kernel.dist(x,y,decay.factor=0.1,rbf.variance=2.5,sst.control=1,norm.mode=NONE)',
         decay.factor=0.1,
         rbf.variance=2.5,
         sst.control=1.0,
