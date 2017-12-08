@@ -329,16 +329,18 @@ Align <- function(tree1, tree2) {
 # for the root, separates directly into left and right partitions
 # for any other edge, all the children including the given node are the resulting 'left' partition, and the 'right partition is dealt w/ one level up
 .preorder.traversal <- function(child, subsetList, tree) {
-  if (is.null(child)) { return(subsetList) }
+  if (length(child) == 0) { return(subsetList) }
   # store the node in a list
-  subsetList <- append(subsetList, child)
+  if (is.element(child, 1:length(tree$tip.label))) {
+    subsetList <- c(subsetList, child)
+  }
   
   children <- sapply(which(child == tree$edge[,1]), function(x){tree$edge[x,2]})
   if(length(children) == 0) { return(subsetList) }
   
   # traverse children of child node
   descendants <- sapply(children, function(x) {.preorder.traversal(x, subsetList, tree)})
-  descendant.tips <- intersect(unique(as.vector(descendants)), c(1:length(tree$tip.label)))
+  descendant.tips <- unlist(descendants)
   return(descendant.tips)
 }
 

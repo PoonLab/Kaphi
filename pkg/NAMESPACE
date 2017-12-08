@@ -58,6 +58,7 @@ export(Trip)
 export(TripL)
 export(MAST)
 export(Align)
+export(hungarian.alg)
 export(Sim)
 export(Node.dist)
 

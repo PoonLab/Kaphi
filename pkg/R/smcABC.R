@@ -144,16 +144,6 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
     num <- sum(ws$dists[,i] < epsilon)
     denom <- sum(ws$dists[,i] < prev.epsilon)
     
-    # write.table(x=t(c(niter, i, epsilon,
-    #                   num,
-    #                   denom)),
-    #             file='~/Documents/epsilon-accepted.tsv',
-    #             append=TRUE,
-    #             sep='\t',
-    #             row.names=FALSE,
-    #             col.names=FALSE
-    # )
-    
     if (num == denom) {
       # handle case where numerator and denominator are both zero
       ws$new.weights[i] <- ws$weights[i]
@@ -172,7 +162,7 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
 }
 
 
-.next.epsilon <- function(ws) {
+.next.epsilon <- function(ws, niter) {
   # Let W_n^i be the weight of the i-th particle at n-th iteration
   #
   # The effective sample size is
@@ -201,6 +191,17 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
     num <- sum(ws$dists[,i] < root)
     denom <- sum(ws$dists[,i] < ws$epsilon)
     ws$weights[i] <- ws$weights[i] * ifelse(num==denom, 1., num/denom)
+    
+    write.table(x=t(c(niter, i, root, ws$epsilon,
+                      num,
+                      denom)),
+                file='~/Documents/epsilon-accepted.tsv',
+                append=TRUE,
+                sep='\t',
+                row.names=FALSE,
+                col.names=FALSE
+    )
+    
   }
   ws$weights <- ws$weights / sum(ws$weights)  # renormalize weights
   ws$epsilon <- root
@@ -350,7 +351,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     #                   cat("\n\n")}
 
     # update epsilon
-    ws <- .next.epsilon(ws)
+    ws <- .next.epsilon(ws, niter)
 
     # provide some feedback
     lap <- proc.time() - ptm
@@ -375,16 +376,17 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     #cat(ws$accept, ws$accepted, ws$alive, '\n')
     result$accept.rate <- c(result$accept.rate, ws$accepted / ws$alive)      # changed ws$accept to ws$accepted; didn't want dual behaviour of ws$accept switching back and forth between vector and int
 
-    # write.table(x=t(c(niter,
-    #                   ws$epsilon,
-    #                   ws$accepted / ws$alive)),
-    #             file='~/Documents/epsilon-accepted.tsv',
-    #             append=TRUE,
-    #             sep='\t',
-    #             row.names=FALSE,
-    #             col.names=FALSE
-    #             )
-    # 
+    write.table(x=t(c(niter,
+                      ws$epsilon,
+                      ws$accepted / ws$alive,
+                      ws$alive - ws$accepted)),
+                file='~/Documents/epsilon-accepted-rejected.tsv',
+                append=TRUE,
+                sep='\t',
+                row.names=FALSE,
+                col.names=FALSE
+                )
+
     # write output to file if specified
     for (i in 1:config$nparticle) {
       write.table(
