@@ -310,7 +310,7 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
 
 
 
-run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FALSE, model='', ...) {
+run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FALSE, model='', maxReject=10, ...) {
   # @param ws: workspace
 	# @param obs.tree: object of class 'phylo'
 	# @param trace.file: (optional) path to a file to write outputs
@@ -415,9 +415,11 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     }
     
     ## check if the last 10 accept.rates OR last 10 epislon values are the same: if frozen, break
-    if (niter > 10 && (length(unique(result$accept.rate[niter:niter-9])) == 0 || length(unique(result$epsilons[niter:niter-9])) == 0)) {
-      cat ("SMC-ABC run has frozen in given parameter space. Please check the ranges in your prior settings.")
-      break
+    if (niter > maxReject) {
+      if (length(unique(as.vector(result$accept.rate[niter:(niter-maxReject-1)]))) == 1 || length(unique(as.vector(result$epsilons[niter:(niter-maxReject-1)]))) == 1) {
+        cat ("SMC-ABC run has frozen in given parameter space. Please check the ranges in your prior settings.\n")
+        break
+      }
     }
   }
 
