@@ -270,7 +270,7 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
 
   # accept or reject the proposal
   for (row in res) {
-    if (length(i) == 0) {            # checking for any items that are a returned NULL
+    if (length(row) == 0) {            # checking for any items that are a returned NULL
       next
     }
     else {
@@ -278,9 +278,9 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
       if (runif(1) < row[[2]]) {     # always accept if mh.ratio > 1 
         
         ws$accept[i] <- TRUE
-        ws$particles[i,] <- i[[3]]    # new.particle
-        ws$dists[,i] <- i[[5]]        # new.dists             
-        ws$sim.trees[[i]] <- i[[4]]   # new.trees
+        ws$particles[i,] <- row[[3]]    # new.particle
+        ws$dists[,i] <- row[[5]]        # new.dists             
+        ws$sim.trees[[i]] <- row[[4]]   # new.trees
       }
       else {
         ws$accept[iter] <- FALSE
