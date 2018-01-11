@@ -242,7 +242,7 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
   require(parallel, quietly=TRUE)  # load parallel library if not already present
 
   # iterate over live particles
-  alive <- which(ws$weights > 0)
+  alive <- which(ws$weights > 0)  # indices of live particles
   ws$alive <- length(alive)
   
   res <- mclapply(alive, function (i) {
@@ -280,30 +280,25 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
   }, mc.cores=nthreads)  # TODO: is there an issue with cores to threads?
 
   # accept or reject the proposal
-  for (i in res) {
-    if (length(i) == 0) {     #checking for any items that are a returned NULL ?
+  # TODO: change from for-loop to apply?
+  for (row in res) {
+    if (length(row) == 0) {     #checking for any items that are a returned NULL ?
       next
-    }
-    else {
-      iter <- i[[1]]
-      mh.ratio <- i[[2]]
+    } else {
+      i <- row[[1]]  # particle index
+      mh.ratio <- row[[2]]
       if (runif(1) < mh.ratio) {     # always accept if ratio > 1     # mh.ratio
-        new.particle <- i[[3]]
-        new.trees <- i[[4]]
-        new.dists <- i[[5]]
-        
-        ws$accept[iter] <- TRUE
-        ws$particles[iter,] <- new.particle
-        ws$dists[,iter] <- new.dists             
-        ws$sim.trees[[iter]] <- new.trees
-      }
-      else {
-        ws$accept[iter] <- FALSE
+        ws$accept[i] <- TRUE
+        ws$particles[i,] <- row[[3]]
+        ws$dists[,i] <- row[[4]]]
+        ws$sim.trees[[i]] <- row[[5]]
+      } else {
+        ws$accept[i] <- FALSE
       }
     }
   }
   # creating new attribute ws$accepted in workspace; didn't want dual vector and int behaviour of ws$accept from parallelization
-  ws$accepted <- length(which(ws$accept == TRUE))     
+  ws$accepted <- length(which(ws$accept == TRUE))  # FIXME: <- sum(ws$accept)  # should work..
   # TODO: use return values to update ws
   return (ws)
 }
@@ -415,7 +410,9 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     }
     
     ## check if the last 10 accept.rates OR last 10 epislon values are the same: if frozen, break
-    if (niter > 10 && (length(unique(result$accept.rate[niter:niter-9])) == 0 || length(unique(result$epsilons[niter:niter-9])) == 0)) {
+    if (niter > 10 &&
+        (length(unique(result$accept.rate[niter:(niter-9)])) == 1 ||
+         length(unique(result$epsilons[niter:niter-9])) == 1)) {
       cat ("SMC-ABC run has frozen in given parameter space. Please check the ranges in your prior settings.")
       break
     }
