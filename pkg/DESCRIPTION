@@ -14,7 +14,6 @@ Depends:
     inline,
     Rcpp,
     RcppArmadillo,
-    rcolgem,
     whisker
 Optional:
     phyloTop & phangorn (for some distance metric functions).

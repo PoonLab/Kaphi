@@ -192,16 +192,6 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
     denom <- sum(ws$dists[,i] < ws$epsilon)
     ws$weights[i] <- ws$weights[i] * ifelse(num==denom, 1., num/denom)
     
-    write.table(x=t(c(niter, i, root, ws$epsilon,
-                      num,
-                      denom)),
-                file='~/Documents/epsilon-accepted.tsv',
-                append=TRUE,
-                sep='\t',
-                row.names=FALSE,
-                col.names=FALSE
-    )
-    
   }
   ws$weights <- ws$weights / sum(ws$weights)  # renormalize weights
   ws$epsilon <- root
@@ -246,7 +236,6 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
   ws$alive <- length(alive)
   
   res <- mclapply(alive, function (i) {
-    # TODO: return value should be a list of particle, dist, and tree entries to go into ws
     old.particle <- ws$particles[i,]
     new.particle <- propose(config, old.particle)
     
@@ -277,22 +266,23 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
     output <- list(i, mh.ratio, new.particle, new.trees, new.dists)
     output
     
-  }, mc.cores=nthreads)  # TODO: is there an issue with cores to threads?
+  }, mc.cores=nthreads)  
 
   # accept or reject the proposal
-  # TODO: change from for-loop to apply?
   for (row in res) {
-    if (length(row) == 0) {     #checking for any items that are a returned NULL ?
+    if (length(row) == 0) {            # checking for any items that are a returned NULL
       next
-    } else {
-      i <- row[[1]]  # particle index
-      mh.ratio <- row[[2]]
-      if (runif(1) < mh.ratio) {     # always accept if ratio > 1     # mh.ratio
+    }
+    else {
+      i <- row[[1]]
+      if (runif(1) < row[[2]]) {     # always accept if mh.ratio > 1 
+        
         ws$accept[i] <- TRUE
-        ws$particles[i,] <- row[[3]]
-        ws$dists[,i] <- row[[4]]]
-        ws$sim.trees[[i]] <- row[[5]]
-      } else {
+        ws$particles[i,] <- row[[3]]    # new.particle
+        ws$dists[,i] <- row[[5]]        # new.dists             
+        ws$sim.trees[[i]] <- row[[4]]   # new.trees
+      }
+      else {
         ws$accept[i] <- FALSE
       }
     }
@@ -305,7 +295,7 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
 
 
 
-run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FALSE, model='', ...) {
+run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FALSE, model='', maxReject=10, ...) {
   # @param ws: workspace
 	# @param obs.tree: object of class 'phylo'
 	# @param trace.file: (optional) path to a file to write outputs
@@ -341,10 +331,6 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
   while (ws$epsilon != config$final.epsilon) {
     niter <- niter + 1
 
-    #if (verbose) { cat("ws$dists:\n") 
-    #                   show(ws$dists)
-    #                   cat("\n\n")}
-
     # update epsilon
     ws <- .next.epsilon(ws, niter)
 
@@ -368,19 +354,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     result$theta[[niter]] <- ws$particles
     result$weights[[niter]] <- ws$weights
     result$epsilons <- c(result$epsilons, ws$epsilon)
-    #cat(ws$accept, ws$accepted, ws$alive, '\n')
     result$accept.rate <- c(result$accept.rate, ws$accepted / ws$alive)      # changed ws$accept to ws$accepted; didn't want dual behaviour of ws$accept switching back and forth between vector and int
-
-    write.table(x=t(c(niter,
-                      ws$epsilon,
-                      ws$accepted / ws$alive,
-                      ws$alive - ws$accepted)),
-                file='~/Documents/epsilon-accepted-rejected.tsv',
-                append=TRUE,
-                sep='\t',
-                row.names=FALSE,
-                col.names=FALSE
-                )
 
     # write output to file if specified
     for (i in 1:config$nparticle) {
@@ -410,11 +384,11 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
     }
     
     ## check if the last 10 accept.rates OR last 10 epislon values are the same: if frozen, break
-    if (niter > 10 &&
-        (length(unique(result$accept.rate[niter:(niter-9)])) == 1 ||
-         length(unique(result$epsilons[niter:niter-9])) == 1)) {
-      cat ("SMC-ABC run has frozen in given parameter space. Please check the ranges in your prior settings.")
-      break
+    if (niter > maxReject &&
+        (length(unique(result$accept.rate[niter:(niter-maxReject-1)])) == 1 
+         || length(unique(result$epsilons[niter:(niter-maxReject-1)])) == 1)) {
+        cat ("SMC-ABC run has frozen in given parameter space. Please check the ranges in your prior settings.\n")
+        break
     }
   }
 
