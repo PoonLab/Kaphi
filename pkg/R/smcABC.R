@@ -232,7 +232,7 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
   require(parallel, quietly=TRUE)  # load parallel library if not already present
 
   # iterate over live particles
-  alive <- which(ws$weights > 0)
+  alive <- which(ws$weights > 0)  # indices of live particles
   ws$alive <- length(alive)
   
   res <- mclapply(alive, function (i) {
@@ -283,12 +283,12 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
         ws$sim.trees[[i]] <- i[[4]]   # new.trees
       }
       else {
-        ws$accept[iter] <- FALSE
+        ws$accept[i] <- FALSE
       }
     }
   }
   # creating new attribute ws$accepted in workspace; didn't want dual vector and int behaviour of ws$accept from parallelization
-  ws$accepted <- length(which(ws$accept == TRUE))     
+  ws$accepted <- length(which(ws$accept == TRUE))  # FIXME: <- sum(ws$accept)  # should work..
   # TODO: use return values to update ws
   return (ws)
 }
