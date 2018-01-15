@@ -23,6 +23,7 @@
   * [GNU Scientific Library](https://www.gnu.org/software/gsl/)
   * [GNU MP Bignum Library](https://gmplib.org/)
   * [Judy C library](http://judy.sourceforge.net/) 
+  * [C-igraph](http://igraph.org/c/)
 
 
 ## Requirements Installation Procedure (Ubuntu):
@@ -60,6 +61,8 @@
     sudo apt-get install libgsl-dev
     sudo apt-get install libgmp-dev
     sudo apt-get install libjudy-dev
+    sudo apt-get install libigraph0v5
+    sudo apt-get install libigraph0-dev
     ```
 
 ## Requirements Installation Procedure (Mac):
@@ -106,7 +109,8 @@
     brew install gsl
     brew install gmp
     brew install m4
-    brew install autoconf   
+    brew install autoconf  
+    brew install igraph 
     ```
     
     GFortran is needed when compiling rcolgem. The .dgm can be download from [here](https://gcc.gnu.org/wiki/GFortranBinaries#MacOS). Run the .dmg and follow the generated prompts to the end of 
@@ -129,18 +133,9 @@
     ```
     git clone --recursive https://github.com/PoonLab/Kaphi.git
     ```
-    
-* Compile and install igraph
-    ```
-    cd Kaphi/pkg/src/igraph
-    touch configure.ac aclocal.m4 configure Makefile.am Makefile.in
-    ./configure
-    make
-    sudo make install
-    ```
 * Compile and install rcolgem
     ```
-    cd ../../../colgem  # navigate back to the colgem directory
+    cd Kaphi/colgem  # navigate back to the colgem directory
     R CMD INSTALL pkg
     ```
 * Compile and install Kaphi

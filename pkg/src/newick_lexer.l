@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
 
-#include "igraph/include/igraph.h"
+#include "/usr/include/igraph/igraph.h"
 
 #include "tree.h"
 #include "newick_parser.h"
