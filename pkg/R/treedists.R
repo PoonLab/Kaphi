@@ -184,17 +184,23 @@ MAST <- function(tree1, tree2) {
   tree1 <- reorder(tree1,"postorder")
   tree2 <- reorder(tree2, "postorder")
   
+  l1 <- get.tip.labels(tree1)
+  l2 <- get.tip.labels(tree2)
+  
   # create 2D array
   numnodes <- (numtips * 2) - 1
   vals <- matrix(nrow=numnodes, ncol=numnodes)
   
   ## calculates mast score for given subtrees from tree1 and tree2 and returns value to be stored into matrix
   .r.mast <- function(a, w) {
-    # narrow down towards the tips present in subtree 'rooted' with node 'a' and subtree 'rooted' at node 'w'
-    vector.a <- vector()
-    vector.w <- vector()
-    subtree.a <- .retrieve.tips(a, tree1, vector.a)
-    subtree.w <- .retrieve.tips(w, tree2, vector.w)
+    if (a <= numtips){subtree.a <- tree1$tip.label[a]
+    } else{
+      subtree.a <- l1[[a-numtips]]
+    }
+    if (w <= numtips){subtree.w <- tree2$tip.label[w]
+    } else{
+      subtree.w <- l2[[w-numtips]]
+    }
     
     if (is.na(vals[a,w]) != TRUE) {                             # a = node1, w = node2
       return (vals[a,w])                                        # already calculated, returning value unchanged
@@ -260,20 +266,21 @@ MAST <- function(tree1, tree2) {
   return(distance)
 }
 
-
-
-## function retrieves only the tip labels (NAMES) of a subtree with a given node label
-.retrieve.tips <- function(node, tree, vect) {
-  children <- sapply(which(node == tree$edge[,1]), function(x){tree$edge[x,2]})
-  # if a tip, record and store tip.label index
-  if (length(children) == 0) {
-    vect <- append(vect, tree$tip.label[node])
-    return(vect)
+get.tip.labels <- function(tr) {
+  # Generate tuples of sorted tip labels as values.  Each tuple represents 
+  # a subtree rooted at an internal node.  Exclude the root.
+  # @param tr: Tree, an object of class "phylo"
+  if (Ntip(tr) != length(unique(tr$tip.label))) {
+    warning("Tree contains duplicate labels.")
   }
-  descendants <- sapply(children, function(x){.retrieve.tips(x, tree, vect)})
-  
-  # clean this up
-  return(unique(unlist(descendants<-append(descendants, descendants))))
+  indices <- prop.part(tr)
+  labels <- lapply(indices, function(x) {
+    y <- tr$tip.label[x]
+    if (length(y) < Ntip(tr)) {
+      sort(tr$tip.label[x])
+    }  # otherwise is the root, set NULL
+  })
+  return(labels)
 }
 
 ##-------------------------------------------------------------------------------------------------------------
