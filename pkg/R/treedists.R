@@ -184,6 +184,7 @@ MAST <- function(tree1, tree2) {
   tree1 <- reorder(tree1,"postorder")
   tree2 <- reorder(tree2, "postorder")
   
+  # store a list of vectors of every internal node's tip labels
   l1 <- get.tip.labels(tree1)
   l2 <- get.tip.labels(tree2)
   
@@ -193,10 +194,12 @@ MAST <- function(tree1, tree2) {
   
   ## calculates mast score for given subtrees from tree1 and tree2 and returns value to be stored into matrix
   .r.mast <- function(a, w) {
+    # if a is a leaf, its subtree is itself, else select the tip labels of node a from l1
     if (a <= numtips){subtree.a <- tree1$tip.label[a]
     } else{
       subtree.a <- l1[[a-numtips]]
     }
+    # if w is a leaf, its subtree is itself, else select the tip labels of node w from l2
     if (w <= numtips){subtree.w <- tree2$tip.label[w]
     } else{
       subtree.w <- l2[[w-numtips]]
@@ -234,6 +237,7 @@ MAST <- function(tree1, tree2) {
       x <- min(children.w)                     # left child of node 'w'
       y <- max(children.w)                     # right child of node 'w'
       
+      # The Agreement Metric for Labeled Binary Trees (Goddard et al, 1994)
       step1 <- .r.mast(b,x) + .r.mast(c,y)
       step2 <- .r.mast(b,y) + .r.mast(c,x)
       step3 <- .r.mast(a,x)
@@ -266,6 +270,7 @@ MAST <- function(tree1, tree2) {
   return(distance)
 }
 
+# create a sorted list of vectors of every internal node's tip labels
 get.tip.labels <- function(tr) {
   # Generate tuples of sorted tip labels as values.  Each tuple represents 
   # a subtree rooted at an internal node.  Exclude the root.
