@@ -43,6 +43,9 @@ double kernel(
     double label_factor  // 0 completely penalizes label mismatch
     )
 {
+
+    fprintf (stdout, "entered kernel()\n");
+
     int i,  // handy dandy counter
         l1, l2,  //  child node indices
         r1, r2,
@@ -55,14 +58,20 @@ double kernel(
         *children1 = children(t1),  // integer indices to child nodes (twice length of num nodes)
         *children2 = children(t2);
 
+    fprintf (stdout, "productions and children declared\n");
+
     double val, val1, val2, tmp, K = 0;
     double *bl1 = branch_lengths(t1),  // same length as children vector (two entries per internal node)
            *bl2 = branch_lengths(t2);
+
+    fprintf (stdout, "branch_lengths declared\n");
 
     Pvoid_t delta = (Pvoid_t) NULL;  // this is a Judy array
     int *pairs, *map, cur = 0;
     PWord_t Pvalue;  // pointer into Judy array
     Word_t bytes = 0;
+
+    fprintf (stdout, "past variable declarations\n");
 
     // preconditions
     assert(decay_factor > 0.0 && decay_factor <= 1.0);
@@ -71,7 +80,9 @@ double kernel(
 
     npairs = count_node_pairs(production1, production2, igraph_vcount(t1), igraph_vcount(t2));
     pairs = get_node_pairs(t1, t2, production1, production2, npairs);
-    
+
+    fprintf (stdout, "before main loop\n");
+
     for (cur = 0; cur < npairs; ++cur)
     {
         val = decay_factor;
@@ -151,6 +162,8 @@ double kernel(
 
         K += val;
     }
+
+    fprintf (stdout, "out of main loop\n");
 
     free(production1);
     free(production2);
@@ -855,14 +868,23 @@ int *children(const igraph_t *tree)
 /* get branch lengths leading out of each node */
 double *branch_lengths(const igraph_t *tree)
 {
+    fprintf (stdout, "entered branch_lengths()\n");
+
     igraph_inclist_t il;
     int i;
     igraph_vector_int_t *edge;
     double *branch_lengths = malloc(2 * igraph_vcount(tree) * sizeof(double));
 
+    fprintf (stdout, "past variable declarations\n");
+
     igraph_inclist_init(tree, &il, IGRAPH_OUT);
+
+    fprintf (stdout, "past inclist_init, about to enter main loop\n");
+
     for (i = 0; i < igraph_vcount(tree); ++i)
     {
+        fprintf (stdout, "%d\n", i);
+
         edge = igraph_inclist_get(&il, i);
         if (igraph_vector_int_size(edge) > 0)
         {
@@ -871,7 +893,12 @@ double *branch_lengths(const igraph_t *tree)
         }
     }
 
+    fprintf (stdout, "exited main loop\n");
+
     igraph_inclist_destroy(&il);
+
+    fprintf (stdout, "past inclist_destroy(), returning from branch_lengths()\n");
+
     return branch_lengths;
 }
 

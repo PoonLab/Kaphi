@@ -73,6 +73,7 @@ igraph_t * R_Kaphi_parse_newick(SEXP newick) {
 }
 
 SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEXP use_label, SEXP gamma, SEXP normalize) {
+    fprintf (stdout, "hello!\n");
     SEXP result;
 
     // unpack real-valued arguments
@@ -86,18 +87,26 @@ SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEX
 
     double knum, kdenom = 1.;  // numerator and denominator
 
+    fprintf(stdout, "past variable definitions\n");
+
     // enable C igraph attribute handler
     igraph_i_set_attribute_table(&igraph_cattribute_table);
+
+    fprintf(stdout, "after set_attribute_table\n");
 
     // parse SEXP arguments passed from R
     igraph_t * t1 = R_Kaphi_parse_newick(nwk1);
     igraph_t * t2 = R_Kaphi_parse_newick(nwk2);
+
+    fprintf(stdout, "after parse_newick\n");
 
     if (INTEGER(use_label)[0]) {
         new_label1 = (long int*)malloc(sizeof(long int) * (igraph_vcount(t1)));
         new_label2 = (long int*)malloc(sizeof(long int) * (igraph_vcount(t2)));
         get_labels(t1, t2, new_label1, new_label2);
     }
+
+    fprintf (stdout, "after get_labels\n");
 
     // ladderize and branch scaling is handled on R side
 
@@ -108,18 +117,27 @@ SEXP R_Kaphi_kernel(SEXP nwk1, SEXP nwk2, SEXP lambda, SEXP sigma, SEXP rho, SEX
     }
     knum = kernel(t1, t2, decay_factor, gauss_factor, sst_control, new_label1, new_label2, label_factor);
 
+    fprintf (stdout, "after kernel()\n");
+
     // transfer the result to a container to pass back to R
     PROTECT(result = NEW_NUMERIC(1));
     REAL(result)[0] = knum / kdenom;
     UNPROTECT(1);
 
+    fprintf (stdout, "after UNPROTECT\n");
+
     // free memory allocated for trees
     igraph_destroy(t1);
     igraph_destroy(t2);
+
+    fprintf (stdout, "after igraph_destroy()\n");
+
     if (INTEGER(use_label)[0]) {
         free(new_label1);
         free(new_label2);
     }
+
+    fprintf (stdout, "returning from R_Kaphi_kernel()\n");
 
     return (result);
 }

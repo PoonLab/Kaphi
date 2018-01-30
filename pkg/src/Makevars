@@ -1,2 +1,2 @@
-PKG_CFLAGS = -I /usr/include/igraph
-PKG_LIBS = -Ligraph/src/.libs -ligraph -L/usr/local/lib -lgsl -lJudy -lgmp
+PKG_CFLAGS = -I/usr/include/igraph -I/opt/local/include/igraph
+PKG_LIBS = -ligraph -L/opt/local/lib -L/usr/local/lib -lgsl -lJudy -lgmp

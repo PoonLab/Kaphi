@@ -466,7 +466,7 @@ char *yytext;
 #line 2 "newick_lexer.l"
 #include <stdio.h>
 
-#include "/usr/include/igraph/igraph.h"
+#include <igraph.h>
 
 #include "tree.h"
 #include "newick_parser.h"
