@@ -174,7 +174,8 @@ TripL <- function(x, y, k=0.65){
 
 
 ##-------------------------------------------------------------------------------------------------------------
-## MAST (Gordon, 1980)
+## MAST (Gordon, 1980) - number of tips in the largest subtree shared by two trees
+## This implementation based on Kuhner and Yamato (2015) Syst Biol 64(2):205-214
 MAST <- function(tree1, tree2) {
   # count the tips and ensure that the trees are the same size
   numtips <- length(tree1$tip.label)
@@ -200,6 +201,12 @@ MAST <- function(tree1, tree2) {
 
 ## calculates mast score for given subtrees from tree1 and tree2 and returns value to be stored into matrix
 .r.mast <- function(a, w, treea, treew, vals) {
+  # @param a: integer index to node in tree 1
+  # @param w: integer index to node in tree 2
+  # @param treea: tree 1 (Phylo object)
+  # @param treew: tree 2 (Phylo object)
+  # @param vals: results matrix
+
   # narrow down towards the tips present in subtree 'rooted' with node 'a' and subtree 'rooted' at node 'w'
   vector.a <- vector()
   vector.w <- vector()
