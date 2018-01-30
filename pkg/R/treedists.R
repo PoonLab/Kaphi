@@ -181,14 +181,88 @@ MAST <- function(tree1, tree2) {
   numtips <- length(tree1$tip.label)
   if(numtips != length(tree2$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to compute the MAST metric') }
   
+  # reorder the edge matrix according to postorder traversal without modifying trees
+  tree1 <- reorder(tree1,"postorder")
+  tree2 <- reorder(tree2, "postorder")
+  
+  # store a list of vectors of every internal node's tip labels
+  l1 <- get.tip.labels(tree1)
+  l2 <- get.tip.labels(tree2)
+  
   # create 2D array
   numnodes <- (numtips * 2) - 1
   vals <- matrix(nrow=numnodes, ncol=numnodes)
   
+  ## calculates mast score for given subtrees from tree1 and tree2 and returns value to be stored into matrix
+  .r.mast <- function(a, w) {
+    # if a is a leaf, its subtree is itself, else select the tip labels of node a from l1
+    if (a <= numtips){subtree.a <- tree1$tip.label[a]
+    } else{
+      subtree.a <- l1[[a-numtips]]
+    }
+
+    # if w is a leaf, its subtree is itself, else select the tip labels of node w from l2
+    if (w <= numtips){subtree.w <- tree2$tip.label[w]
+    } else{
+      subtree.w <- l2[[w-numtips]]
+    }
+    
+    if (is.na(vals[a,w]) != TRUE) {                             # a = node1, w = node2
+      return (vals[a,w])                                        # already calculated, returning value unchanged
+    } else {
+      # leaf branch of treea
+      if (a <= length(tree1$tip.label)) {
+        #if (treea$tip.label[a] %in% treea$tip.label) {         # TODO: would be more robust to create an associative array between tip.label vector and tiplabel integers
+        if (tree1$tip.label[a] %in% subtree.w) {              # didn't actually make an associative array yet; observed that tip.label vector was the same order as tiplabel index number 
+          return(1)
+        } else {
+          return(0)
+        }
+        #}
+      }
+      # leaf branch of treew
+      if (w <= length(tree2$tip.label)) {
+        #if (treew$tip.label[w] %in% treew$tip.label) {         # commented out b/c alternative way to get the answer as the previous line of code
+        if (tree2$tip.label[w] %in% subtree.a) {
+          return(1)                                 
+        } else {
+          return(0)
+        }
+        #}
+      }
+      
+      # non-leaf branch; recall that this must be implemented for a bifurcating tree
+      children.a <- sapply(which(a == tree1$edge[,1]), function(x){tree1$edge[x,2]})
+      b <- min(children.a)                     # left child of node 'a' 
+      c <- max(children.a)                     # right child of node 'a'
+      children.w <- sapply(which(w == tree2$edge[,1]), function(x){tree2$edge[x,2]})
+      x <- min(children.w)                     # left child of node 'w'
+      y <- max(children.w)                     # right child of node 'w'
+      
+      # The Agreement Metric for Labeled Binary Trees (Goddard et al, 1994)
+      step1 <- .r.mast(b,x) + .r.mast(c,y)
+      step2 <- .r.mast(b,y) + .r.mast(c,x)
+      step3 <- .r.mast(a,x)
+      step4 <- .r.mast(a,y)
+      step5 <- .r.mast(b,w)
+      step6 <- .r.mast(c,w)
+      results <- c(step1, step2, step3, step4, step5, step6)
+      
+      val <- max(results)
+      return (val)
+      
+    }
+  }
+  # store the nodes of the trees in a vector for postorder traversal
+  postorder.vect1 <- tree1$edge[,2]
+  postorder.vect2 <- tree2$edge[,2]
+  postord.trav1 <- append(postorder.vect1,tree1$edge[(length(postorder.vect1)),1])
+  postord.trav2 <- append(postorder.vect2,tree2$edge[(length(postorder.vect2)),1])
+  
   # recursively calculate mast score and store into matrix
-  for (node1 in 1:numnodes) {
-    for (node2 in 1:numnodes) {
-      vals[node1,node2] <- .r.mast(node1, node2, tree1, tree2, vals)
+  for (node1 in postord.trav1) {
+    for (node2 in postord.trav2) {
+      vals[node1,node2] <- .r.mast(node1, node2)
     }
   }
   
@@ -198,81 +272,23 @@ MAST <- function(tree1, tree2) {
   return(distance)
 }
 
-
-## calculates mast score for given subtrees from tree1 and tree2 and returns value to be stored into matrix
-.r.mast <- function(a, w, treea, treew, vals) {
-  # @param a: integer index to node in tree 1
-  # @param w: integer index to node in tree 2
-  # @param treea: tree 1 (Phylo object)
-  # @param treew: tree 2 (Phylo object)
-  # @param vals: results matrix
-
-  # narrow down towards the tips present in subtree 'rooted' with node 'a' and subtree 'rooted' at node 'w'
-  vector.a <- vector()
-  vector.w <- vector()
-  subtree.a <- .retrieve.tips(a, treea, vector.a)
-  subtree.w <- .retrieve.tips(w, treew, vector.w)
-  
-  if (is.na(vals[a,w]) != TRUE) {                             # a = node1, w = node2
-    return (vals[a,w])                                        # already calculated, returning value unchanged
-  } else {
-    # leaf branch of treea
-    if (a <= length(treea$tip.label)) {
-      #if (treea$tip.label[a] %in% treea$tip.label) {         # TODO: would be more robust to create an associative array between tip.label vector and tiplabel integers
-        if (treea$tip.label[a] %in% subtree.w) {              # didn't actually make an associative array yet; observed that tip.label vector was the same order as tiplabel index number 
-          return(1)                                 
-        } else {
-          return(0)
-        }
-      #}
-    }
-    # leaf branch of treew
-    if (w <= length(treew$tip.label)) {
-      #if (treew$tip.label[w] %in% treew$tip.label) {         # commented out b/c alternative way to get the answer as the previous line of code
-        if (treew$tip.label[w] %in% subtree.a) {
-          return(1)                                 
-        } else {
-          return(0)
-        }
-      #}
-    }
-    
-    # non-leaf branch; recall that this must be implemented for a bifurcating tree
-    children.a <- sapply(which(a == treea$edge[,1]), function(x){treea$edge[x,2]})
-    b <- min(children.a)                     # left child of node 'a' 
-    c <- max(children.a)                     # right child of node 'a'
-    children.w <- sapply(which(w == treew$edge[,1]), function(x){treew$edge[x,2]})
-    x <- min(children.w)                     # left child of node 'w'
-    y <- max(children.w)                     # right child of node 'w'
-    
-    step1 <- .r.mast(b,x,treea,treew, vals) + .r.mast(c,y,treea,treew, vals)
-    step2 <- .r.mast(b,y,treea,treew, vals) + .r.mast(c,x,treea,treew, vals)
-    step3 <- .r.mast(a,x,treea,treew, vals)
-    step4 <- .r.mast(a,y,treea,treew, vals)
-    step5 <- .r.mast(b,w,treea,treew, vals)
-    step6 <- .r.mast(c,w,treea,treew, vals)
-    results <- c(step1, step2, step3, step4, step5, step6)
-    
-    val <- max(results)
-    return (val)
+# create a sorted list of vectors of every internal node's tip labels
+get.tip.labels <- function(tr) {
+  # Generate tuples of sorted tip labels as values.  Each tuple represents 
+  # a subtree rooted at an internal node.  Exclude the root.
+  # @param tr: Tree, an object of class "phylo"
+  if (Ntip(tr) != length(unique(tr$tip.label))) {
+    warning("Tree contains duplicate labels.")
   }
+  indices <- prop.part(tr)
+  labels <- lapply(indices, function(x) {
+    y <- tr$tip.label[x]
+    if (length(y) < Ntip(tr)) {
+      sort(tr$tip.label[x])
+    }  # otherwise is the root, set NULL
+  })
+  return(labels)
 }
-
-## function retrieves only the tip labels (NAMES) of a subtree with a given node label
-.retrieve.tips <- function(node, tree, vect) {
-  children <- sapply(which(node == tree$edge[,1]), function(x){tree$edge[x,2]})
-  # if a tip, record and store tip.label index
-  if (length(children) == 0) {
-    vect <- append(vect, tree$tip.label[node])
-    return(vect)
-  }
-  descendants <- sapply(children, function(x){.retrieve.tips(x, tree, vect)})
-  
-  # clean this up
-  return(unique(unlist(descendants<-append(descendants, descendants))))
-}
-
-
 
 ##-------------------------------------------------------------------------------------------------------------
 # Align (Nye et al., 2006)

@@ -346,12 +346,12 @@ int width(const igraph_t *tree)
 
     igraph_vector_t nbhd;
     igraph_vector_init(&nbhd, 0);
-    igraph_neighborhood_size(tree, &nbhd, vs, i, IGRAPH_OUT);
+    igraph_neighborhood_size(tree, &nbhd, vs, i, IGRAPH_OUT, 0);
 
     while (VECTOR(nbhd)[0] < igraph_vcount(tree))
     {
         ++i;
-        igraph_neighborhood_size(tree, &nbhd, vs, i, IGRAPH_OUT);
+        igraph_neighborhood_size(tree, &nbhd, vs, i, IGRAPH_OUT, 0);
         if (VECTOR(nbhd)[0] - wprev > w) {
             w = VECTOR(nbhd)[0] - wprev;
         }
@@ -368,11 +368,11 @@ int max_delta_width(const igraph_t *tree)
 
     igraph_vector_t nbhd;
     igraph_vector_init(&nbhd, 0);
-    igraph_neighborhood_size(tree, &nbhd, vs, i, IGRAPH_OUT);
+    igraph_neighborhood_size(tree, &nbhd, vs, i, IGRAPH_OUT, 0);
 
     while (VECTOR(nbhd)[0] < igraph_vcount(tree))
     {
-        igraph_neighborhood_size(tree, &nbhd, vs, ++i, IGRAPH_OUT);
+        igraph_neighborhood_size(tree, &nbhd, vs, ++i, IGRAPH_OUT, 0);
         w = VECTOR(nbhd)[0] - nprev;
         if (fabs(w - wprev) > maxdw) {
             maxdw = w > wprev ? w - wprev : wprev - w;

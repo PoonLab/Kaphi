@@ -472,6 +472,248 @@ void collapse_singles(igraph_t *tree)
     igraph_vector_destroy(&work);
 }
 
+void subsample_tips(igraph_t *tree, int ntip, const gsl_rng *rng)
+{
+    int i, j, orig_ntip = (igraph_vcount(tree) + 1)/2;
+    igraph_vector_t tips, keep_tips, keep_all, drop, degree;
+    igraph_vector_ptr_t nbhd;
+    igraph_vector_t *elem;
+
+    if (ntip <= 0 || orig_ntip <= ntip) {
+        return;
+    }
+
+    igraph_vector_init(&tips, 0);
+    igraph_vector_init(&keep_tips, ntip);
+    igraph_vector_init(&keep_all, 0);
+    igraph_vector_init(&degree, 0);
+    igraph_vector_init(&drop, 0);
+    igraph_vector_ptr_init(&nbhd, 0);
+
+    igraph_degree(tree, &degree, igraph_vss_all(), IGRAPH_OUT, 0);
+
+    for (i = 0; i < igraph_vcount(tree); ++i)
+    {
+        if ((int) VECTOR(degree)[i] == 0) {
+            igraph_vector_push_back(&tips, i);
+        }
+    }
+    gsl_ran_choose(rng, VECTOR(keep_tips), ntip, VECTOR(tips), orig_ntip, sizeof(igraph_real_t));
+
+    igraph_neighborhood(tree, &nbhd, igraph_vss_vector(&keep_tips), INT_MAX, IGRAPH_IN, 0);
+
+    for (i = 0; i < igraph_vector_ptr_size(&nbhd); ++i) {
+        elem = (igraph_vector_t *) igraph_vector_ptr_e(&nbhd, i);
+        for (j = 0; j < igraph_vector_size(elem); ++j) {
+            igraph_vector_push_back(&keep_all, VECTOR(*elem)[j]);
+        }
+        igraph_vector_destroy(elem);
+    }
+
+    igraph_vector_sort(&keep_all);
+    for (i = 0; i < igraph_vcount(tree); ++i) {
+        if (!igraph_vector_binsearch2(&keep_all, i))
+            igraph_vector_push_back(&drop, i);
+    }
+
+    igraph_delete_vertices(tree, igraph_vss_vector(&drop));
+    collapse_singles(tree);
+
+    igraph_vector_destroy(&tips);
+    igraph_vector_destroy(&keep_tips);
+    igraph_vector_destroy(&keep_all);
+    igraph_vector_destroy(&degree);
+    igraph_vector_destroy(&drop);
+    igraph_vector_ptr_destroy_all(&nbhd);
+}
+
+void subsample_tips_peerdriven(igraph_t *tree, const igraph_t *net, double p, 
+        double a, int ntip, const gsl_rng *rng)
+{
+    int i, j, s, tip, nt = igraph_vcount(tree);
+    int *tip_map = malloc(igraph_vcount(net) * sizeof(int));
+    int *node_map = malloc(nt * sizeof(int));
+    int *sampled = malloc(nt * sizeof(int));
+    double *prob = malloc(nt * sizeof(double));
+    int *idx = malloc(nt * sizeof(int));
+    igraph_adjlist_t al;
+    igraph_vector_t degree, keep_tips, keep_all, drop, *elem;
+    igraph_vector_int_t *peers;
+    igraph_vector_ptr_t nbhd;
+
+    if (ntip <= 0 || (nt + 1) / 2 <= ntip) {
+        return;
+    }
+
+    igraph_vector_init(&degree, 0);
+    igraph_vector_init(&keep_tips, 0);
+    igraph_vector_init(&keep_all, 0);
+    igraph_vector_init(&drop, 0);
+    igraph_vector_ptr_init(&nbhd, 0);
+    igraph_adjlist_init(net, &al, IGRAPH_ALL);
+
+    igraph_degree(net, &degree, igraph_vss_all(), IGRAPH_ALL, 0);
+    _make_maps(tree, net, tip_map, node_map);
+    for (i = 0; i < nt; ++i) {
+        sampled[i] = (node_map[i] == -1 ? 1 : 0);
+        idx[i] = i;
+    }
+
+    for (s = 0; s < ntip; ++s) {
+        memset(prob, 0, nt * sizeof(double));
+        for (i = 0; i < nt; ++i) {
+            if (!sampled[i]) {
+                prob[i] = p;
+                peers = igraph_adjlist_get(&al, node_map[i]);
+                for (j = 0; j < VECTOR(degree)[node_map[i]]; ++j) {
+                    if (tip_map[VECTOR(*peers)[j]] != -1 && sampled[tip_map[VECTOR(*peers)[j]]]) {
+                        prob[i] = p + a;
+                        break;
+                    }
+                }
+            }
+        }
+        do {
+            sample_weighted(idx, &tip, 1, nt, sizeof(int), prob, 0, rng);
+        } while (node_map[tip] == -1);
+        sampled[tip] = 1;
+        igraph_vector_push_back(&keep_tips, tip);
+    }
+
+    igraph_neighborhood(tree, &nbhd, igraph_vss_vector(&keep_tips), INT_MAX, IGRAPH_IN, 0);
+
+    for (i = 0; i < igraph_vector_ptr_size(&nbhd); ++i) {
+        elem = (igraph_vector_t *) igraph_vector_ptr_e(&nbhd, i);
+        for (j = 0; j < igraph_vector_size(elem); ++j) {
+            igraph_vector_push_back(&keep_all, VECTOR(*elem)[j]);
+        }
+        igraph_vector_destroy(elem);
+    }
+
+    igraph_vector_sort(&keep_all);
+    for (i = 0; i < igraph_vcount(tree); ++i) {
+        if (!igraph_vector_binsearch2(&keep_all, i))
+            igraph_vector_push_back(&drop, i);
+    }
+
+    igraph_delete_vertices(tree, igraph_vss_vector(&drop));
+    collapse_singles(tree);
+
+    igraph_vector_destroy(&drop);
+    igraph_vector_destroy(&keep_tips);
+    igraph_vector_destroy(&keep_all);
+    igraph_vector_destroy(&degree);
+    igraph_vector_ptr_destroy_all(&nbhd);
+    igraph_adjlist_destroy(&al);
+    free(tip_map);
+    free(node_map);
+    free(sampled);
+    free(prob);
+    free(idx);
+}
+
+void subsample(igraph_t *tree, int ntime, const double *prop, const double *t, gsl_rng *rng)
+{
+    int i, j, sample, v, nextant;
+    int *sample_order = malloc(ntime * sizeof(int));
+    double *dpth = NULL;
+    igraph_vector_ptr_t nbhd;
+    igraph_vector_t extant, drop, drop_all, *elem;
+    igraph_adjlist_t adjlist;
+    igraph_inclist_t inclist;
+    igraph_vector_int_t *adj, *inc;
+
+    igraph_vector_init(&extant, 0);
+    igraph_vector_init(&drop, igraph_vcount(tree));
+    igraph_vector_init(&drop_all, 0);
+    igraph_vector_ptr_init(&nbhd, 0);
+
+    // order the sampling times chronologically
+    order(t, sample_order, sizeof(double), ntime, compare_doubles);
+
+    // go through each sampling time, choosing the required number of tips
+    for (i = 0; i <= ntime; ++i) {
+        igraph_adjlist_init(tree, &adjlist, IGRAPH_IN);
+        igraph_inclist_init(tree, &inclist, IGRAPH_IN);
+
+        // get the depths of each node
+        dpth = safe_realloc(dpth, igraph_vcount(tree) * sizeof(double));
+        depths(tree, 1, dpth);
+        
+        sample = sample_order[i == ntime ? i - 1 : i];
+        igraph_vector_clear(&extant);
+        igraph_vector_clear(&drop);
+        igraph_vector_clear(&drop_all);
+        nextant = 0;
+
+        // find all the nodes which are extant at the sampling time
+        // by extant we mean that they are later than the sampling time, but
+        // their parent is earlier
+        for (v = 0; v < igraph_vcount(tree); ++v) {
+            adj = igraph_adjlist_get(&adjlist, v);
+
+            // skip the root
+            if (igraph_vector_int_size(adj) == 0) {
+                continue;
+            }
+
+            if (dpth[v] >= t[sample] && dpth[VECTOR(*adj)[0]] <= t[sample]) {
+                igraph_vector_push_back(&extant, v);
+                ++nextant;
+            }
+        }
+
+        if (i < ntime) 
+        {
+            // choose the required number of nodes to be sampled
+            igraph_vector_resize(&drop, (int) (prop[sample] * nextant));
+            gsl_ran_choose(rng, VECTOR(drop), (int) (prop[sample] * nextant), 
+                           VECTOR(extant), nextant, sizeof(igraph_real_t));
+    
+            // adjust the branch lengths of the sampled nodes
+            for (j = 0; j < igraph_vector_size(&drop); ++j) {
+                v = VECTOR(drop)[j];
+                inc = igraph_inclist_get(&inclist, v);
+                SETEAN(tree, "length", VECTOR(*inc)[0], 
+                       EAN(tree, "length", VECTOR(*inc)[0]) - dpth[v] + t[sample]);
+            }
+        }
+
+        // at the end, delete everybody who wasn't sampled
+        else 
+        {
+            igraph_vector_resize(&drop, nextant);
+            memcpy(VECTOR(drop), VECTOR(extant), nextant * sizeof(igraph_real_t));
+        }
+
+        // find all children of the sampled nodes and delete them
+        igraph_neighborhood(tree, &nbhd, igraph_vss_vector(&drop), INT_MAX, IGRAPH_OUT, 0);
+
+        for (j = 0; j < igraph_vector_ptr_size(&nbhd); ++j) {
+            elem = (igraph_vector_t *) igraph_vector_ptr_e(&nbhd, j);
+            for (v = 0; v < igraph_vector_size(elem); ++v) {
+                if (i == ntime || !igraph_vector_binsearch2(&drop, VECTOR(*elem)[v])) {
+                    igraph_vector_push_back(&drop_all, VECTOR(*elem)[v]);
+                }
+            }
+            igraph_vector_destroy(elem);
+        }
+
+        igraph_delete_vertices(tree, igraph_vss_vector(&drop_all));
+        igraph_adjlist_destroy(&adjlist);
+        igraph_inclist_destroy(&inclist);
+    }
+
+    collapse_singles(tree);
+
+    free(dpth);
+    free(sample_order);
+    igraph_vector_destroy(&extant);
+    igraph_vector_destroy(&drop);
+    igraph_vector_destroy(&drop_all);
+    igraph_vector_ptr_destroy_all(&nbhd);
+}
+
 void depths(const igraph_t *tree, int use_branch_lengths, double *depths)
 {
     igraph_vector_t work;

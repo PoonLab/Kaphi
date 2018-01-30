@@ -25,10 +25,11 @@ MAST score of type \code{numeric} between two given trees.
 }
 \references{
 Gordon, A.D., & Tomassine, R. (1980). On the assessment and comparison of classifications, \emph{Analyse de donnes et informatique}, pg 149--160. \cr\cr
-Kuhner, M.K., & Yamato, J. (2014). Practical Performance of Tree Comparison Metrics. \emph{Systematic Biology}, \bold{64}, 205--214.
+Kuhner, M.K., & Yamato, J. (2014). Practical Performance of Tree Comparison Metrics. \emph{Systematic Biology}, \bold{64}, 205--214. \cr\cr
+Goddard, W., Kubicka, E., Kubicki, G. & McMorris, F.R. (1994). The Agreement Metric for Labeled Binary Trees. \emph{Mathematical Biosciences}, \bold{123}, 215--226.
 }
 \author{
-Tammy Ng
+Tammy Ng, Helen He
 }
 
 \examples{
