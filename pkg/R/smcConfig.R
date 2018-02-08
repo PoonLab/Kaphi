@@ -175,7 +175,7 @@ parse.distance <- function(distance) {
                    c('Kaphi::','MAST',2),
                    c('Kaphi::','Align',2),
                    c('Kaphi::','Sim',2),
-                   c('Kaphi::','Node',2),
+                   c('Kaphi::','Node.dist',2),
                    
                    c('ape::','dist.topo',2),
                    
