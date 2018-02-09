@@ -21,222 +21,81 @@ ws <- init.workspace(obs.tree, config)
 # run ABC-SMC
 res <- run.smc(ws, trace.file='pkg/examples/example-bd2.tsv', model='bd', verbose=TRUE)
 
+#ratios <- c()
+#for (i in 1:nrow(trace)){
+#  if (trace[i,1] == (res$result$niter + 1)){
+#    ratio <- unname(trace[i,4] / trace[i,5])
+#    ratios <- c(ratios, ratio)
+#  }
+#}
+
+#avg.ratio <- mean(ratios)
+#true.ratio <- unname(theta[1] / theta[2])
+#ratio.diff <- true.ratio - avg.ratio
+#print(ratio.diff)
+
+#------------------------------------------------------------------------------
+# Plot trajectory of mean estimates of params
 # let's examine the contents of the trace file
 trace <- read.table('pkg/examples/example-bd2.tsv', header=T, sep='\t')
 
-ratios <- c()
-for (i in 1:nrow(trace)){
-  if (trace[i,1] == (res$result$niter + 1)){
-    ratio <- unname(trace[i,4] / trace[i,5])
-    ratios <- c(ratios, ratio)
+pdf(file='~/Documents/exbd.kernel.1.pdf')           
+
+for (param in names(theta)) {
+  par(mar=c(5,5,2,2))
+  plot(
+    sapply(split(trace[[param]]*trace$weight, trace$n), sum), 
+    type='o',
+    xlab='Iteration', 
+    ylab=paste0('Mean ', param),
+    cex.lab=1,
+    main=paste0('Trajectory of Mean ', param, ' (', config$model, ', ', config$nparticle, ' particles)')
+    #,ylim=c(0.05,0.105)
+  )
+  # true param value
+  abline(h=theta[[param]], lty=2)
+  
+  
+  # use kernel densities to visualize posterior approximations
+  pal <- rainbow(n=(length(unique(trace$n)) %/% 10)+1, start=0, end=0.5, v=1, s=1)
+  par(mar=c(5,5,2,2))
+  plot(density
+       (trace[[param]][trace$n==1], 
+         weights=trace$weight[trace$n==1]), 
+       col=pal[1], 
+       lwd=2, 
+       main=paste0(' (', config$model, ' ', config$priors[[param]]), 
+       xlab=paste0(' (', config$model, ' rate parameter (', param, ')',
+                   '\nMean: ',
+                   mean(trace[[param]][trace$n==max(trace$n)]), 
+                   '    Median: ', 
+                   median(trace[[param]][trace$n==max(trace$n)]),
+                   '\n95% CI (',
+                   quantile(trace[[param]][trace$n==max(trace$n)], c(0.025, 0.975))[1],
+                   ' , ',
+                   quantile(trace[[param]][trace$n==max(trace$n)], c(0.025, 0.975))[2],
+                   ')'), 
+       cex.lab=0.8
+  )
+  
+  for (i in 1: ( length(unique(trace$n)) %/% 10 ) ) {
+    temp <- trace[trace$n==i*10,]
+    lines(density(temp[[param]], weights=temp$weight), col=pal[i+1], lwd=1.5)
   }
+  lines(density
+        (trace[[param]][trace$n==max(trace$n)], 
+          weights=trace$weight[trace$n==max(trace$n)]), 
+        col='black', 
+        lwd=2
+  )  # final estimates
+  abline(v=theta[[param]], lty=3, col='red')
+  
+  
+  # show the prior distribution
+  x <- sort( replicate(1000, eval(parse(text=config$priors[[param]]))) )
+  y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[[param]]))}
+  lines(x, y(x), lty=5)
+
 }
 
-avg.ratio <- mean(ratios)
-true.ratio <- unname(theta[1] / theta[2])
-ratio.diff <- true.ratio - avg.ratio
-print(ratio.diff)
-
-#------------------------------------------------------------------------------
-# Plot trajectory of mean estimate of lambda and mu
-
-par(mar=c(5,5,2,2))
-#png('bd-mean01.png')
-plot(
-  sapply(split(trace$lambda*trace$weight, trace$n), sum), 
-  ylim=c(0, 1), 
-  type='o',
-  xlab='Iteration', 
-  ylab='Mean Parameter Value',
-  cex.lab=1,
-  main='Trajectory of Mean Lambda and Mu (Birth-Death Model, 1000 particles)'
-)
-lines(
-  sapply(split(trace$mu*trace$weight, trace$n), sum),
-  type='o',
-  col='red'
-)
-abline(h=0.05, lty=2, col='black')
-abline(h=0.001, lty=2, col='red')
-#dev.off()
-
-
-#------------------------------------------------------------------------------
-# use kernel densities to visualize posterior approximations
-pal <- rainbow(n=5, start=0, end=0.5, v=1, s=1)
-par(mar=c(5,5,2,2))
-#png('bd-dist01.png')
-plot(
-  density(trace$lambda[trace$n==1], weights=trace$weight[trace$n==1]), 
-  xlim=c(0, 1.5), 
-  col=pal[1], 
-  lwd=2, 
-  main='Birth-Death', 
-  xlab='Lambda', 
-  cex.lab=1.2, 
-  ylim=c(0, 19)
-)
-
-for (i in 1:4) {
-  temp <- trace[trace$n==i*20,]
-  lines(density(temp$lambda, weights=temp$weight), 
-        col=pal[i+1], lwd=1.5)
-}
-# final estimates
-lines(density(trace$lambda[trace$n==max(trace$n)], weights=trace$weight[trace$n==max(trace$n)]), 
-      col='black', lwd=2)  
-abline(v=0.1, lty=3, col='red')
-
-# show the prior distribution
-x <- seq(0, 2, 0.01)
-y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[["lambda"]]))}
-lines(x, y(x), lty=5)
-
-# show posterior distribution (work in progress)
-node.heights <- rev(branching.times(obs.tree))
-
-# make a legend
-legend(
-  x=.8, y=19, 
-  legend=c('prior', 'n=1', 'n=20', 'n=40', 'n=60', 'n=80', 'n=101(final)', 'true lambda(0.1)'), 
-  lty=c(5,rep(1,6),3), 
-  col=c('black', pal, 'black', 'red'), 
-  lwd=c(1,2,rep(1.5,4),2,0.75), 
-  seg.len=2
-)
-#dev.off()
-
-
-#------------------------------------------------------------------------------
-# use kernel densities to visualize posterior approximations
-pal <- rainbow(n=5, start=0, end=0.5, v=1, s=1)
-par(mar=c(5,5,2,2))
-#png('bd-dist01.png')
-plot(
-  density(trace$mu[trace$n==1], weights=trace$weight[trace$n==1]), 
-  xlim=c(0, 1.5), 
-  col=pal[1], 
-  lwd=2, 
-  main='Birth-Death', 
-  xlab='Mu', 
-  cex.lab=1.2, 
-  ylim=c(0, 22)
-)
-
-for (i in 1:4) {
-  temp <- trace[trace$n==i*20,]
-  lines(density(temp$mu, weights=temp$weight), 
-        col=pal[i+1], lwd=1.5)
-}
-# final estimates
-lines(density(trace$mu[trace$n==max(trace$n)], weights=trace$weight[trace$n==max(trace$n)]), 
-      col='black', lwd=2)  
-abline(v=0.003, lty=3, col='red')
-
-# show the prior distribution
-x <- seq(0, 2, 0.01)
-y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[["mu"]]))}
-lines(x, y(x), lty=5)
-
-# show posterior distribution (work in progress)
-node.heights <- rev(branching.times(obs.tree))
-
-# make a legend
-legend(
-  x=0.8, y=22, 
-  legend=c('prior', 'n=1', 'n=20', 'n=40', 'n=60', 'n=80', 'n=101(final)', 'true mu(0.003)'), 
-  lty=c(5,rep(1,6),3), 
-  col=c('black', pal, 'black', 'red'), 
-  lwd=c(1,2,rep(1.5,2),2,0.75), 
-  seg.len=2
-)
-#dev.off()
-
-
-#------------------------------------------------------------------------------
-# Visualize parameter identifiability
-
-# calculate kernel distances for varying lambda
-x <- seq(0.01, 0.3, 0.01)
-res <- sapply(x, function(val) {
-  theta <- c(lambda=val, mu=0.003)
-  sim.trees <- speciation.model(theta, nsim=50, tips=50, model='bd')
-  dists <- sapply(sim.trees, function(st) {
-    pt <- .preprocess.tree(st, config)
-    distance(obs.tree, pt, config)
-  })
-  cat(val, "\n")
-  mean(dists)
-})
-# generate a plot
-par(mar=c(5,5,2,2))
-plot(x, res, type='o', xlab='Lambda', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0,0.5), 
-     main='Identifiability of Lambda (Birth-Death Model)')
-abline(v=0.1, lty=2)
-
-# calculate kernel distances for varying mu
-y <- seq(0, 0.05, 0.001)
-res2 <- sapply(y, function(val) {
-  theta <- c(lambda=0.1, mu=val)
-  sim.trees <- speciation.model(theta, nsim=100, tips=50, model='bd')
-  dists <- sapply(sim.trees, function(st) {
-    pt <- .preprocess.tree(st, config)
-    distance(obs.tree, pt, config)
-  })
-  cat(val, "\n")
-  mean(dists)
-})
-# generate a plot
-par(mar=c(5,5,2,2))
-plot(y, res2, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0.05,0.09),
-     main='Identifiability of Mu (Birth-Death Model)')
-abline(v=0.003, lty=2)
-# log transformed plot
-plot(log(y), res2, type='o', xlab='Mu', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0.05,0.12),
-     main='Identifiability of Mu (Birth-Death Model)')
-abline(v=log(0.003), lty=2)
-
-
-#------------------------------------------------------------------------------
-# Grid search + heatmap for all pairwise combinations of values {lambda} x {mu}
-
-# set up matrix
-x <- seq(0.05, 0.3, 0.005)
-y <- seq(0, 0.05, 0.001)
-m <- matrix(nrow=length(x), ncol=length(y), dimnames=list(x,y))
-ind <- 1
-
-# fill matrix with distances from obs.tree for each pairwise combination 
-#   of lambda and mu.
-for (i in y) {
-  cat('mu: ', i, '\n')
-  res <- sapply(x, function(val) {
-    theta <- c(lambda=val, mu=i)
-    sim.trees <- speciation.model(theta, nsim=50, tips=50, model='bd')
-    dists <- sapply(sim.trees, function(st) {
-      pt <- .preprocess.tree(st, config)
-      distance(obs.tree, pt, config)
-    })
-    cat('  lambda: ', val, "\n")
-    mean(dists)
-  })
-  cat('writing values to col. ', ind, '\n')
-  m[,ind] <- res
-  ind <- ind + 1
-}
-
-# plot heat map using gplots
-require(grDevices)
-require(gplots)
-pal <- colorRampPalette(c("red", "yellow", "green"))(n = 100)
-hm1 <- heatmap.2(m, 
-                Rowv=NA, Colv=NA,
-                scale="none", na.rm=TRUE,
-                col=pal,  
-                margins=c(5,5),
-                density.info='none',
-                ylab='Lambda', xlab='Mu', 
-                main='Distance from obs.tree',
-                trace='none',
-                add.expr=abline(v=c(3.75), h=c(41), lty=2)
-                )
+dev.off()
