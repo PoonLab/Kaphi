@@ -21,82 +21,66 @@ ws <- init.workspace(obs.tree, config)
 # run ABC-SMC
 res <- run.smc(ws, trace.file='pkg/examples/example-bisse2.tsv', model='bisse', verbose=TRUE)
 
-# let's examine the contents of the trace file
+#------------------------------------------------------------------------------
 trace <- read.table('pkg/examples/example-bisse2.tsv', header=T, sep='\t')
 
-#------------------------------------------------------------------------------
-# Plot trajectory of mean estimate of lambda and mu
+pdf(file='~/Documents/exbisse.kernel.1.pdf')           
 
-pal <- rainbow(n=6, start=0, end=0.75, v=1, s=1)
-par(mar=c(5,5,2,2))
-#png('bd-mean01.png')
+for (param in names(theta)) {
+  par(mar=c(5,5,2,2))
+  plot(
+    sapply(split(trace[[param]]*trace$weight, trace$n), sum), 
+    type='o',
+    xlab='Iteration', 
+    ylab=paste0('Mean ', param),
+    cex.lab=1,
+    main=paste0('Trajectory of Mean ', param, ' (', config$model, ', ', config$nparticle, ' particles)')
+    #,ylim=c(0.05,0.105)
+  )
+  # true param value
+  abline(h=theta[[param]], lty=2)
+  
+  
+  # use kernel densities to visualize posterior approximations
+  pal <- rainbow(n=(length(unique(trace$n)) %/% 10)+1, start=0, end=0.5, v=1, s=1)
+  par(mar=c(5,5,2,2))
+  plot(density
+       (trace[[param]][trace$n==1], 
+         weights=trace$weight[trace$n==1]), 
+       col=pal[1], 
+       lwd=2, 
+       main=paste0(' (', config$model, ' ', config$priors[[param]]), 
+       xlab=paste0(' (', config$model, ' rate parameter (', param, ')',
+                   '\nMean: ',
+                   mean(trace[[param]][trace$n==max(trace$n)]), 
+                   '    Median: ', 
+                   median(trace[[param]][trace$n==max(trace$n)]),
+                   '\n95% CI (',
+                   quantile(trace[[param]][trace$n==max(trace$n)], c(0.025, 0.975))[1],
+                   ' , ',
+                   quantile(trace[[param]][trace$n==max(trace$n)], c(0.025, 0.975))[2],
+                   ')'), 
+       cex.lab=0.8
+  )
+  
+  for (i in 1: ( length(unique(trace$n)) %/% 10 ) ) {
+    temp <- trace[trace$n==i*10,]
+    lines(density(temp[[param]], weights=temp$weight), col=pal[i+1], lwd=1.5)
+  }
+  lines(density
+        (trace[[param]][trace$n==max(trace$n)], 
+          weights=trace$weight[trace$n==max(trace$n)]), 
+        col='black', 
+        lwd=2
+  )  # final estimates
+  abline(v=theta[[param]], lty=3, col='red')
+  
+  
+  # show the prior distribution
+  x <- sort( replicate(1000, eval(parse(text=config$priors[[param]]))) )
+  y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[[param]]))}
+  lines(x, y(x), lty=5)
 
-plot(
-  sapply(split(trace$lambda0*trace$weight, trace$n), sum), 
-  ylim=c(0, 1), 
-  type='l',
-  xlab='Iteration', 
-  ylab='Mean Parameter Value',
-  cex.lab=1,
-  main='Trajectory of Mean Lambda and Mu (BiSSE Model, 100 particles)',
-  col=pal[1]
-)
-lines(
-  sapply(split(trace$mu0*trace$weight, trace$n), sum),
-  type='l',
-  col=pal[2]
-)
-lines(
-  sapply(split(trace$lambda1*trace$weight, trace$n), sum),
-  type='l',
-  col=pal[3]
-)
-lines(
-  sapply(split(trace$mu1*trace$weight, trace$n), sum),
-  type='l',
-  col=pal[4]
-)
-lines(
-  sapply(split(trace$q01*trace$weight, trace$n), sum),
-  type='l',
-  col=pal[5]
-)
-lines(
-  sapply(split(trace$q10*trace$weight, trace$n), sum),
-  type='l',
-  col=pal[6]
-)
-abline(h=0.1, lty=2, col=pal[1])
-abline(h=0.003, lty=2, col=pal[2])
-abline(h=0.1, lty=2, col=pal[3])
-abline(h=0.003, lty=2, col=pal[4])
-abline(h=0.01, lty=2, col=pal[5])
-abline(h=0.01, lty=2, col=pal[6])
-#dev.off()
-legend(
-  x=4, y=1.02, 
-  legend=c('lambda0', 'mu0', 'lambda1', 'mu1', 'q01', 'q10'), 
-  lty=c(rep(1,6)), 
-  col=pal, 
-  lwd=c(rep(1,6)), 
-  seg.len=2,
-  cex=0.8
-)
+}
 
-# calculate kernel distances for varying lambda0
-x <- seq(0.01, 0.3, 0.01)
-res <- sapply(x, function(val) {
-  theta <- c(lambda0=val, lambda1=0.1, mu0=0.003, mu1=0.03, q01=0.01, q10=0.01)
-  sim.trees <- speciation.model(theta, nsim=50, tips=50, model='bisse')
-  dists <- sapply(sim.trees, function(st) {
-    pt <- .preprocess.tree(st, config)
-    distance(obs.tree, pt, config)
-  })
-  cat(val, "\n")
-  mean(dists)
-})
-# generate a plot
-par(mar=c(5,5,2,2))
-plot(x, res, type='o', xlab='Lambda0', ylab='Mean kernel distance', cex.lab=1.2, ylim=c(0,0.5), 
-     main='Identifiability of Lambda0 (BiSSE Model)')
-abline(v=0.1, lty=2)
+dev.off()
