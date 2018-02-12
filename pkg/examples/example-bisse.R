@@ -19,7 +19,7 @@ obs.tree <- parse.input.tree(obs.tree, config)
 ws <- init.workspace(obs.tree, config)
 
 # run ABC-SMC
-res <- run.smc(ws, trace.file='pkg/examples/example-bisse2.tsv', model='bisse', verbose=TRUE)
+res <- run.smc(ws, trace.file='pkg/examples/example-bisse2.tsv', model='bisse', nthreads=10, verbose=TRUE)
 
 #------------------------------------------------------------------------------
 trace <- read.table('pkg/examples/example-bisse2.tsv', header=T, sep='\t')
@@ -34,7 +34,7 @@ for (param in names(theta)) {
     xlab='Iteration', 
     ylab=paste0('Mean ', param),
     cex.lab=1,
-    main=paste0('Trajectory of Mean ', param, ' (', config$model, ', ', config$nparticle, ' particles)')
+    main=paste0('Trajectory of Mean ', param, ' (BiSSE, ', config$nparticle, ' particles)')
     #,ylim=c(0.05,0.105)
   )
   # true param value
@@ -49,8 +49,8 @@ for (param in names(theta)) {
          weights=trace$weight[trace$n==1]), 
        col=pal[1], 
        lwd=2, 
-       main=paste0(' (', config$model, ' ', config$priors[[param]]), 
-       xlab=paste0(' (', config$model, ' rate parameter (', param, ')',
+       main=paste0(' (BiSSE ', config$priors[[param]]), 
+       xlab=paste0(' (BiSSE rate parameter (', param, ')',
                    '\nMean: ',
                    mean(trace[[param]][trace$n==max(trace$n)]), 
                    '    Median: ', 
