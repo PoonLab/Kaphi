@@ -870,7 +870,7 @@ double *branch_lengths(const igraph_t *tree)
 {
     fprintf (stdout, "entered branch_lengths()\n");
 
-    igraph_inclist_t il;
+    igraph_inclist_t il;  // incidence list
     int i;
     igraph_vector_int_t *edge;
     double *branch_lengths = malloc(2 * igraph_vcount(tree) * sizeof(double));
@@ -880,6 +880,7 @@ double *branch_lengths(const igraph_t *tree)
     igraph_inclist_init(tree, &il, IGRAPH_OUT);
 
     fprintf (stdout, "past inclist_init, about to enter main loop\n");
+    fprintf (stdout, "vcount: %d\n", igraph_vcount(tree));
 
     for (i = 0; i < igraph_vcount(tree); ++i)
     {
@@ -889,7 +890,11 @@ double *branch_lengths(const igraph_t *tree)
         if (igraph_vector_int_size(edge) > 0)
         {
             branch_lengths[2*i] = EAN(tree, "length", VECTOR(*edge)[0]);
+            fprintf (stdout, " left %f\n", branch_lengths[2*i]);
+
             branch_lengths[2*i+1] = EAN(tree, "length", VECTOR(*edge)[1]);
+            fprintf (stdout, )
+            fprintf (stdout, " right %f\n", branch_lengths[2*i+1]);
         }
     }
 
