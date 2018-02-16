@@ -9,7 +9,7 @@ config <- load.config('tests/fixtures/test-bisse.yaml')
 config <- set.model(config, 'bisse')
 
 # simulate target tree
-theta <- c(lambda0=0.1, lambda1=0.1, mu0=0.003, mu1=0.003, q01=0.01, q10=0.01)  # this is the true value
+theta <- c(lambda0=0.2, lambda1=0.1, mu0=0.003, mu1=0.003, q01=0.03, q10=0.01)  # this is the true value
 set.seed(50)
 obs.tree <- speciation.model(theta, nsim=1, tips=50, model='bisse')[[1]]
 obs.tree <- parse.input.tree(obs.tree, config)

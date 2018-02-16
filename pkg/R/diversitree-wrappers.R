@@ -107,6 +107,11 @@ speciation.model <- function(theta, nsim, tips, model, tsample=NA, seed=NA, labe
   ## Simulate tree(s)
   result <- trees(parms, type=model, n=nsim, max.taxa=tips$n.tips,
                   max.t=Inf, include.extinct=FALSE, ...)
+  # append tip states to tip labels
+  result <- lapply(result, function(tr) {
+    tr$tip.label <- paste(tr$tip.label, tr$tip.state, sep='_')
+    tr
+  })
   return(result)
 }
 attr(speciation.model, 'name') <- 'speciation.model'
