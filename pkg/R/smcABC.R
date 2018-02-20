@@ -49,7 +49,7 @@ simulate.trees <- function(workspace, theta, model, seed=NA, ...) {
 
 
 # formally 'distance'
-kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, norm.mode) {
+kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, norm.mode, regex, gamma) {
   if (is.null(t1$kernel)) {
     stop("t1 missing self kernel in distance()")
   }
@@ -62,7 +62,10 @@ kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, norm.mo
     t2,
     lambda=decay.factor,
     sigma=rbf.variance,
-    rho=sst.control
+    rho=sst.control,
+    label1 <- gsub(regex,t1$tip.label),
+    label2 <- gsub(regex,t2$tip.label),
+    gamma=gamma
   )
   
   result <- 1. - k / sqrt(t1$kernel * t2$kernel)

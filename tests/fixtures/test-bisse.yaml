@@ -77,7 +77,6 @@ distances:
     rbf.variance: 100.0
     sst.control: 1.0
     norm.mode: 'NONE'
-    label1: "'^.+_([01])$', '\\1'"
-    label2: "'^.+_([01])$', '\\1'"
+    regex: "'^.+_([01])$', '\\1'"
     gamma: 1
 

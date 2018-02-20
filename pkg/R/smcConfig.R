@@ -43,7 +43,9 @@ load.config <- function(file) {
     decay.factor=0.2,
     rbf.variance=100.0,
     sst.control=1.0,
-    norm.mode='NONE'
+    norm.mode='NONE',
+    regex= "",
+    gamma=0
   )
   class(config) <- 'smc.config'
   
@@ -119,8 +121,7 @@ load.config <- function(file) {
       config$rbf.variance <- kernel.settings$rbf.variance
       config$sst.control <- kernel.settings$sst.control
       config$norm.mode <- kernel.settings$norm.mode
-      config$label1 <- kernel.settings$label1
-      config$label2 <- kernel.settings$label2
+      config$regex <- kernel.settings$regex
       config$gamma <- kernel.settings$gamma
     }
   } else if (is.character(settings$distances)) {
@@ -146,8 +147,7 @@ load.config <- function(file) {
         config$rbf.variance <- as.numeric(values["rbf.variance"])
         config$sst.control <- as.numeric(values["sst.control"])
         config$norm.mode <- values["norm.mode"]
-        config$label1 <- values["label1"]
-        config$label2 <- values["label2"]
+        config$regex <- values["regex"]
         config$gamma <- as.numeric(values["gamma"])
       }
     }

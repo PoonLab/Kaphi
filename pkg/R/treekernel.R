@@ -13,31 +13,17 @@
 # You should have received a copy of the GNU General Public License
 # along with Kaphi.  If not, see <http://www.gnu.org/licenses/>.
 
-# cache self-kernel score (only if kernel distance is desired for distance metric; specified on user-level)
-# FIXME:  this won't work for labelled kernel
-if (grepl("kernel", config$dist)) {
-  label <- gsub(config$label1,tree$tip.label) # when using different regex for label1 and label2, need to decide which one to use
-  tree$kernel <- tree.kernel(tree, tree,
-                             lambda=config$decay.factor,
-                             sigma=config$rbf.variance,
-                             rho=config$sst.control,
-                             normalize=0,
-                             label1=label,
-                             label2=label,
-                             gamma=config$gamma
-  )
-}
-
-utk <- function(t1, t2, config) {
-  # convenience wrapper for unlabelled tree shape kernel
-  result <- tree.kernel(t1, t2,
-                        lambda=config$decay.factor,
-                        sigma=config$rbf.variance,
-                        rho=as.double(config$sst.control),
-                        normalize=0
-                        )
-  return(result)
-}
+# DEPRECATED
+# utk <- function(t1, t2, config) {
+# convenience wrapper for unlabelled tree shape kernel
+#  result <- tree.kernel(t1, t2,
+#                        lambda=config$decay.factor,
+#                        sigma=config$rbf.variance,
+#                        rho=as.double(config$sst.control),
+#                        normalize=0
+#                        )
+#  return(result)
+# }
 
 tree.kernel <- function(tree1, tree2,
                         lambda,        # decay factor
@@ -52,8 +38,8 @@ tree.kernel <- function(tree1, tree2,
   use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
     FALSE
   } else {
-    label1 <- gsub(config$label1,tree$tip.label)
-    label2 <- gsub(config$label2,tree$tip.label)
+    label1 <- gsub(config$regex,tree1$tip.label)
+    label2 <- gsub(config$regex,tree2$tip.label)
     TRUE
   }
     
