@@ -119,6 +119,9 @@ load.config <- function(file) {
       config$rbf.variance <- kernel.settings$rbf.variance
       config$sst.control <- kernel.settings$sst.control
       config$norm.mode <- kernel.settings$norm.mode
+      config$label1 <- kernel.settings$label1
+      config$label2 <- kernel.settings$label2
+      config$gamma <- kernel.settings$gamma
     }
   } else if (is.character(settings$distances)) {
     # parse kernel settings from string
@@ -143,6 +146,9 @@ load.config <- function(file) {
         config$rbf.variance <- as.numeric(values["rbf.variance"])
         config$sst.control <- as.numeric(values["sst.control"])
         config$norm.mode <- values["norm.mode"]
+        config$label1 <- values["label1"]
+        config$label2 <- values["label2"]
+        config$gamma <- as.numeric(values["gamma"])
       }
     }
   } 

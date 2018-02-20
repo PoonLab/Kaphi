@@ -13,78 +13,19 @@
 # You should have received a copy of the GNU General Public License
 # along with Kaphi.  If not, see <http://www.gnu.org/licenses/>.
 
-
-.rescale.tree <- function(tree, mode) {
-  #print ('.rescale.tree')
-  mode <- toupper(mode)
-  if (!is.element(mode, c('MEAN', 'MEDIAN', 'MAX', 'NONE'))) {
-    stop("Invalid mode, must be MEAN, MEDIAN, MAX or NONE")
-  }
-  if (mode == 'NONE') {
-    return(tree)
-  }
-  if (mode == 'MEAN') {
-    scale <- mean(tree$edge.length)
-  } else if (mode == 'MEDIAN') {
-    scale <- median(tree$edge.length)
-  } else {
-    scale <- max(tree$edge.length)
-  }
-  tree$edge.length <- tree$edge.length / scale
-  return(tree)
-}
-
-
-# DEPRECATED
-parse.newick <- function(tree) {
-  if (class(tree)=='phylo') {
-    res <- .Call("R_Kaphi_parse_newick", write.tree(tree), PACKAGE="Kaphi")
-  } else if (class(tree) == 'character') {
-    res <- .Call("R_Kaphi_parse_newick", tree, PACKAGE="Kaphi")
-  } else {
-    return (1)
-  }
-  return (res)
-}
-
-
-.preprocess.tree <- function(tree, config) {
-  #print ('preprocess')
-  if (class(tree) == 'character') {
-    tree <- read.tree(text=tree)
-  }
-  if (class(tree) != 'phylo') {
-    stop(".preprocess.tree() requires phylo or character (Newick) object for tree")
-  }
-  tree <- ladderize(tree)
-  tree <- .rescale.tree(tree, config$norm.mode)
-  # cache self-kernel score (only if kernel distance is desired for distance metric; specified on user-level)
-  # FIXME:  this won't work for labelled kernel
-  if (grepl("kernel", config$dist)) {
-    tree$kernel <- tree.kernel(tree, tree,
+# cache self-kernel score (only if kernel distance is desired for distance metric; specified on user-level)
+# FIXME:  this won't work for labelled kernel
+if (grepl("kernel", config$dist)) {
+  label <- gsub(config$label1,tree$tip.label) # when using different regex for label1 and label2, need to decide which one to use
+  tree$kernel <- tree.kernel(tree, tree,
                              lambda=config$decay.factor,
                              sigma=config$rbf.variance,
                              rho=config$sst.control,
-                             normalize=0
-                             )
-  }
-  return(tree)
-}
-
-.to.newick <- function(tree) {
-  # Make sure that the tree argument is an ape phylo object
-  if (class(tree)=='phylo') {
-    return (write.tree(tree))
-  } else if (class(tree) == 'character') {
-    # make sure string is standard Newick format
-    tree <- read.tree(text=tree)
-    if (is.null(tree)) {
-      stop(".to.newick(): String failed to parse as Newick tree string")
-    }
-    return (write.tree(tree))
-  } else {
-    stop(".to.newick(): tree argument must be a phylo or character object.")
-  }
+                             normalize=0,
+                             label1=label,
+                             label2=label,
+                             gamma=config$gamma
+  )
 }
 
 utk <- function(t1, t2, config) {
@@ -103,16 +44,16 @@ tree.kernel <- function(tree1, tree2,
                         sigma,         # RBF variance parameter
                         rho=1.0,         # SST control parameter; 0 = subtree kernel, 1 = subset tree kernel
                         normalize=0,   # normalize kernel score by sqrt(k(t1,t1) * k(t2,t2))
-                        label1=NA,     # arguments for labeled tree kernel
-                        label2=NA,
+                        label1="",     # arguments for labeled tree kernel
+                        label2="",
                         gamma=0        # label factor
                         ) {
   # make labels
   use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
     FALSE
   } else {
-  	tree1$tip.label <- label1
-    tree2$tip.label <- label2
+    label1 <- gsub(config$label1,tree$tip.label)
+    label2 <- gsub(config$label2,tree$tip.label)
     TRUE
   }
     
