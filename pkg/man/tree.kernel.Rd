@@ -29,11 +29,11 @@ tree.kernel(x, y, lambda, sigma, rho=1.0, normalize=0, label1=NA, label2=NA, gam
   \item{normalize}{
     Normalizes kernel score by sqrt(k(x,x) * k(y,y)). Default is 0 (but what does 0 mean?)
   }
-  \item{label1}{
-    Argument for a label to be assigned to the tips of tree x, an object of class "phylo". Default is NA.
+  \item{regexPattern}{
+    Character string containing a regular expression to be matched in tree x and tree y tip labels.
   }
-  \item{label2}{
-    Argument for a label to be assigned to the tips of treey y, an object of class "phylo". Default is NA.
+  \item{regexReplacement}{
+    A replacement for matched \code{pattern} in tree x and tree y tip labels. Coerced to character if possible. This can include backreferences "\1" to "\9" to parenthesized subexpressions of \code{pattern}. If NA, all elements in the result corresponding to matches will be set to NA.
   }
   \item{gamma}{
     (Not sure what this parameter does)
