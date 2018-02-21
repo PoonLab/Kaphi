@@ -44,7 +44,8 @@ load.config <- function(file) {
     rbf.variance=100.0,
     sst.control=1.0,
     norm.mode='NONE',
-    regex= "",
+    labelPattern="",
+    labelReplacement="",
     gamma=0
   )
   class(config) <- 'smc.config'
@@ -121,7 +122,8 @@ load.config <- function(file) {
       config$rbf.variance <- kernel.settings$rbf.variance
       config$sst.control <- kernel.settings$sst.control
       config$norm.mode <- kernel.settings$norm.mode
-      config$regex <- kernel.settings$regex
+      config$labelPattern <- kernel.settings$labelPattern
+      config$labelReplacement <- kernel.settings$labelReplacement
       config$gamma <- kernel.settings$gamma
     }
   } else if (is.character(settings$distances)) {
@@ -147,7 +149,8 @@ load.config <- function(file) {
         config$rbf.variance <- as.numeric(values["rbf.variance"])
         config$sst.control <- as.numeric(values["sst.control"])
         config$norm.mode <- values["norm.mode"]
-        config$regex <- values["regex"]
+        config$labelPattern <- values["labelPattern"]
+        config$labelReplacement <- values["labelReplacement"]
         config$gamma <- as.numeric(values["gamma"])
       }
     }
