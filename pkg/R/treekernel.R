@@ -38,8 +38,8 @@ tree.kernel <- function(tree1, tree2,
   use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
     FALSE
   } else {
-    label1 <- gsub(config$regex,tree1$tip.label)
-    label2 <- gsub(config$regex,tree2$tip.label)
+    new_label1 <- gsub(label1,tree1$tip.label)
+    new_label2 <- gsub(label2,tree2$tip.label)
     TRUE
   }
     

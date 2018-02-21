@@ -63,8 +63,8 @@ kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, norm.mo
     lambda=decay.factor,
     sigma=rbf.variance,
     rho=sst.control,
-    label1 <- gsub(regex,t1$tip.label),
-    label2 <- gsub(regex,t2$tip.label),
+    label1 = regex,
+    label2 = regex,
     gamma=gamma
   )
   
