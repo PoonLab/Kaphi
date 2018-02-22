@@ -43,7 +43,7 @@ load.config <- function(file) {
     decay.factor=0.2,
     rbf.variance=100.0,
     sst.control=1.0,
-    norm.mode='NONE',
+    rescale.mode='NONE',
     labelPattern="",
     labelReplacement="",
     gamma=0
@@ -121,7 +121,7 @@ load.config <- function(file) {
       config$decay.factor <- kernel.settings$decay.factor
       config$rbf.variance <- kernel.settings$rbf.variance
       config$sst.control <- kernel.settings$sst.control
-      config$norm.mode <- kernel.settings$norm.mode
+      config$rescale.mode <- kernel.settings$rescale.mode
       config$labelPattern <- kernel.settings$labelPattern
       config$labelReplacement <- kernel.settings$labelReplacement
       config$gamma <- kernel.settings$gamma
@@ -148,7 +148,7 @@ load.config <- function(file) {
         config$decay.factor <- as.numeric(values["decay.factor"])
         config$rbf.variance <- as.numeric(values["rbf.variance"])
         config$sst.control <- as.numeric(values["sst.control"])
-        config$norm.mode <- values["norm.mode"]
+        config$rescale.mode <- values["rescale.mode"]
         config$labelPattern <- values["labelPattern"]
         config$labelReplacement <- values["labelReplacement"]
         config$gamma <- as.numeric(values["gamma"])

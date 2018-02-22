@@ -49,7 +49,7 @@ simulate.trees <- function(workspace, theta, model, seed=NA, ...) {
 
 
 # formally 'distance'
-kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, norm.mode, labelPattern, labelReplacement, gamma) {
+kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, rescale.mode, labelPattern, labelReplacement, gamma) {
   if (is.null(t1$kernel)) {
     stop("t1 missing self kernel in distance()")
   }
