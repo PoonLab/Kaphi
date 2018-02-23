@@ -28,43 +28,43 @@
 
 # formally 'distance'
 kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, rescale.mode, labelPattern, labelReplacement, gamma) {
-  if (is.null(t1$kernel)) {
+  # we can no longer cache a tree's kernel score to itself because a distance may potentially
+  # comprise more than one kernel
+  # rescale branch lengths
+  nt1 <- .rescale.tree(t1, rescale.mode)
+  nt2 <- .rescale.tree(t2, rescale.mode)
+  
+  k11 <- tree.kernel(
+    nt1,
+    nt1,
+    lambda=decay.factor,
+    sigma=rbf.variance,
+    rho=sst.control,
+    regexPattern = labelPattern,
+    regexReplacement = labelReplacement,
+    gamma=gamma
+  )
+  
+  k22 <- tree.kernel(
+    nt2,
+    nt2,
+    lambda=decay.factor,
+    sigma=rbf.variance,
+    rho=sst.control,
+    regexPattern = labelPattern,
+    regexReplacement = labelReplacement,
+    gamma=gamma
+  )
+  
+  if (is.null(k11)) {
     stop("t1 missing self kernel in distance()")
   }
-  if (is.null(t2$kernel)) {
+  if (is.null(k22)) {
     stop("t2 missing self kernel in distance()")
   }
 
-    # rescale branch lengths
-    nt1 <- .rescale.tree(t1, rescale.mode)
-    nt2 <- .rescale.tree(t2, rescale.mode)
-
   k12 <- tree.kernel(
     nt1,
-    nt2,
-    lambda=decay.factor,
-    sigma=rbf.variance,
-    rho=sst.control,
-    regexPattern = labelPattern,
-    regexReplacement = labelReplacement,
-    gamma=gamma
-  )
-
-    # we can no longer cache a tree's kernel score to itself because a distance may potentially
-    # comprise more than one kernel
-    k11 <- tree.kernel(
-    nt1,
-    nt1,
-    lambda=decay.factor,
-    sigma=rbf.variance,
-    rho=sst.control,
-    regexPattern = labelPattern,
-    regexReplacement = labelReplacement,
-    gamma=gamma
-  )
-
-    k22 <- tree.kernel(
-    nt2,
     nt2,
     lambda=decay.factor,
     sigma=rbf.variance,
@@ -98,12 +98,12 @@ tree.kernel <- function(tree1, tree2,
                         sigma,         # RBF variance parameter
                         rho=1.0,         # SST control parameter; 0 = subtree kernel, 1 = subset tree kernel
                         normalize=0,   # normalize kernel score by sqrt(k(t1,t1) * k(t2,t2))
-                        regexPattern="",     # arguments for labeled tree kernel
-                        regexReplacement="",
+                        regexPattern=NA,     # arguments for labeled tree kernel
+                        regexReplacement=NA,
                         gamma=0        # label factor
                         ) {
   # make labels
-  use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
+  use.label <- if (any(is.na(regexPattern)) || any(is.na(regexReplacement)) || is.null(regexPattern) || is.null(regexReplacement)) {
     FALSE
   } else {
     new_label1 <- gsub(regexPattern, regexReplacement, tree1$tip.label)
