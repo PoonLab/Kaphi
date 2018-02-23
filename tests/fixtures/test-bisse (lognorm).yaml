@@ -1,0 +1,83 @@
+priors:
+  lambda0:
+    dist: 'rlnorm'
+    hyperparameters:
+      - meanlog: 10
+      - sdlog: 2
+  lambda1:
+    dist: 'rlnorm'
+    hyperparameters:
+      - meanlog: 10
+      - sdlog: 1
+  mu0:
+    dist: 'rlnorm'
+    hyperparameters:
+      - meanlog: 1000
+      - sdlog: 3
+  mu1:
+    dist: 'rlnorm'
+    hyperparameters:
+      - meanlog: 1000
+      - sdlog: 3
+  q01:
+    dist: 'rlnorm'
+    hyperparameters:
+      - meanlog: 100
+      - sdlog: 3
+  q10:
+    dist: 'rlnorm'
+    hyperparameters:
+      - meanlog: 100
+      - sdlog: 1
+constraints:
+  - 'mu0 < lambda0 && mu1 < lambda1'
+proposals:
+  lambda0:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 0.01
+  lambda1:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 0.01
+  mu0:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 0.0001
+  mu1:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 0.0001
+  q01:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 0.001
+  q10:
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 0.001
+smc:
+  nparticle: 1000
+  nsample: 5
+  ess.tolerance: 50.0
+  final.accept.rate: 0.01
+  final.epsilon: 0.01
+  quality: 0.95
+  step.tolerance: 1.e-4
+distances:
+  'kernel.dist':
+    weight: 1.0
+    decay.factor: 0.2
+    rbf.variance: 100.0
+    sst.control: 1.0
+    rescale.mode: "'NONE'"
+    labelPattern: "'^.+_([01])$'"
+    labelReplacement: "'\\1'"
+    gamma: 1
+

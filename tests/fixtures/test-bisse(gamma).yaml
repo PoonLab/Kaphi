@@ -76,7 +76,7 @@ distances:
     decay.factor: 0.2
     rbf.variance: 100.0
     sst.control: 1.0
-    rescale.mode: 'NONE'
+    rescale.mode: "'NONE'"
     labelPattern: "'^.+_([01])$'"
     labelReplacement: "'\\1'"
     gamma: 1
