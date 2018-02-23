@@ -48,44 +48,6 @@ simulate.trees <- function(workspace, theta, model, seed=NA, ...) {
 }
 
 
-# formally 'distance'
-kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, rescale.mode, labelPattern, labelReplacement, gamma) {
-  if (is.null(t1$kernel)) {
-    stop("t1 missing self kernel in distance()")
-  }
-  if (is.null(t2$kernel)) {
-    stop("t2 missing self kernel in distance()")
-  }
-  
-  k <- tree.kernel(
-    t1,
-    t2,
-    lambda=decay.factor,
-    sigma=rbf.variance,
-    rho=sst.control,
-    regexPattern = labelPattern,
-    regexReplacement = labelReplacement,
-    gamma=gamma
-  )
-  
-  result <- 1. - k / sqrt(t1$kernel * t2$kernel)
-  if (result < 0 || result > 1) {
-    stop(
-      cat("ERROR: kernel.dist() value outside range [0,1].\n",
-          "k: ", k, "\n",
-          "t1$kernel: ", t1$kernel, "\n",
-          "t2$kernel: ", t2$kernel, "\n"
-      )
-    )
-  }
-  if (is.nan(result)) {
-    cat("t1$kernel:", t1$kernel, "\n")
-    cat("t2$kernel:", t2$kernel, "\n")
-  }
-  return (result)
-}
-
-
 # Applies config$dist expression to trees x and y
 distance <- function(x, y, config) {
   

@@ -25,6 +25,74 @@
 #  return(result)
 # }
 
+
+# formally 'distance'
+kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, rescale.mode, labelPattern, labelReplacement, gamma) {
+  if (is.null(t1$kernel)) {
+    stop("t1 missing self kernel in distance()")
+  }
+  if (is.null(t2$kernel)) {
+    stop("t2 missing self kernel in distance()")
+  }
+
+    # rescale branch lengths
+    nt1 <- .rescale.tree(t1, rescale.mode)
+    nt2 <- .rescale.tree(t2, rescale.mode)
+
+  k12 <- tree.kernel(
+    nt1,
+    nt2,
+    lambda=decay.factor,
+    sigma=rbf.variance,
+    rho=sst.control,
+    regexPattern = labelPattern,
+    regexReplacement = labelReplacement,
+    gamma=gamma
+  )
+
+    # we can no longer cache a tree's kernel score to itself because a distance may potentially
+    # comprise more than one kernel
+    k11 <- tree.kernel(
+    nt1,
+    nt1,
+    lambda=decay.factor,
+    sigma=rbf.variance,
+    rho=sst.control,
+    regexPattern = labelPattern,
+    regexReplacement = labelReplacement,
+    gamma=gamma
+  )
+
+    k22 <- tree.kernel(
+    nt2,
+    nt2,
+    lambda=decay.factor,
+    sigma=rbf.variance,
+    rho=sst.control,
+    regexPattern = labelPattern,
+    regexReplacement = labelReplacement,
+    gamma=gamma
+  )
+
+  #result <- 1. - k / sqrt(t1$kernel * t2$kernel)
+    result <- 1. - k12 / sqrt(k11 * k22)
+  if (result < 0 || result > 1) {
+    stop(
+      cat("ERROR: kernel.dist() value outside range [0,1].\n",
+          "k12: ", k12, "\n",
+          "k11: ", k11, "\n",
+          "k22: ", k22, "\n"
+      )
+    )
+  }
+  if (is.nan(result)) {
+    cat("k11:", k11, "\n")
+    cat("k22:", k22, "\n")
+  }
+  return (result)
+}
+
+
 tree.kernel <- function(tree1, tree2,
                         lambda,        # decay factor
                         sigma,         # RBF variance parameter

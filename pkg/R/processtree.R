@@ -55,7 +55,7 @@ parse.newick <- function(tree) {
     stop(".preprocess.tree() requires phylo or character (Newick) object for tree")
   }
   tree <- ladderize(tree)
-  tree <- .rescale.tree(tree, config$rescale.mode)
+  #tree <- .rescale.tree(tree, config$rescale.mode)
   
   return(tree)
 }

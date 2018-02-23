@@ -113,50 +113,9 @@ load.config <- function(file) {
   
   # Parse & validate distance expression
   config$dist <- parse.distance(settings$distances)
-  
-  # Parse Kernel Settings
-  if (is.list(settings$distances)) {
-    if (is.element('kernel.dist', names(settings$distances))) {
-      kernel.settings <- settings$distances[['kernel.dist']]
-      config$decay.factor <- kernel.settings$decay.factor
-      config$rbf.variance <- kernel.settings$rbf.variance
-      config$sst.control <- kernel.settings$sst.control
-      config$rescale.mode <- kernel.settings$rescale.mode
-      config$labelPattern <- kernel.settings$labelPattern
-      config$labelReplacement <- kernel.settings$labelReplacement
-      config$gamma <- kernel.settings$gamma
-    }
-  } else if (is.character(settings$distances)) {
-    # parse kernel settings from string
-    dist.list <- strsplit(settings$distances, "+", fixed=TRUE)[[1]]
-    for (dist in dist.list) {
-      if (grepl("kernel.dist", dist)) {
-        match <- regexpr("\\(.+\\)", dist, perl=TRUE)
-        args <- regmatches(dist, match)
-        args <- gsub("[( )]", "", args)
-        kernel.settings <- strsplit(args, ",", fixed=TRUE)[[1]]
-        names <- c()
-        values <- c()
-        for (parm in kernel.settings) {
-          split <- strsplit(parm, "=", fixed=TRUE)[[1]]
-          name <- split[1]
-          value <- split[2]
-          names <- c(names, name)
-          values <- c(values, value)
-        }
-        names(values) <- names
-        config$decay.factor <- as.numeric(values["decay.factor"])
-        config$rbf.variance <- as.numeric(values["rbf.variance"])
-        config$sst.control <- as.numeric(values["sst.control"])
-        config$rescale.mode <- values["rescale.mode"]
-        config$labelPattern <- values["labelPattern"]
-        config$labelReplacement <- values["labelReplacement"]
-        config$gamma <- as.numeric(values["gamma"])
-      }
-    }
-  } 
   return (config)
 }
+
 
 parse.distance <- function(distance) {
   # generate matrix of accepted tree statistic functions from 'metrics' list which can be added to over time without altering the rest of the function
