@@ -27,7 +27,7 @@
 
 
 # formally 'distance'
-kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, rescale.mode, labelPattern, labelReplacement, gamma) {
+kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, rescale.mode, labelPattern=NA, labelReplacement=NA, gamma=0) {
   # we can no longer cache a tree's kernel score to itself because a distance may potentially
   # comprise more than one kernel
   # rescale branch lengths

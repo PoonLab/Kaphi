@@ -79,5 +79,11 @@ distances:
     rescale.mode: "'NONE'"
     labelPattern: "'^.+_([01])$'"
     labelReplacement: "'\\1'"
-    gamma: 1
+    gamma: [ t1.states: [ 0,1 ],
+             t2.states: [ 0: [0,1],
+                          1: [1,0],
+                          2: [1,1]
+                        ]
+           ]
+            
 
