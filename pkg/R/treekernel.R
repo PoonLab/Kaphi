@@ -104,8 +104,11 @@ tree.kernel <- function(tree1, tree2,
                         ) {
   
   # parse gamma string into matrix.. or vectors?
-  splitStr <- unlist(strsplit(gamma, '}'))
-  vec <- splitStr[nzchar(x=splitStr)]
+  nonEmptyStrings <- sapply(unlist(strsplit(gamma, '}')), function(x) {
+    gsub('[[:space:]]', '', x)
+  })
+  vec <- nonEmptyStrings[nzchar(x=nonEmptyStrings)]
+  
   # which is states for tree1, which is states for tree2?
   if (grepl('t1', vec[1])) {
     t1.Str <- vec[1]
@@ -114,22 +117,18 @@ tree.kernel <- function(tree1, tree2,
     t1.Str <- vec[2]
     t2.Str <- vec[1]
   }
+  
   # which has just names, which has names and values?
   if (grepl(':', t1.Str)) {
-    t1.stnv <- unlist(strsplit(unlist(strsplit(t1.Str, '{', fixed=T))[2], ']'))
-    t1.states <- sapply(seq_along(t1.stnv), function(x) {
-      label <- unlist(strsplit(t1.stnv[x], ':', fixed=T))[1]
-      gsub('[[:space:]]', '', label)
+    t1.statesAndValues <- unlist(strsplit(unlist(strsplit(t1.Str, '{', fixed=T))[2], ']'))
+    t1.states <- sapply(seq_along(t1.statesAndValues), function(x) {
+      unlist(strsplit(t1.statesAndValues[x], ':', fixed=T))[1]
     })
     t1.labels <- t1.states[nzchar(x=t1.states)]
-    
-    t2.states <- unlist(strsplit(unlist(strsplit(t2.Str, '{', fixed=T))[2], ','))
-    t2.labels <- sapply(seq_along(t2.states), function(x) {
-      gsub('[[:space:]]', '', t2.states[x])
-    })
-    
+    t2.labels <- unlist(strsplit(unlist(strsplit(t2.Str, '{', fixed=T))[2], ','))
+
     t1.values <- sapply(seq_along(t1.labels), function(x) {
-      valueSet <- unlist(strsplit(t1.stnv[x], '[', fixed=T))[2]
+      valueSet <- unlist(strsplit(t1.statesAndValues[x], '[', fixed=T))[2]
       values <- unlist(strsplit(valueSet, ','))
       if (length(values) != length(t2.labels)) {
         stop ("Length of a single state's weight matrix values from Tree 1 does not match total number of states for Tree 2")
@@ -137,23 +136,17 @@ tree.kernel <- function(tree1, tree2,
       as.numeric(values)
     })
     
-    
     gammaMat <- matrix(data=t1.values, nrow=length(t1.labels), ncol=length(t2.labels), dimnames=list(t1.labels, t2.labels))
   } else {
-    t2.stnv <- unlist(strsplit(unlist(strsplit(t2.Str, '{', fixed=T))[2], ']'))
-    t2.states <- sapply(seq_along(t2.stnv), function(x) {
-      label <- unlist(strsplit(t2.stnv[x], ':', fixed=T))[1]
-      gsub('[[:space:]]', '', label)
+    t2.statesAndValues <- unlist(strsplit(unlist(strsplit(t2.Str, '{', fixed=T))[2], ']'))
+    t2.states <- sapply(seq_along(t2.statesAndValues), function(x) {
+      unlist(strsplit(t2.statesAndValues[x], ':', fixed=T))[1]
     })
     t2.labels <- t2.states[nzchar(x=t2.states)]
-    
-    t1.states <- unlist(strsplit(unlist(strsplit(t1.Str, '{', fixed=T))[2], ','))
-    t1.labels <- sapply(seq_along(t1.states), function(x) {
-      gsub('[[:space:]]', '', t1.states[x])
-    })
+    t1.labels <- unlist(strsplit(unlist(strsplit(t1.Str, '{', fixed=T))[2], ','))
     
     t2.values <- sapply(seq_along(t2.labels), function(x) {
-      valueSet <- unlist(strsplit(t2.stnv[x], '[', fixed=T))[2]
+      valueSet <- unlist(strsplit(t2.statesAndValues[x], '[', fixed=T))[2]
       values <- unlist(strsplit(valueSet , ','))
       if (length(values) != length(t1.labels)) {
         stop ("Length of a single state's weight matrix values form Tree 2 does not match total number of states for Tree 1")
