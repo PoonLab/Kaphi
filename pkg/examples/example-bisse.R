@@ -63,9 +63,11 @@ for (param in names(theta)) {
        cex.lab=0.8
   )
   
-  for (i in 1: ( length(unique(trace$n)) %/% 10 ) ) {
-    temp <- trace[trace$n==i*10,]
-    lines(density(temp[[param]], weights=temp$weight), col=pal[i+1], lwd=1.5)
+  if ( length(unique(trace$n)) >= 10) {
+    for (i in 1: ( length(unique(trace$n)) %/% 10 ) ) {
+      temp <- trace[trace$n==i*10,]
+      lines(density(temp[[param]], weights=temp$weight), col=pal[i+1], lwd=1.5)
+    }
   }
   lines(density
         (trace[[param]][trace$n==max(trace$n)], 
