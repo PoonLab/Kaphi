@@ -76,14 +76,13 @@ distances:
     decay.factor: 0.2
     rbf.variance: 100.0
     sst.control: 1.0
-    rescale.mode: "'NONE'"
-    labelPattern: "'^.+_([01])$'"
+    rescale.mode: "'NONE'"              # need double quotes to retain single quote
+    labelPattern: "'^.+_([01])$'"       # passed as mode character in arguments of tree.kernel function
     labelReplacement: "'\\1'"
-    gamma: [ t1.states: [ 0,1 ],
-             t2.states: [ 0: [0,1],
-                          1: [1,0],
-                          2: [1,1]
-                        ]
-           ]
+    gamma: "'    t1 = { AA232,B }          
+             t2 = { A: [1,0]
+                    B: [0,1]
+                  }
+           '"                            # weight matrix
             
 

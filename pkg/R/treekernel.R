@@ -27,7 +27,7 @@
 
 
 # formally 'distance'
-kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, rescale.mode, labelPattern=NA, labelReplacement=NA, gamma=0) {
+kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, rescale.mode, labelPattern=NA, labelReplacement=NA, gamma=NA) {
   # we can no longer cache a tree's kernel score to itself because a distance may potentially
   # comprise more than one kernel
   # rescale branch lengths
@@ -94,14 +94,76 @@ kernel.dist <- function(t1, t2, decay.factor, rbf.variance, sst.control, rescale
 
 
 tree.kernel <- function(tree1, tree2,
-                        lambda,        # decay factor
-                        sigma,         # RBF variance parameter
-                        rho=1.0,         # SST control parameter; 0 = subtree kernel, 1 = subset tree kernel
-                        normalize=0,   # normalize kernel score by sqrt(k(t1,t1) * k(t2,t2))
-                        regexPattern=NA,     # arguments for labeled tree kernel
-                        regexReplacement=NA,
-                        gamma=0        # label factor
+                        lambda,                # decay factor
+                        sigma,                 # RBF variance parameter
+                        rho=1.0,               # SST control parameter; 0 = subtree kernel, 1 = subset tree kernel
+                        normalize=0,           # normalize kernel score by sqrt(k(t1,t1) * k(t2,t2))
+                        regexPattern=NA,       # how substrings that define states are extracted from tip labels
+                        regexReplacement=NA,   # should be '\\1' by default to capture a single group
+                        gamma=NA               # label factor, weight matrix for states of tip pairs
                         ) {
+  
+  # parse gamma string into matrix.. or vectors?
+  splitStr <- unlist(strsplit(gamma, '}'))
+  vec <- splitStr[nzchar(x=splitStr)]
+  # which is states for tree1, which is states for tree2?
+  if (grepl('t1', vec[1])) {
+    t1.Str <- vec[1]
+    t2.Str <- vec[2]
+  } else {
+    t1.Str <- vec[2]
+    t2.Str <- vec[1]
+  }
+  # which has just names, which has names and values?
+  if (grepl(':', t1.Str)) {
+    t1.stnv <- unlist(strsplit(unlist(strsplit(t1.Str, '{', fixed=T))[2], ']'))
+    t1.states <- sapply(seq_along(t1.stnv), function(x) {
+      label <- unlist(strsplit(t1.stnv[x], ':', fixed=T))[1]
+      gsub('[[:space:]]', '', label)
+    })
+    t1.labels <- t1.states[nzchar(x=t1.states)]
+    
+    t2.states <- unlist(strsplit(unlist(strsplit(t2.Str, '{', fixed=T))[2], ','))
+    t2.labels <- sapply(seq_along(t2.states), function(x) {
+      gsub('[[:space:]]', '', t2.states[x])
+    })
+    
+    t1.values <- sapply(seq_along(t1.labels), function(x) {
+      valueSet <- unlist(strsplit(t1.stnv[x], '[', fixed=T))[2]
+      values <- unlist(strsplit(valueSet, ','))
+      if (length(values) != length(t2.labels)) {
+        stop ("Length of a single state's weight matrix values from Tree 1 does not match total number of states for Tree 2")
+      }
+      as.numeric(values)
+    })
+    
+    
+    gammaMat <- matrix(data=t1.values, nrow=length(t1.labels), ncol=length(t2.labels), dimnames=list(t1.labels, t2.labels))
+  } else {
+    t2.stnv <- unlist(strsplit(unlist(strsplit(t2.Str, '{', fixed=T))[2], ']'))
+    t2.states <- sapply(seq_along(t2.stnv), function(x) {
+      label <- unlist(strsplit(t2.stnv[x], ':', fixed=T))[1]
+      gsub('[[:space:]]', '', label)
+    })
+    t2.labels <- t2.states[nzchar(x=t2.states)]
+    
+    t1.states <- unlist(strsplit(unlist(strsplit(t1.Str, '{', fixed=T))[2], ','))
+    t1.labels <- sapply(seq_along(t1.states), function(x) {
+      gsub('[[:space:]]', '', t1.states[x])
+    })
+    
+    t2.values <- sapply(seq_along(t2.labels), function(x) {
+      valueSet <- unlist(strsplit(t2.stnv[x], '[', fixed=T))[2]
+      values <- unlist(strsplit(valueSet , ','))
+      if (length(values) != length(t1.labels)) {
+        stop ("Length of a single state's weight matrix values form Tree 2 does not match total number of states for Tree 1")
+      }
+      as.numeric(values)
+    })
+    
+    gammaMat <- matrix(data=t2.values, nrow=length(t2.labels), ncol=length(t1.labels), dimnames=list(t2.labels, t1.labels))
+  }
+  
   # make labels
   use.label <- if (any(is.na(regexPattern)) || any(is.na(regexReplacement)) || is.null(regexPattern) || is.null(regexReplacement)) {
     FALSE
@@ -114,15 +176,6 @@ tree.kernel <- function(tree1, tree2,
   nwk1 <- .to.newick(tree1)
   nwk2 <- .to.newick(tree2)
         
-#    # make labels
-#    if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
-#        new_label1 <- new_label2 <- NA
-#    } else {
-#	     label <- unique(label1, label2)
-#        new_label1 <- sapply(label1, function(x) which(x == label))
-#        new_label2 <- sapply(label2, function(x) which(x == label))
-#    }
-		
   res <- .Call("R_Kaphi_kernel",
                  nwk1, nwk2, lambda, sigma, as.double(rho), use.label, gamma, normalize,
                  PACKAGE="Kaphi")
