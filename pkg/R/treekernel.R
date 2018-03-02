@@ -103,69 +103,39 @@ tree.kernel <- function(tree1, tree2,
                         gamma=NA               # label factor, weight matrix for states of tip pairs
                         ) {
   
-  # parse gamma string into matrix.. or vectors?
-  nonEmptyStrings <- sapply(unlist(strsplit(gamma, '}')), function(x) {
-    gsub('[[:space:]]', '', x)
-  })
-  vec <- nonEmptyStrings[nzchar(x=nonEmptyStrings)]
-  
-  # which is states for tree1, which is states for tree2?
-  if (grepl('t1', vec[1])) {
-    t1.Str <- vec[1]
-    t2.Str <- vec[2]
-  } else {
-    t1.Str <- vec[2]
-    t2.Str <- vec[1]
+  BinToDec <- function(x) {
+    sum(2^(which(rev(unlist(strsplit(as.character(x), "")) == 1))-1))
   }
   
-  # which has just names, which has names and values?
-  if (grepl(':', t1.Str)) {
-    t1.statesAndValues <- unlist(strsplit(unlist(strsplit(t1.Str, '{', fixed=T))[2], ']'))
-    t1.states <- sapply(seq_along(t1.statesAndValues), function(x) {
-      unlist(strsplit(t1.statesAndValues[x], ':', fixed=T))[1]
-    })
-    t1.labels <- t1.states[nzchar(x=t1.states)]
-    t2.labels <- unlist(strsplit(unlist(strsplit(t2.Str, '{', fixed=T))[2], ','))
-
-    t1.values <- sapply(seq_along(t1.labels), function(x) {
-      valueSet <- unlist(strsplit(t1.statesAndValues[x], '[', fixed=T))[2]
-      values <- unlist(strsplit(valueSet, ','))
-      if (length(values) != length(t2.labels)) {
-        stop ("Length of a single state's weight matrix values from Tree 1 does not match total number of states for Tree 2")
+  make.labels <- function(substrings) {
+    # @param substrings = character vector of extracted substrings from a tree
+    unname(sapply(substrings, function(x) {
+      binary.encoding <- ''
+      for (y in states) {
+        if (grepl(y, x, fixed=T)) {
+          binary.encoding <- paste0('1', binary.encoding)
+        } else {
+          binary.encoding <- paste0('0', binary.encoding)
+        }
       }
-      as.numeric(values)
-    })
-    
-    gammaMat <- matrix(data=t1.values, nrow=length(t1.labels), ncol=length(t2.labels), dimnames=list(t1.labels, t2.labels))
-  } else {
-    t2.statesAndValues <- unlist(strsplit(unlist(strsplit(t2.Str, '{', fixed=T))[2], ']'))
-    t2.states <- sapply(seq_along(t2.statesAndValues), function(x) {
-      unlist(strsplit(t2.statesAndValues[x], ':', fixed=T))[1]
-    })
-    t2.labels <- t2.states[nzchar(x=t2.states)]
-    t1.labels <- unlist(strsplit(unlist(strsplit(t1.Str, '{', fixed=T))[2], ','))
-    
-    t2.values <- sapply(seq_along(t2.labels), function(x) {
-      valueSet <- unlist(strsplit(t2.statesAndValues[x], '[', fixed=T))[2]
-      values <- unlist(strsplit(valueSet , ','))
-      if (length(values) != length(t1.labels)) {
-        stop ("Length of a single state's weight matrix values form Tree 2 does not match total number of states for Tree 1")
-      }
-      as.numeric(values)
-    })
-    
-    gammaMat <- matrix(data=t2.values, nrow=length(t2.labels), ncol=length(t1.labels), dimnames=list(t2.labels, t1.labels))
+      BinToDec(binary.encoding)
+    }))
   }
   
   # make labels
   use.label <- if (any(is.na(regexPattern)) || any(is.na(regexReplacement)) || is.null(regexPattern) || is.null(regexReplacement)) {
     FALSE
   } else {
-    new_label1 <- gsub(regexPattern, regexReplacement, tree1$tip.label)
-    new_label2 <- gsub(regexPattern, regexReplacement, tree2$tip.label)
+    # if labels are used, assign each tip label a binary encoded integer value 
+    states <- unlist(strsplit(gamma, ',', fixed=T))
+    substrings.t1 <- gsub(regexPattern, regexReplacement, tree1$tip.label)
+    new_label1 <- make.labels(substrings.t1)
+    
+    substrings.t2 <- gsub(regexPattern, regexReplacement, tree2$tip.label)
+    new_label2 <- make.labels(substrings.t2)
     TRUE
   }
-    
+  
   nwk1 <- .to.newick(tree1)
   nwk2 <- .to.newick(tree2)
         
