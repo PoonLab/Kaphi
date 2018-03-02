@@ -140,7 +140,7 @@ tree.kernel <- function(tree1, tree2,
   nwk2 <- .to.newick(tree2)
         
   res <- .Call("R_Kaphi_kernel",
-                 nwk1, nwk2, lambda, sigma, as.double(rho), use.label, gamma, normalize,
+                 nwk1, nwk2, lambda, sigma, as.double(rho), use.label, new_label1, new_label2, normalize,
                  PACKAGE="Kaphi")
   return (res)
 }
