@@ -77,4 +77,9 @@ distances:
     rbf.variance: 100.0
     sst.control: 1.0
     rescale.mode: "'NONE'"
+    gamma: "'    t1 = { AA232,B }          
+             t2 = { A: [1,0]
+                    B: [0,1]
+                  }
+           '"                            # weight matrix
 
