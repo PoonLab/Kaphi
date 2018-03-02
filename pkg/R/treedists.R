@@ -13,6 +13,8 @@
 # Trip (Critchlow et al., 1996)
 Trip <- function(x, y){
   # The trees are assumed to contain identical tips (same number and labels)
+  if(length(x$tip.label) != length(y$tip.label)) { stop('Tree 1 and Tree 2 must be the same size to compute the Trip metric.') }
+  if(any(!is.element(x$tip.label, y$tip.label))) { stop('Tree 1 and Tree 2 must contain identical tip label sets to compute the Trip metric.')}
   score <- 0.0
   count <- 0
   namelist <- x$tip.label
