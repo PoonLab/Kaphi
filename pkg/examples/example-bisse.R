@@ -24,26 +24,10 @@ res <- run.smc(ws, trace.file='pkg/examples/example-bisse2.tsv', model='bisse', 
 #------------------------------------------------------------------------------
 trace <- read.table('pkg/examples/example-bisse2.tsv', header=T, sep='\t')
 
-pdf(file='~/Documents/exbisse.kernel.1.pdf')           
-
 for (param in names(theta)) {
-  par(mar=c(5,5,2,2))
-  plot(
-    sapply(split(trace[[param]]*trace$weight, trace$n), sum), 
-    type='o',
-    xlab='Iteration', 
-    ylab=paste0('Mean ', param),
-    cex.lab=1,
-    main=paste0('Trajectory of Mean ', param, ' (BiSSE, ', config$nparticle, ' particles)')
-    #,ylim=c(0.05,0.105)
-  )
-  # true param value
-  abline(h=theta[[param]], lty=2)
-  
-  
+  png(filename = paste0("~/Documents/BiSSE/unlabelled_kernel_50", param, ".png"),width=900,height=900,res=120)
   # use kernel densities to visualize posterior approximations
   pal <- rainbow(n=(length(unique(trace$n)) %/% 10)+1, start=0, end=0.5, v=1, s=1)
-  par(mar=c(5,5,2,2))
   plot(density
        (trace[[param]][trace$n==1], 
          weights=trace$weight[trace$n==1]), 
@@ -63,9 +47,11 @@ for (param in names(theta)) {
        cex.lab=0.8
   )
   
-  for (i in 1: ( length(unique(trace$n)) %/% 10 ) ) {
-    temp <- trace[trace$n==i*10,]
-    lines(density(temp[[param]], weights=temp$weight), col=pal[i+1], lwd=1.5)
+  if ( length(unique(trace$n)) >= 10) {
+    for (i in 1: ( length(unique(trace$n)) %/% 10 ) ) {
+      temp <- trace[trace$n==i*10,]
+      lines(density(temp[[param]], weights=temp$weight), col=pal[i+1], lwd=1.5)
+    }
   }
   lines(density
         (trace[[param]][trace$n==max(trace$n)], 
@@ -80,7 +66,8 @@ for (param in names(theta)) {
   x <- sort( replicate(1000, eval(parse(text=config$priors[[param]]))) )
   y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[[param]]))}
   lines(x, y(x), lty=5)
-
+  
 }
 
 dev.off()
+

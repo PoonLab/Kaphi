@@ -17,7 +17,7 @@ obs.tree <- parse.input.tree(obs.tree, config)
 # Visualize parameter identifiability
 
 # calculate kernel distances for varying lambda0
-png(filename = "~/Documents/BiSSE/Nodedist50_1_Lambda0.png",width=900,height=900,res=120)
+png(filename = "~/Documents/BiSSE/kernel50_1_Lambda0.png",width=900,height=900,res=120)
 x <- runif(1000, 0, 1)
 res <- sapply(x, function(val) {
   theta <- c(lambda0=val, lambda1=0.1, mu0=0.003, mu1=0.003, q01=0.03, q10=0.01)
@@ -39,7 +39,7 @@ abline(v=0.2, lty=2)
 dev.off()
 
 # calculate kernel distances for varying lambda1
-png(filename = "~/Documents/BiSSE/Nodedist50_1_Lambda1.png",width=900,height=900,res=120)
+png(filename = "~/Documents/BiSSE/kernel50_1_Lambda1.png",width=900,height=900,res=120)
 x <- runif(1000, 0, 0.5)
 res <- sapply(x, function(val) {
   theta <- c(lambda0=0.2, lambda1=val, mu0=0.003, mu1=0.003, q01=0.03, q10=0.01)
@@ -61,7 +61,7 @@ abline(v=0.1, lty=2)
 dev.off()
 
 # calculate kernel distances for varying mu0
-png(filename = "~/Documents/BiSSE/Nodedist50_1_mu0.png",width=900,height=900,res=120)
+png(filename = "~/Documents/BiSSE/kernel50_1_mu0.png",width=900,height=900,res=120)
 x <- runif(1000, 0, 0.01)
 res <- sapply(x, function(val) {
   theta <- c(lambda0=0.2, lambda1=0.1, mu0=val, mu1=0.003, q01=0.03, q10=0.01)
@@ -83,7 +83,7 @@ abline(v=0.003, lty=2)
 dev.off()
 
 # calculate kernel distances for varying mu1
-png(filename = "~/Documents/BiSSE/Nodedist50_1_mu1.png",width=900,height=900,res=120)
+png(filename = "~/Documents/BiSSE/kernel50_1_mu1.png",width=900,height=900,res=120)
 x <- runif(1000, 0, 0.01)
 res <- sapply(x, function(val) {
   theta <- c(lambda0=0.2, lambda1=0.1, mu0=0.003, mu1=val, q01=0.03, q10=0.01)
@@ -105,7 +105,7 @@ abline(v=0.003, lty=2)
 dev.off()
 
 # calculate kernel distances for varying q01
-png(filename = "~/Documents/BiSSE/Nodedist50_1_q01.png",width=900,height=900,res=120)
+png(filename = "~/Documents/BiSSE/kernel50_1_q01.png",width=900,height=900,res=120)
 x <- runif(1000, 0, 0.1)
 res <- sapply(x, function(val) {
   theta <- c(lambda0=0.2, lambda1=0.1, mu0=0.003, mu1=0.003, q01=val, q10=0.01)
@@ -127,7 +127,7 @@ abline(v=0.03, lty=2)
 dev.off()
 
 # calculate kernel distances for varying q10
-png(filename = "~/Documents/BiSSE/Nodedist50_1_q10.png",width=900,height=900,res=120)
+png(filename = "~/Documents/BiSSE/kernel50_1_q10.png",width=900,height=900,res=120)
 x <- runif(1000, 0, 0.05)
 res <- sapply(x, function(val) {
   theta <- c(lambda0=0.2, lambda1=0.1, mu0=0.003, mu1=0.003, q01=0.03, q10=val)
