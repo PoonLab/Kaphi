@@ -32,7 +32,7 @@ res <- sapply(x, function(val) {
 o <- order(x)
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(x[o], res[o], type='p', xlab='Lambda0', ylab='Mean distance', cex.lab=1.2, ylim=c(1,3), 
+plot(x[o], res[o], type='p', xlab='Lambda0', ylab='Mean distance', cex.lab=1.2, ylim=c(0,0.3), 
      main='Identifiability of Lambda0 (BiSSE Model)')
 abline(v=0.2, lty=2)
 
@@ -54,7 +54,7 @@ res <- sapply(x, function(val) {
 o <- order(x)
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(x[o], res[o], type='p', xlab='Lambda1', ylab='Mean distance', cex.lab=1.2, ylim=c(1,3), 
+plot(x[o], res[o], type='p', xlab='Lambda1', ylab='Mean distance', cex.lab=1.2, ylim=c(0,0.3), 
      main='Identifiability of Lambda1 (BiSSE Model)')
 abline(v=0.1, lty=2)
 
@@ -76,7 +76,7 @@ res <- sapply(x, function(val) {
 o <- order(x)
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(x[o], res[o], type='p', xlab='mu0', ylab='Mean distance', cex.lab=1.2, ylim=c(1,3), 
+plot(x[o], res[o], type='p', xlab='mu0', ylab='Mean distance', cex.lab=1.2, ylim=c(0,0.3), 
      main='Identifiability of mu0 (BiSSE Model)')
 abline(v=0.003, lty=2)
 
@@ -98,7 +98,7 @@ res <- sapply(x, function(val) {
 o <- order(x)
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(x[o], res[o], type='p', xlab='mu1', ylab='Mean distance', cex.lab=1.2, ylim=c(1,3), 
+plot(x[o], res[o], type='p', xlab='mu1', ylab='Mean distance', cex.lab=1.2, ylim=c(0,0.3), 
      main='Identifiability of mu1 (BiSSE Model)')
 abline(v=0.003, lty=2)
 
@@ -120,7 +120,7 @@ res <- sapply(x, function(val) {
 o <- order(x)
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(x[o], res[o], type='p', xlab='q01', ylab='Mean distance', cex.lab=1.2, ylim=c(1,3), 
+plot(x[o], res[o], type='p', xlab='q01', ylab='Mean distance', cex.lab=1.2, ylim=c(0,0.3), 
      main='Identifiability of q01 (BiSSE Model)')
 abline(v=0.03, lty=2)
 
@@ -142,7 +142,7 @@ res <- sapply(x, function(val) {
 o <- order(x)
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(x[o], res[o], type='p', xlab='q10', ylab='Mean distance', cex.lab=1.2, ylim=c(1,3), 
+plot(x[o], res[o], type='p', xlab='q10', ylab='Mean distance', cex.lab=1.2, ylim=c(0,0.3), 
      main='Identifiability of q10 (BiSSE Model)')
 abline(v=0.01, lty=2)
 
