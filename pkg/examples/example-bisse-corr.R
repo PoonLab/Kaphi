@@ -17,7 +17,7 @@ obs.tree <- parse.input.tree(obs.tree, config)
 # Visualize parameter identifiability
 
 # calculate kernel distances for varying q01 and q10
-png(filename = "~/Documents/BiSSE/corr.kernel500.4.png",width=900,height=900,res=120)
+png(filename = "~/Documents/BiSSE/corr.kernel500.log.png",width=900,height=900,res=120)
 x <- runif(1000, 0, 1)
 y <- runif(1000, 0, 1)
 res <- mapply(function(val1,val2) {
@@ -32,7 +32,7 @@ res <- mapply(function(val1,val2) {
 },x,y)
 # generate a plot
 par(mar=c(5,5,2,2))
-plot(x/y, res, type='p', xlab='q01/q10', ylab='mean kernel distance', xlim=c(0,50),
-     main='Kernel distances of varying q01 and q10')
+plot(x/y, res, type='p', xlab='q01/q10', ylab='mean kernel distance',
+     main='Kernel distances of varying q01 and q10',log='x')
 
 dev.off()
