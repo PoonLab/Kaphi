@@ -133,3 +133,34 @@ tree.kernel <- function(tree1, tree2,
                  PACKAGE="Kaphi")
   return (res)
 }
+
+
+
+# also try R-igraph?
+
+.get.productions <- function(g) {
+  # node is a tip = 0
+  # internal node has two child tips = 1
+  # internal node has one child tip = 2
+  # internal node has two child internal nodes = 3
+  n.nodes <- length(V(g))
+  deg <- degree(g, mode='out')
+  sapply(1:n.nodes, function(i) {
+    if(deg[i]==0) {
+      return(0)
+    } else {
+      nb <- as.integer(neighbors(g, i))
+      return(sum(deg[nb] == 0)+1)
+    }
+  })
+}
+
+tree.kernel <- function(t1, t2, decay, rbf.var, sst.control) {
+  g1 <- as.igraph(t1)
+  g2 <- as.igraph(t2)
+  
+  # get productions
+  p1 <- .get.productions(g1)
+  p2 <- .get.productions(g2)
+}
+
