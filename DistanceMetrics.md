@@ -29,4 +29,4 @@
 | MAST  | Kaphi | Gordon (1980), Number of tips in the Maximum Agreement SubTree of given subtrees.  | 
 | Align  | Kaphi | Nye et al. (2006), Calculates dissimilarity of of all one-to-one mapping of branches between 2 trees and determines most optimal mapping of branches  | 
 | Sim  | Kaphi | Hein et al. (2005), Similiarity measure based on the probability that a point chosen randomly in A will be on a branch leading to the same set of tips as a point randomly chosen in B  | 
-| Node  | Kaphi | Williams & Clifford (1971), Number of nodes traversed in mainimal path from one tip to another in trees A and B  | 
+| Node.dist  | Kaphi | Williams & Clifford (1971), Number of nodes traversed in mainimal path from one tip to another in trees A and B  | 

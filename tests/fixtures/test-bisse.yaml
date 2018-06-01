@@ -1,34 +1,34 @@
 priors:
   lambda0:
-    dist: 'gamma'
+    dist: 'lnorm'
     hyperparameters:
-      - rate: 2.0
-      - shape: 1.0
+      - meanlog: -1.614413078
+      - sdlog: 0.099751345
   lambda1:
-    dist: 'gamma'
+    dist: 'lnorm'
     hyperparameters:
-      - rate: 2.0
-      - shape: 1.0
+      - meanlog: -2.307560258
+      - sdlog: 0.099751345
   mu0:
-    dist: 'gamma'
+    dist: 'lnorm'
     hyperparameters:
-      - rate: 2.0
-      - shape: 1.0
+      - meanlog: -5.814118156
+      - sdlog: 0.099751345
   mu1:
-    dist: 'gamma'
+    dist: 'lnorm'
     hyperparameters:
-      - rate: 2.0
-      - shape: 1.0
+      - meanlog: -5.814118156
+      - sdlog: 0.099751345
   q01:
-    dist: 'gamma'
+    dist: 'lnorm'
     hyperparameters:
-      - rate: 2.0
-      - shape: 1.0
+      - meanlog: -3.511533063
+      - sdlog: 0.099751345
   q10:
-    dist: 'gamma'
+    dist: 'lnorm'
     hyperparameters:
-      - rate: 2.0
-      - shape: 1.0
+      - meanlog: -4.610145351
+      - sdlog: 0.099751345
 constraints:
   - 'mu0 < lambda0 && mu1 < lambda1'
 proposals:
@@ -36,32 +36,32 @@ proposals:
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.1
+    - sd: 0.01
   lambda1:
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.1
+    - sd: 0.01
   mu0:
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.1
+    - sd: 0.0001
   mu1:
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.1
+    - sd: 0.0001
   q01:
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.1
+    - sd: 0.001
   q10:
     dist: 'norm'
     parameters:
     - mean: 0
-    - sd: 0.1
+    - sd: 0.001
 smc:
   nparticle: 1000
   nsample: 5
