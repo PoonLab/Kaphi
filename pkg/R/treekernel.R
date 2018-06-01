@@ -155,12 +155,35 @@ tree.kernel <- function(tree1, tree2,
   })
 }
 
-tree.kernel <- function(t1, t2, decay, rbf.var, sst.control) {
-  g1 <- as.igraph(t1)
-  g2 <- as.igraph(t2)
+.get.branchlengths <- function(g) {
+  n.nodes <- length(V(g))
+  sapply(1:n.nodes, function(i) {
+    
+  })
+}
+
+tree.kernel <- function(t1, t2, decay=0.5, rbf.var=1.0, sst.control=1, normalize=FALSE) {
+  g1 <- as.igraph(t1)  # maybe move this to .get.productions()?
+  g1 <- set.edge.attribute(g1, 'length', value=t1$edge.length)
+  g2 <- as.igraph(t2)  # assumes tree is rooted
+  g2 <- set.edge.attribute(g2, 'length', value=t2$edge.length)
   
   # get productions
   p1 <- .get.productions(g1)
   p2 <- .get.productions(g2)
+  
+  bl1 <- t1$edge.length
+  bl2 <- t2$edge.length
+  
+  for (n1 in postorder(t1)) {
+    for (n2 in postorder(t2)) {
+      if (p1[n1] == p2[n2]) {
+        res = decay * exp(-1/rbf.var * ())
+      }
+    }
+  }
+
+  
+  
 }
 
