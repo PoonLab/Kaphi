@@ -140,9 +140,9 @@ tree.kernel <- function(tree1, tree2,
 
 .get.productions <- function(g) {
   # node is a tip = 0
-  # internal node has two child tips = 1
+  # internal node has two child internal nodes = 1
   # internal node has one child tip = 2
-  # internal node has two child internal nodes = 3
+  # internal node has two child tips = 3
   n.nodes <- length(V(g))
   deg <- degree(g, mode='out')
   sapply(1:n.nodes, function(i) {
@@ -156,33 +156,65 @@ tree.kernel <- function(tree1, tree2,
 }
 
 .get.branchlengths <- function(g) {
+  # @return A list keyed by node name, containing either (1) a vector
+  #         of branch lengths for its two children, or (2) numeric(0)
   n.nodes <- length(V(g))
-  sapply(1:n.nodes, function(i) {
-    
-  })
+  edges <- incident_edges(g, 1:n.nodes, mode='out')
+  lapply(edges, function(e) get.edge.attribute(g, 'length', e))
 }
 
-tree.kernel <- function(t1, t2, decay=0.5, rbf.var=1.0, sst.control=1, normalize=FALSE) {
-  g1 <- as.igraph(t1)  # maybe move this to .get.productions()?
-  g1 <- set.edge.attribute(g1, 'length', value=t1$edge.length)
-  g2 <- as.igraph(t2)  # assumes tree is rooted
-  g2 <- set.edge.attribute(g2, 'length', value=t2$edge.length)
+
+.get.children <- function(g) {
+  # @return A list keyed by node name, containing either:
+  #         1. a vector of two child indices
+  #         2. numeric(0) if this vertex is a tip (no children)
+  n.nodes <- length(V(g))
+  sapply(1:n.nodes, function(i) as.integer(neighbors(g, i, mode='out')))
+}
+
+.ssq <- function(x) {
+  sum(x^2)
+}
+
+.tree.to.igraph <- function(tree) {
+  g <- as.igraph(tree)
+  g <- set.edge.attribute(g, 'length', value=tree$edge.length)
+  g <- set.vertex.attribute(g, 'production', value=.get.productions(g))
+  g <- set.vertex.attribute(g, 'branch.lengths', value=.get.branchlengths(g))
+  g <- set.vertex.attribute(g, 'ssq.bl', 
+                            value=lapply(
+                              get.vertex.attribute(g, 'branch.lengths'), 
+                              .ssq)
+                            )
+  g <- set.vertex.attribute(g, 'children', value=.get.children(g))
+  g
+}
+
+.postorder <- function(tree) {
+  # @return vector of integer indices to internal nodes in postorder traversal
+  idx <- reorder(tree, order='postorder', index.only=TRUE)
+  subset(idx, subset= (idx <= t1$Nnode))
+}
+
+tree.kernel <- function(t1, t2, lambda=0.5, rbf.var=1.0, sst.control=TRUE, normalize=FALSE) {
+  # FIXME: this assumes that t1 and t2 are both rooted 
+  # TODO: port tip label (state) handling from Python script
   
-  # get productions
-  p1 <- .get.productions(g1)
-  p2 <- .get.productions(g2)
+  if (rbf.var <= 0) stop("tree.kernel: rbf.var must be greater than 0")
+  if (lambda <= 0 || lambda > 1) stop("tree.kernel: lambda must be within (0,1]")
   
-  bl1 <- t1$edge.length
-  bl2 <- t2$edge.length
+  g1 <- .tree.to.igraph(t1)
+  g2 <- .tree.to.igraph(t2)
   
-  for (n1 in postorder(t1)) {
-    for (n2 in postorder(t2)) {
-      if (p1[n1] == p2[n2]) {
-        res = decay * exp(-1/rbf.var * ())
+  # use reorder() instead of postorder() to support `ape` version < 5.0
+  for (n1 in .postorder(t1) {
+    for (n2 in .postorder(t2)) {
+      if (V(g1)$production[n1] == V(g2)$production[n2]) {
+        res = lambda * exp(-1/rbf.var * (V(g1)$ssq.bl[n1] + V(g2)$ssq.bl[n2] - 2 * ))
       }
     }
   }
-
+  
   
   
 }
