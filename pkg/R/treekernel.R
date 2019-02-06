@@ -207,7 +207,7 @@ tree.kernel <- function(t1, t2, lambda=0.5, rbf.var=1.0, sst.control=TRUE, norma
   g2 <- .tree.to.igraph(t2)
   
   # use reorder() instead of postorder() to support `ape` version < 5.0
-  for (n1 in .postorder(t1) {
+  for (n1 in .postorder(t1)) {
     for (n2 in .postorder(t2)) {
       if (V(g1)$production[n1] == V(g2)$production[n2]) {
         res = lambda * exp(-1/rbf.var * (V(g1)$ssq.bl[n1] + V(g2)$ssq.bl[n2] - 2 * ))
