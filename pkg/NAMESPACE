@@ -2,6 +2,7 @@ export(.to.newick)
 export(.preprocess.tree)
 export(.rescale.tree)
 export(tree.kernel)
+export(tree.kernel.R)
 export(utk)
 
 export(nLTT)

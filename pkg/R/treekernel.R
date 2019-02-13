@@ -160,7 +160,7 @@ tree.kernel <- function(tree1, tree2,
   #         of branch lengths for its two children, or (2) numeric(0)
   n.nodes <- length(V(g))
   edges <- incident_edges(g, 1:n.nodes, mode='out')
-  lapply(edges, function(e) get.edge.attribute(g, 'length', e))
+  sapply(edges, function(e) get.edge.attribute(g, 'length', e))
 }
 
 
@@ -173,17 +173,19 @@ tree.kernel <- function(tree1, tree2,
 }
 
 .ssq <- function(x) {
+  # sum of squares
   sum(x^2)
 }
 
 .tree.to.igraph <- function(tree) {
-  g <- as.igraph(tree)
+  g <- as.igraph.phylo(tree)
   g <- set.edge.attribute(g, 'length', value=tree$edge.length)
   g <- set.vertex.attribute(g, 'production', value=.get.productions(g))
-  g <- set.vertex.attribute(g, 'branch.lengths', value=.get.branchlengths(g))
+  g <- set.vertex.attribute(g, 'bl', value=.get.branchlengths(g))
+  # store sum-of-squares for branch lengths
   g <- set.vertex.attribute(g, 'ssq.bl', 
-                            value=lapply(
-                              get.vertex.attribute(g, 'branch.lengths'), 
+                            value=sapply(
+                              get.vertex.attribute(g, 'bl'), 
                               .ssq)
                             )
   g <- set.vertex.attribute(g, 'children', value=.get.children(g))
@@ -193,10 +195,20 @@ tree.kernel <- function(tree1, tree2,
 .postorder <- function(tree) {
   # @return vector of integer indices to internal nodes in postorder traversal
   idx <- reorder(tree, order='postorder', index.only=TRUE)
-  subset(idx, subset= (idx <= t1$Nnode))
+  subset(idx, subset= (idx <= tree$Nnode))
 }
 
-tree.kernel <- function(t1, t2, lambda=0.5, rbf.var=1.0, sst.control=TRUE, normalize=FALSE) {
+
+tree.kernel.R <- function(t1, t2, lambda=0.5, rbf.var=1.0, sst.control=TRUE, normalize=FALSE) {
+  # Re-implementation of tree shape kernel in native R instead of C.
+  # This will be slower but easier to maintain.
+  #
+  # @param t1: first tree as Phylo object
+  # @param t2: second tree as Phylo object
+  # @param lambda:  exponential decay factor to prevent large diagonal problem
+  # @param rbf.var:  radial basis function variance parameter to penalize branch lengths
+  # @param sst.control:  Moschitti's sigma; if FALSE, reject subset trees for subtree kernel
+  
   # FIXME: this assumes that t1 and t2 are both rooted 
   # TODO: port tip label (state) handling from Python script
   
@@ -206,16 +218,48 @@ tree.kernel <- function(t1, t2, lambda=0.5, rbf.var=1.0, sst.control=TRUE, norma
   g1 <- .tree.to.igraph(t1)
   g2 <- .tree.to.igraph(t2)
   
-  # use reorder() instead of postorder() to support `ape` version < 5.0
+  # store kernel scores for previous node comparisons
+  cache <- matrix(NA, nrow=length(V(g1)), ncol=length(V(g2)))  
+  
+  # using reorder() instead of postorder() to support `ape` version < 5.0
+  k <- 0
   for (n1 in .postorder(t1)) {
     for (n2 in .postorder(t2)) {
       if (V(g1)$production[n1] == V(g2)$production[n2]) {
-        res = lambda * exp(-1/rbf.var * (V(g1)$ssq.bl[n1] + V(g2)$ssq.bl[n2] - 2 * ))
+        res <- lambda * exp(
+          -1./rbf.var * (
+            V(g1)$ssq.bl[n1] + V(g2)$ssq.bl[n2] - 
+            2 * (V(g1)$bl[[n1]] %*% V(g2)$bl[[n2]])
+            )
+          )
+        for (cn1 in 1:2) {
+          c1 <- V(g1)$children[[n1]][cn1]
+          c2 <- V(g2)$children[[n2]][cn1]
+          
+          if (V(g1)$production[c1] != V(g2)$production[c2]) {
+            res <- res * sst.control
+          }
+          else if (V(g1)$production[c1] == 0) {
+            # both terminal nodes
+            res <- res * (sst.control + lambda)
+          }
+          else {
+            # both non-terminal nodes
+            if (is.na(cache[c1,c2])) {
+              res <- res * sst.control
+            }
+            else {
+              res <- res * cache[c1,c2]
+            }
+          }
+        }
+        
+        cache[n1,n2] <- res
+        k <- k + res
       }
     }
   }
   
-  
-  
+  return(k)
 }
 

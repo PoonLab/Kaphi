@@ -38,6 +38,9 @@ test.kernel.trivial <- function() {
     result <- tree.kernel(t1, t1, lambda=0.1, sigma=2.0, rho=1.0, normalize=1)
     # normalized kernel score of a tree against itself should always be 1
     checkEquals(expected, result)
+    
+    result <- tree.kernel.R(t1, t1, lambda=0.1, rbf.var=2.0, sst.control=TRUE, normalize=FALSE)
+    checkEquals(expected, result)
 }
 
 test.kernel.unnormalized <- function() {
