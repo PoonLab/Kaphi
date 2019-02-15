@@ -98,42 +98,6 @@ utk <- function(t1, t2, config) {
   return(result)
 }
 
-tree.kernel <- function(tree1, tree2,
-                        lambda,        # decay factor
-                        sigma,         # RBF variance parameter
-                        rho=1.0,         # SST control parameter; 0 = subtree kernel, 1 = subset tree kernel
-                        normalize=0,   # normalize kernel score by sqrt(k(t1,t1) * k(t2,t2))
-                        label1=NA,     # arguments for labeled tree kernel
-                        label2=NA,
-                        gamma=0        # label factor
-                        ) {
-  # make labels
-  use.label <- if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
-    FALSE
-  } else {
-  	tree1$tip.label <- label1
-    tree2$tip.label <- label2
-    TRUE
-  }
-    
-  nwk1 <- .to.newick(tree1)
-  nwk2 <- .to.newick(tree2)
-        
-#    # make labels
-#    if (any(is.na(label1)) || any(is.na(label2)) || is.null(label1) || is.null(label2)) {
-#        new_label1 <- new_label2 <- NA
-#    } else {
-#	     label <- unique(label1, label2)
-#        new_label1 <- sapply(label1, function(x) which(x == label))
-#        new_label2 <- sapply(label2, function(x) which(x == label))
-#    }
-		
-  res <- .Call("R_Kaphi_kernel",
-                 nwk1, nwk2, lambda, sigma, as.double(rho), use.label, gamma, normalize,
-                 PACKAGE="Kaphi")
-  return (res)
-}
-
 
 
 # also try R-igraph?
@@ -193,13 +157,26 @@ tree.kernel <- function(tree1, tree2,
 }
 
 .postorder <- function(tree) {
-  # @return vector of integer indices to internal nodes in postorder traversal
+  # using reorder() instead of postorder() to support `ape` version < 5.0
+  # @param tree: Phylo object
+  # @return : vector of integer indices to internal nodes in postorder traversal
   idx <- reorder(tree, order='postorder', index.only=TRUE)
   subset(idx, subset= (idx <= tree$Nnode))
 }
 
 
-tree.kernel.R <- function(t1, t2, lambda=0.5, rbf.var=1.0, sst.control=TRUE, normalize=FALSE) {
+tree.kernel <- function(t1, t2, lambda=0.5, sigma=1.0, rho=TRUE, normalize=FALSE, 
+                        label1=NA, label2=NA, gamma=0) {
+  # Wrapper function for tree.kernel.R() to normalize 
+  k <- .tsk(t1, t2, lambda, rbf.var=sigma, sst.control=rho)
+  if (normalize) {
+    k <- k / (sqrt(.tsk(t1, t1, lambda, rbf.var=sigma, sst.control=rho)) *
+                sqrt(.tsk(t2, t2, lambda, rbf.var=sigma, sst.control=rho)))
+  }
+  return(k)
+}
+
+.tsk <- function(t1, t2, lambda=0.5, rbf.var=1.0, sst.control=TRUE) {
   # Re-implementation of tree shape kernel in native R instead of C.
   # This will be slower but easier to maintain.
   #
@@ -215,21 +192,24 @@ tree.kernel.R <- function(t1, t2, lambda=0.5, rbf.var=1.0, sst.control=TRUE, nor
   if (rbf.var <= 0) stop("tree.kernel: rbf.var must be greater than 0")
   if (lambda <= 0 || lambda > 1) stop("tree.kernel: lambda must be within (0,1]")
   
+  # convert Phylo objects to igraph
   g1 <- .tree.to.igraph(t1)
   g2 <- .tree.to.igraph(t2)
   
   # store kernel scores for previous node comparisons
   cache <- matrix(NA, nrow=length(V(g1)), ncol=length(V(g2)))  
   
-  # using reorder() instead of postorder() to support `ape` version < 5.0
-  k <- 0
+  k <- 0  # initialize return value
+  
+  # iterate over every pairing of nodes in two trees
   for (n1 in .postorder(t1)) {
     for (n2 in .postorder(t2)) {
       if (V(g1)$production[n1] == V(g2)$production[n2]) {
+        # Gaussian radial basis function
         res <- lambda * exp(
           -1./rbf.var * (
             V(g1)$ssq.bl[n1] + V(g2)$ssq.bl[n2] - 
-            2 * (V(g1)$bl[[n1]] %*% V(g2)$bl[[n2]])
+            2 * as.numeric(V(g1)$bl[[n1]] %*% V(g2)$bl[[n2]])
             )
           )
         for (cn1 in 1:2) {
@@ -239,17 +219,19 @@ tree.kernel.R <- function(t1, t2, lambda=0.5, rbf.var=1.0, sst.control=TRUE, nor
           if (V(g1)$production[c1] != V(g2)$production[c2]) {
             res <- res * sst.control
           }
-          else if (V(g1)$production[c1] == 0) {
-            # both terminal nodes
-            res <- res * (sst.control + lambda)
-          }
           else {
-            # both non-terminal nodes
-            if (is.na(cache[c1,c2])) {
-              res <- res * sst.control
+            if (V(g1)$production[c1] == 0) {
+              # both terminal nodes
+              res <- res * (sst.control + lambda)
             }
             else {
-              res <- res * cache[c1,c2]
+              # both non-terminal nodes
+              if (is.na(cache[c1,c2])) {
+                res <- res * sst.control
+              }
+              else {
+                res <- res * (sst.control + cache[c1,c2])
+              }
             }
           }
         }

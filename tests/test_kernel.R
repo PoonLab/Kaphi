@@ -38,9 +38,6 @@ test.kernel.trivial <- function() {
     result <- tree.kernel(t1, t1, lambda=0.1, sigma=2.0, rho=1.0, normalize=1)
     # normalized kernel score of a tree against itself should always be 1
     checkEquals(expected, result)
-    
-    result <- tree.kernel.R(t1, t1, lambda=0.1, rbf.var=2.0, sst.control=TRUE, normalize=FALSE)
-    checkEquals(expected, result)
 }
 
 test.kernel.unnormalized <- function() {
@@ -87,7 +84,9 @@ test.kernel.normalized <- function() {
 test.kernel.label <- function() {
     #config <- list(decay.factor=1., rbf.variance=1., sst.control=1., rescale.mode='NONE')
     #t1 <- .preprocess.tree(t1, config)  # (A:0.1,B:0.2)
-
+    
+    DEACTIVATED("")  # until label kernel is implemented in R
+    
 	# essentially unlabelled
 	cat("essentially unlabelled\n")
 	result <- tree.kernel(t1, t1, lambda=1, sigma=1, rho=1, label1=t1$tip.label, label2=t1$tip.label, gamma=1, normalize=0)
