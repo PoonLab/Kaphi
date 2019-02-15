@@ -1,7 +1,3 @@
-[submodule "colgem"]
-	path = colgem
-	url = https://github.com/PoonLab/colgem
-	ignore = dirty
 [submodule "pkg/src/igraph"]
 	path = pkg/src/igraph
 	url = https://github.com/rmcclosk/igraph

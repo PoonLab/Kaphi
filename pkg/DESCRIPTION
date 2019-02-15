@@ -1,19 +1,17 @@
 Package: Kaphi
 Type: Package
 Title: Kernel-embedded ABC for phylodynamic inference
-Version: 0.0.1
-Date: 2016-10-20
-Author: {Art FY Poon}
+Version: 0.0.2
+Date: 2019-02-15
+Author: {Art FY Poon, Garway T Ng, Mathias Renaud, Faisal Abu-Sardanah, Helen He}
 Maintainer: Art FY Poon <artpoon@gmail.com>
 Depends:
     ape,
-    deSolve,
+    igraph,
     yaml,
     RUnit,
     diversitree,
     inline,
-    Rcpp,
-    RcppArmadillo,
     whisker
 Optional:
     phyloTop & phangorn (for some distance metric functions).

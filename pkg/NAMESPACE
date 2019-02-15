@@ -68,15 +68,6 @@ export(speciation.model)
 export(epidem.model)
 export(.call.master)
 
-export(parse.ode)
-export(.get.times)
-export(solve.ode)
-
-export(.init.fgy)
-export(.init.QAL.solver)
-export(.solve.A.mx)
-export(simulate.ode.tree)
-
 export(.get.event.times)
 export(.update.mstates)
 export(.sample.path)
@@ -84,4 +75,3 @@ export(.coalesce.lineages)
 export(.get.terminals)
 export(.invert.list)
 
-useDynLib(Kaphi)
