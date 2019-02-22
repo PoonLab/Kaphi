@@ -142,6 +142,7 @@ utk <- function(t1, t2, config) {
 }
 
 .tree.to.igraph <- function(tree) {
+  tree <- reorder(tree, order='postorder')
   g <- as.igraph.phylo(tree)
   g <- set.edge.attribute(g, 'length', value=tree$edge.length)
   g <- set.vertex.attribute(g, 'production', value=.get.productions(g))
@@ -156,32 +157,45 @@ utk <- function(t1, t2, config) {
   g
 }
 
-.postorder <- function(tree) {
+.postorder <- function(g) {
   # using reorder() instead of postorder() to support `ape` version < 5.0
-  # @param tree: Phylo object
+  # @param g: igraph object
   # @return : vector of integer indices to internal nodes in postorder traversal
-  idx <- reorder(tree, order='postorder', index.only=TRUE)
-  subset(idx, subset= (idx <= tree$Nnode))
+  if (is.null(V(g)$production)) {
+    g <- set.vertex.attribute(g, 'production', value=.get.productions(g))
+  }
+  which(V(g)$production > 0)
 }
 
 
 tree.kernel <- function(t1, t2, lambda=0.5, sigma=1.0, rho=TRUE, normalize=FALSE, 
                         label1=NA, label2=NA, gamma=0) {
   # Wrapper function for tree.kernel.R() to normalize 
-  k <- .tsk(t1, t2, lambda, rbf.var=sigma, sst.control=rho)
+  
+  # convert Phylo objects to igraph
+  g1 <- .tree.to.igraph(t1)
+  g2 <- .tree.to.igraph(t2)
+  
+  k <- .tsk(g1, g2, lambda, rbf.var=sigma, sst.control=rho)
   if (normalize) {
-    k <- k / (sqrt(.tsk(t1, t1, lambda, rbf.var=sigma, sst.control=rho)) *
-                sqrt(.tsk(t2, t2, lambda, rbf.var=sigma, sst.control=rho)))
+    if (is.null(t1$kernel)) {
+      t1$kernel <- .tsk(g1, g1, lambda, rbf.var=sigma, sst.control=rho)
+    }
+    if (is.null(t2$kernel)) {
+      t2$kernel <- .tsk(g2, g2, lambda, rbf.var=sigma, sst.control=rho)
+    }
+    k <- k / (sqrt(t1$kernel) * sqrt(t2$kernel))
   }
   return(k)
 }
 
-.tsk <- function(t1, t2, lambda=0.5, rbf.var=1.0, sst.control=TRUE) {
+
+.tsk <- function(g1, g2, lambda=0.5, rbf.var=1.0, sst.control=TRUE) {
   # Re-implementation of tree shape kernel in native R instead of C.
   # This will be slower but easier to maintain.
   #
-  # @param t1: first tree as Phylo object
-  # @param t2: second tree as Phylo object
+  # @param g1: first tree as igraph object
+  # @param g2: second tree as igraph object
   # @param lambda:  exponential decay factor to prevent large diagonal problem
   # @param rbf.var:  radial basis function variance parameter to penalize branch lengths
   # @param sst.control:  Moschitti's sigma; if FALSE, reject subset trees for subtree kernel
@@ -192,18 +206,14 @@ tree.kernel <- function(t1, t2, lambda=0.5, sigma=1.0, rho=TRUE, normalize=FALSE
   if (rbf.var <= 0) stop("tree.kernel: rbf.var must be greater than 0")
   if (lambda <= 0 || lambda > 1) stop("tree.kernel: lambda must be within (0,1]")
   
-  # convert Phylo objects to igraph
-  g1 <- .tree.to.igraph(t1)
-  g2 <- .tree.to.igraph(t2)
-  
   # store kernel scores for previous node comparisons
   cache <- matrix(NA, nrow=length(V(g1)), ncol=length(V(g2)))  
   
   k <- 0  # initialize return value
   
   # iterate over every pairing of nodes in two trees
-  for (n1 in .postorder(t1)) {
-    for (n2 in .postorder(t2)) {
+  for (n1 in .postorder(g1)) {
+    for (n2 in .postorder(g2)) {
       if (V(g1)$production[n1] == V(g2)$production[n2]) {
         # Gaussian radial basis function
         res <- lambda * exp(
