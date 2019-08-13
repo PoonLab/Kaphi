@@ -25,7 +25,7 @@ resize.amount <- 100
 bisection.max.iter <- 10000
 
 
-simulate.trees <- function(workspace, theta, model, seed=NA, ...) {
+simulate.trees <- function(workspace, theta, model, seed=NA, nthreads=1, ...) {
 	# @param workspace: smc.workspace object
 	# @param theta: parameter vector
 	# @param seed: argument to set.seed()
@@ -39,12 +39,14 @@ simulate.trees <- function(workspace, theta, model, seed=NA, ...) {
   result <- config$model(theta=theta, nsim=config$nsample, tips=workspace$n.tips,
                          model=model, seed=seed, labels=workspace$tip.labels, ...)
   
-  # annotate each trees with its self-kernel score
-  for (i in 1:config$nsample) {
-    result[[i]] <- .preprocess.tree(result[[i]], config)
-  }
+  # annotate each tree with its self-kernel score (parallelized)
+  processed <- mclapply(1:config$nsample,
+                        function(i) {
+                        result[[i]] <<- .preprocess.tree(result[[i]], config)
+                        },
+                        mc.cores = nthreads)
   
-  return(result)
+  return(processed)
 }
 
 
@@ -99,7 +101,7 @@ distance <- function(x, y, config) {
 }
 
 
-initialize.smc <- function(ws, model, seed=NA, ...) {
+initialize.smc <- function(ws, model, seed=NA, nthreads=1, ...) {
   config <- ws$config
   nparams <- length(config$params)
   colnames(ws$particles) <- config$params
@@ -111,12 +113,14 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
     ws$weights[i] <- 1./config$nparticle
     
     # simulate trees from particle
-    ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], model=model, seed=seed, ...)
+    ws$sim.trees[[i]] <- simulate.trees(ws, ws$particles[i,], model=model, seed=seed, nthreads=nthreads, ...)
     
-		# calculate kernel distances for trees
-		ws$dists[,i] <- sapply(ws$sim.trees[[i]], function(sim.tree) {
-      distance(ws$obs.tree, sim.tree, config)
-		})
+		# calculate kernel distances for trees (parallelized)
+		ws$dists[,i] <- unlist(mclapply(ws$sim.trees[[i]], 
+		                                function(sim.tree) {
+		                                distance(ws$obs.tree, sim.tree, config)
+		                                },
+		                                mc.cores=nthreads))
 	}
   cat('Initialized SMC workspace.\n')
   return(ws)
@@ -251,12 +255,14 @@ initialize.smc <- function(ws, model, seed=NA, ...) {
       return(NULL)    # reject new particle, not possible under proposal distribution
     }
     
-    # simulate new trees
+    # simulate new trees (parallelized)
     # retain sim.trees in case we revert to previous particle
-    new.trees <- simulate.trees(ws, new.particle, model=model, seed=seed, ...)
-    new.dists <- sapply(new.trees, function(sim.tree) {
-      distance(ws$obs.tree, sim.tree, config)
-    })
+    new.trees <- simulate.trees(ws, new.particle, model=model, seed=seed, nthreads=nthreads, ...)
+    new.dists <- unlist(mclapply(new.trees, 
+                                    function(sim.tree) {
+                                      distance(ws$obs.tree, sim.tree, config)
+                                    },
+                                    mc.cores=nthreads))
     
     # SMC approximation to likelihood ratio
     old.nbhd <- sum(ws$dists[,i] < ws$epsilon)    # how many samples are in the neighbourhood of data?
@@ -317,7 +323,7 @@ run.smc <- function(ws, trace.file='', regex=NA, seed=NA, nthreads=1, verbose=FA
   # draw particles from prior distribution, assign weights and simulate data
   ptm <- proc.time()  # start timer
   cat ("Initializing SMC-ABC run with", config$nparticle, "particles\n")
-  ws <- initialize.smc(ws, model, seed=seed, ...)
+  ws <- initialize.smc(ws, model, seed=seed, nthreads=nthreads, ...)
 
   niter <- 0
   ws$epsilon <- .Machine$double.xmax

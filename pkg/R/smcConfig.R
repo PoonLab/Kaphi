@@ -284,11 +284,11 @@ set.model <- function(config, generator) {
     # 3. tips = size of tree to simulate
   g.args <- names(formals(generator))
   if (length(g.args)<3 || any(!is.element(c('theta', 'nsim', 'tips'), g.args))) {
-  	stop("generator is not a Kaphi-compatible model")
+  	stop(as.character(generator), " is not a Kaphi-compatible model")
   }
   # check that function has name attribute
   if (is.null(attr(generator, 'name'))) {
-    stop("generator is not a Kaphi-compatible model")
+    stop(as.character(generator), " is not a Kaphi-compatible model")
   }
 
   config$model <- generator
