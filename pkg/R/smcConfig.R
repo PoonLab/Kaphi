@@ -37,7 +37,7 @@ load.config <- function(file) {
 
     # distance settings
     # kernel, sackin, tree.width, etc
-    dist="kernel.dist(x, y, decay.factor=0.2, rbf.variance=100.0, sst.control=1.0)",
+    dist="kernel.dist(x, y, decay.factor=0.2, rbf.variance=100.0, sst.control=1.0, norm.mode='MEAN')",
     
     # cached kernel settings, left alone if not specified in user-provided yaml/distance string
     decay.factor=0.2,
@@ -97,8 +97,6 @@ load.config <- function(file) {
     den.call <- paste0('d', sublist$dist, '(arg.delta,', paste(arguments, collapse=','), ')')
     config$proposal.densities[par.name] <- den.call
   }
-
-  # FIXME: need to write a handler to interpret "1e-5" as float
 
   # parse SMC settings
   for (smc.set in names(settings$smc)) {
@@ -187,8 +185,9 @@ parse.distance <- function(distance) {
                    c('phangorn::','path.dist',2)
                    
                    )
-  mat <- matrix(nrow=length(metrics), ncol=3, dimnames=list(NULL,c('pkg', 'metric', 'no.vars')))
-  stats <- t(sapply(seq_along(metrics), function(x) {mat[x,] <- metrics[[x]]}))                   # matrix of tree stats
+  
+  mat <- matrix(nrow=length(metrics), ncol=3, dimnames=list(NULL,c('pkg', 'metric', 'num.vars')))
+  stats <- t(sapply(seq_along(metrics), function(x) {mat[x,] <<- metrics[[x]]}))               # matrix of tree stats
   
   # Checks the method used to specify distance expression
   if (is.character(distance)) {                                                                # The user has specified the distance expression as a string
@@ -212,17 +211,45 @@ parse.distance <- function(distance) {
     dists <- c()  # Vector to hold each parsed distance expression                              # The user has specified the distance expression as a YAML dictionary
                                                                                                 
     for (d.metric in names(distance)){ 
+      
       sublist <- distance[[d.metric]]                                                           # sublist contains the weight and additional arguments for the function
-      weight <- sublist$weight
       
-      # strip out weight, package arguments, and convert list of arguments to strings of the format: "argument=value"
-      all.args <- lapply(seq_along(sublist), function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, y=sublist, n=names(sublist))
-      strip.args <- sapply(all.args, function(x) {which(!grepl('weight', x) && !grepl('package', x))})
-      arguments <- all.args[ which(strip.args == 1) ]
-      
-      ind <- which(stats[,2] == d.metric)
-      indiv.expr <- .generate.dist.expr(weight, d.metric, arguments, stats[ind,])
-      dists <- append(dists, indiv.expr)                                                                      # Stores individual expressions
+      if (d.metric == 'y-intercept') {
+        
+        dists <- append(dists, sublist$value)
+        
+      } else if (d.metric == 'kernel.dist') {
+        
+        sublist <- sublist[-which(names(sublist)=='package')]
+        
+        for (measure in sublist) {
+          weight <- measure$weight
+          
+          # strip out weight, package arguments, and convert list of arguments to strings of the format: "argument=value"
+          all.args <- lapply(seq_along(measure), function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, y=measure, n=names(measure))
+          strip.args <- sapply(all.args, function(x) {which(!grepl('weight', x) && !grepl('package', x))})
+          arguments <- all.args[ which(strip.args == 1) ]
+          
+          ind <- which(stats[,2] == d.metric)
+          indiv.expr <- .generate.dist.expr(weight, d.metric, arguments, stats[ind,])
+          dists <- append(dists, indiv.expr)   
+        }
+        
+      } else {
+        
+        weight <- sublist$weight
+        
+        # strip out weight, package arguments, and convert list of arguments to strings of the format: "argument=value"
+        all.args <- lapply(seq_along(sublist), function(y, n, i) { paste(n[[i]], y[[i]], sep='=') }, y=sublist, n=names(sublist))
+        strip.args <- sapply(all.args, function(x) {which(!grepl('weight', x) && !grepl('package', x))})
+        arguments <- all.args[ which(strip.args == 1) ]
+        
+        ind <- which(stats[,2] == d.metric)
+        indiv.expr <- .generate.dist.expr(weight, d.metric, arguments, stats[ind,])
+        dists <- append(dists, indiv.expr)                                                        # Stores individual expressions
+        
+      }
+                                                                         
     }
   }
   expression <- paste0(dists, collapse=' + ')                                                     # combines vector of expressions into one string

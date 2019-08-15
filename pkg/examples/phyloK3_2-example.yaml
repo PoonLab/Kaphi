@@ -1,0 +1,72 @@
+priors:
+  'L':                # coalescent rate of pathogens
+    dist: 'uniform'        
+    hyperparameters:
+    - min: 0
+    - max: 1
+  'P':                # cospeciation rate
+    dist: 'uniform'    
+    hyperparameters:
+    - min: 0
+    - max: 1
+constraints:
+  - ''
+proposals:
+  'L':                # distribution of the "change in L in between steps" throughout the simulation
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 0.05
+  'P':                # distribution of the "change in P in between steps" throughout the simulation
+    dist: 'norm'
+    parameters:
+    - mean: 0
+    - sd: 0.05
+smc:
+  nparticle: 10
+  nsample: 5
+  ess.tolerance: 50.0
+  final.accept.rate: 0.1
+  final.epsilon: 0.1
+  quality: 0.95
+  step.tolerance: 1.e-5
+distances:
+  'kernel.dist':                     # unable to separate, YAML does not allow duplicate "keys" 
+    package: 'Kaphi'                 # package doesn't need to be specified, but can for your clarity (TODO: or when specifying a new distance not part of Kaphi's tested list)
+    'normalized.unlabelled':         # normalized unlabelled kernel distance metric
+      weight: 0.8                    # weights represent the coefficient (in this case, sum of the glm coefficients for lambda and rho where applicable)
+      decay.factor: 0.1
+      rbf.variance: 1.0
+      sst.control: 1.0
+      norm.mode: 'MEAN'
+    'non-normalized.unlabelled':     # non-normalized kernel distance metric
+      weight: 0.8
+      decay.factor: 0.1
+      rbf.variance: 1.0
+      sst.control: 1.0
+      norm.node: 'NONE'
+  'RF.dist':
+    package: 'phangorn'              # using default parameters, but explicitly listing them here for your clarity
+    weight: 0.10      
+    normalize: FALSE
+    check.labels: TRUE
+  'Trip':
+    weight: 0.10
+  'Sim':
+    weight: 0.10
+  'Align':
+    weight: 0.10
+  'Node.dist':
+    weight: 0.10
+  'MAST':
+    weight: 0.10
+  'dist.topo':
+    weight: 0.10
+    method: "'PH85'"                 # strings literals must have surrounding double quotes
+  'path.dist':
+    weight: 0.10
+    check.labels: TRUE
+    use.weight: FALSE
+  'y-intercept':                     # specifying a constant value (y-intercept) <- built in specific to this purpose
+    value: 1.5
+
