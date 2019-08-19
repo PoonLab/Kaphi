@@ -44,7 +44,7 @@ distances:
       decay.factor: 0.1
       rbf.variance: 1.0
       sst.control: 1.0
-      norm.node: 'NONE'
+      norm.mode: 'NONE'
     'non-normalized.labelled':
       weight: 0.7173
       decay.factor: 0.1

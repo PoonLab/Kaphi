@@ -112,7 +112,7 @@ load.config <- function(file) {
   # Parse Kernel Settings
   if (is.list(settings$distances)) {
     if (is.element('kernel.dist', names(settings$distances))) {
-      kernel.settings <- settings$distances[['kernel.dist']]
+      kernel.settings <- settings$distances[['kernel.dist']][['non-normalized.unlabelled']]
       config$decay.factor <- kernel.settings$decay.factor
       config$rbf.variance <- kernel.settings$rbf.variance
       config$sst.control <- kernel.settings$sst.control
