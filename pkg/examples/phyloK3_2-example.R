@@ -5,7 +5,7 @@ setwd('~/git/Kaphi')
 
 # load configuration file (assumes R was launched from Kaphi root dir)
 #config <- load.config('pkg/examples/example-bisse.yaml')
-config <- load.config('pkg/examples/phyloK3_2-example.yaml')
+config <- load.config('tests/fixtures/test-bisse.yaml')
 config <- set.model(config, 'bisse')
 
 # simulate target tree

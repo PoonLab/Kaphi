@@ -34,39 +34,49 @@ distances:
   'kernel.dist':                     # unable to separate, YAML does not allow duplicate "keys" 
     package: 'Kaphi'                 # package doesn't need to be specified, but can for your clarity (TODO: or when specifying a new distance not part of Kaphi's tested list)
     'normalized.unlabelled':         # normalized unlabelled kernel distance metric
-      weight: 0.8                    # weights represent the coefficient (in this case, sum of the glm coefficients for lambda and rho where applicable)
+      weight: 4.353                  # weights represent the coefficient (in this case, sum of the glm coefficients for lambda and rho where applicable)
       decay.factor: 0.1
       rbf.variance: 1.0
       sst.control: 1.0
       norm.mode: 'MEAN'
     'non-normalized.unlabelled':     # non-normalized kernel distance metric
-      weight: 0.8
+      weight: 1.3032
       decay.factor: 0.1
       rbf.variance: 1.0
       sst.control: 1.0
       norm.node: 'NONE'
+    'non-normalized.labelled':
+      weight: 0.7173
+      decay.factor: 0.1
+      rbf.variance: 1.0
+      sst.control: 1.0
+      norm.mode: 'NONE'
   'RF.dist':
     package: 'phangorn'              # using default parameters, but explicitly listing them here for your clarity
-    weight: 0.10      
+    weight: -5.049     
     normalize: FALSE
     check.labels: TRUE
+  'KF.dist':
+    package: 'phangorn'
+    weight: -9.23045e-07
+    check.labels: TRUE
   'Trip':
-    weight: 0.10
+    weight: -3.5012
   'Sim':
-    weight: 0.10
+    weight: 12.19
   'Align':
-    weight: 0.10
+    weight: 1.963e-03
   'Node.dist':
-    weight: 0.10
+    weight: -1.30179
   'MAST':
-    weight: 0.10
+    weight: 4.227e-03
   'dist.topo':
-    weight: 0.10
+    weight: -2.038
     method: "'PH85'"                 # strings literals must have surrounding double quotes
   'path.dist':
-    weight: 0.10
+    weight: 7.598e-03
     check.labels: TRUE
     use.weight: FALSE
   'y-intercept':                     # specifying a constant value (y-intercept) <- built in specific to this purpose
-    value: 1.5
+    value: 2.94811
 
